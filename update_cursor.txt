@@ -1,0 +1,39 @@
+alter trigger trg_aft_iu_index_constituent disable;
+
+declare 
+cursor cur is
+select 
+    index_constituent_id,
+    case source_typ_cd 
+      when  'NY INDEX DESK UPLOAD'  then 'CD_CBNY'
+      when  'MarkIT'  then 'CD_INDEX'
+      when  'DBIQ Strategic'  then 'CD_CB'
+      when  'DBIQ Legacy'  then 'CD_CBLGC' 
+    end  subsystem_type_cd    
+     from
+    (select c.index_constituent_id,
+           (select i.clsfctn_ctgry_itm_cd
+              from classification_category_item i
+             where i.clsfctn_ctgry_itm_id = ii.source_typ_id) as source_typ_cd
+      from index_constituent c
+      join index_instrument ii
+        on ii.instrument_id = c.instrument_id);
+   
+type tt is table of cur%rowtype index by pls_integer;
+
+v_tt tt;
+
+begin
+  open cur;
+  loop
+    fetch cur bulk collect into v_tt limit 10000;
+    exit when v_tt.count = 0;
+
+      forall indx in indices of v_tt 
+       update index_constituent c set c.subsystem_type_cd= v_tt(indx).subsystem_type_cd
+        where c.index_constituent_id =v_tt(indx).index_constituent_id;
+      commit;            
+  end loop;
+end;
+/
+alter trigger trg_aft_iu_index_constituent enable;

@@ -1,0 +1,40 @@
+Question:  I need to understand how append works in Oracle. What are the costs and benefits of append in Oracle inserts?
+
+Answer: Oracle's "append" hint keyword is a tool to bypass the use of existing half-empty empty data blocks (as per your definition of pctfree) from the freelist chain.  Instead, Oracle extends the table and uses brand-new dead-empty data blocks for inserts.  This results in more rows per I/O, speeding-up insert performance.
+
+The syntax for the append hint is ONLY used when the insert is for a sub-select:
+
+insert /*+ append */ 
+into 
+   raleigh_customers
+   raleigh_customers 
+     (select * from customers where name = 'RALEIGH');
+
+By using the append hint, you ensure that Oracle always grabs "fresh" data blocks by raising the high-water-mark for the table. If you are doing parallel insert DML, the append hint mode is the default and you don't need to specify an append  hint.
+
+Usage notes for append and append_values:
+
+- The append hint is embedded inside a comment, so make sure to ensure that you don't have a syntax error.  If you have a syntax error, you will not get an error message.
+
+- Up until Oracle 11g release 2 introduced the append_values syntax, the standard append supports only the subquery syntax of the insert statement, not the values clause.
+
+Using the append_values clause
+
+Starting in Oracle 11g release 2, Oracle has enhanced the append hint to allow it to be used inside the values clause.  This is appropriately called the append_values hint.
+
+Dr. Tim Hall also shows an example of using the append values in a PL/SQL forall statement:
+
+-- bulk inserts using the APPEND_VALUES hint. 
+l_start := DBMS_UTILITY.get_time;
+
+FORALL i IN l_tab.first .. l_tab.last
+INSERT /*+ APPEND_VALUES */ INTO forall_test VALUES l_tab(i)
+
+Hall also notes that append_values is one third faster than a forall, which, in turn, is many times faster than a row-by-row insert (due to context switches).
+
+Mark Bobak notes "Also, if you're going w/ APPEND, consider putting the table into NOLOGGING mode, which will allow Oracle to avoid almost all redo logging."
+
+insert /*+ append */ into customer (select xxx);
+
+He also notes that if you submit parallel jobs to insert against the table at the same time, using the append hint may cause serialization, removing the benefit of parallel job streams.
+

@@ -1,0 +1,240 @@
+-- Create table
+create table STG_IDX_INDEX_CDM
+(
+  group_pack           NUMBER,
+  pack_id              NUMBER,
+  stg_id               NUMBER,
+  action               VARCHAR2(3),
+  rowid_object         VARCHAR2(25),
+  creator              VARCHAR2(50) default USER,
+  create_date          DATE default SYSDATE,
+  updated_by           VARCHAR2(50) default user,
+  update_date          DATE,
+  index_name           VARCHAR2(2000),
+  name_extended        VARCHAR2(2000),
+  currency             VARCHAR2(2000),
+  index_start_date     TIMESTAMP(9),
+  index_end_date       TIMESTAMP(9),
+  rebalance_notes      VARCHAR2(2000),
+  rebalance_frequency  VARCHAR2(2000),
+  index_type           VARCHAR2(2000),
+  deleted_date         DATE,
+  markit_asset_id      VARCHAR2(2000),
+  status_cd            VARCHAR2(2000),
+  total_capitalization VARCHAR2(40),
+  data_provider        VARCHAR2(2000),
+  market_dt            DATE
+)
+partition by range (GROUP_PACK)
+(
+  partition P_FIRST values less than (1)
+  partition P_NEXT_01 values less than (100),
+  partition P_NEXT_02 values less than (200),
+  partition P_NEXT_03 values less than (300),
+  partition P_LAST values less than (maxvalue)
+);
+-- Create/Recreate indexes 
+create index IDX_STG_IDX_INDEX_CDM_PACK_ACT on STG_IDX_INDEX (PACK_ID, ACTION, STG_ID)
+  local;
+-- Grant/Revoke object privileges 
+grant select, insert, update, delete, references, alter, index on SGIX_UAT.STG_IDX_INDEX_CDM to IRDS_PDM_UAT;
+
+-- Create table
+create table STG_IDX_INDEX_ALT_CDM
+(
+  group_pack              NUMBER,
+  pack_id                 NUMBER,
+  stg_id                  NUMBER,
+  action                  VARCHAR2(3),
+  rowid_object            VARCHAR2(25),
+  creator                 VARCHAR2(50) default USER,
+  create_date             DATE default SYSDATE,
+  updated_by              VARCHAR2(50) default USER,
+  update_date             DATE,
+  index_alt_id_type       VARCHAR2(2000),
+  index_alt_id_value      VARCHAR2(2000),
+  index_alt_id_start_date TIMESTAMP(6),
+  index_alt_id_end_date   TIMESTAMP(6),
+  index_rowid_object      VARCHAR2(14),
+  deleted_date            DATE,
+  status_cd               VARCHAR2(2000),
+  markit_asset_id         VARCHAR2(2000),
+  index_name              VARCHAR2(2000)
+)
+partition by range (GROUP_PACK)
+(
+  partition P_FIRST values less than (1),
+  partition P_NEXT_01 values less than (100),
+  partition P_NEXT_02 values less than (200),
+  partition P_NEXT_03 values less than (300),
+  partition P_LAST values less than (maxvalue)
+);
+-- Create/Recreate indexes 
+create index IDX_STG_INDEX_ALT_CDM_STG on STG_IDX_INDEX_ALT_CDM (PACK_ID, ACTION, STG_ID)
+  local;
+-- Grant/Revoke object privileges 
+grant select, insert, update, delete, references, alter, index on SGIX_UAT.STG_IDX_INDEX_ALT to IRDS_PDM_UAT;
+
+
+CREATE OR REPLACE VIEW VW_STG_IDX_INDEX_CDM AS
+SELECT group_pack,
+          pack_id,
+          stg_id,
+          action,
+          rowid_object,
+          creator,
+          create_date,
+          updated_by,
+          update_date,
+          index_name,
+          name_extended,
+          currency,
+          index_start_date,
+          index_end_date,
+          rebalance_notes,
+          rebalance_frequency,
+          index_type,
+          deleted_date,
+          status_cd,
+          total_capitalization as total_capitalization_no,
+          data_provider,
+          markit_asset_id,
+          market_dt
+     FROM stg_idx_index s;
+
+CREATE OR REPLACE VIEW VW_STG_IDX_INDEX_ALT_CDM AS
+SELECT group_pack,
+          pack_id,
+          stg_id,
+          action,
+          rowid_object,
+          creator,
+          create_date,
+          updated_by,
+          update_date,
+          index_alt_id_type,
+          index_alt_id_value,
+          index_alt_id_start_date,
+          index_alt_id_end_date,
+          index_rowid_object,
+          deleted_date,
+          status_cd,
+          markit_asset_id,
+          index_name
+     FROM stg_idx_index_alt s;	 
+	 
+
+-- Create table
+create table INDEX_INSTRUMENT_CDM
+(
+  instrument_id           NUMBER not null,
+  rebalance_freq_id       NUMBER,
+  index_return_typ_id     NUMBER,
+  index_extended_nm       VARCHAR2(256),
+  rebalance_note_tx       VARCHAR2(2000),
+  index_start_dt          DATE not null,
+  index_end_dt            DATE,
+  creator                 VARCHAR2(50),
+  create_date             DATE,
+  update_date             DATE,
+  updated_by              VARCHAR2(50),
+  status_cd               VARCHAR2(2) not null,
+  effective_dt            DATE not null,
+  total_capitalization_no NUMBER,
+  data_provider_id        NUMBER,
+  markit_asset_id         NUMBER,
+  instrument_nm           VARCHAR2(256) not null,
+  source_typ_id           NUMBER not null,
+  market_dt               DATE,
+  pack_id                 NUMBER default 0 not null
+);
+
+-- Create/Recreate indexes 
+create index IDX_INDEX_INSTR_CDM_02 on INDEX_INSTRUMENT_CDM (REBALANCE_FREQ_ID);
+create index IDX_INDEX_INSTR_CDM_03 on INDEX_INSTRUMENT_CDM (INDEX_RETURN_TYP_ID);
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table INDEX_INSTRUMENT_CDM
+  add constraint PK_INDEX_INSTRUMENT_CDM primary key (INSTRUMENT_ID);
+
+-- Create/Recreate check constraints 
+alter table INDEX_INSTRUMENT_CDM
+  add constraint CHK_INDEX_INSTR_CDM_STATUS_CD
+  check (status_cd IN ('A','I','P'));
+-- Grant/Revoke object privileges 
+grant select on INDEX_INSTRUMENT_CDM to IRDS_DISTR;
+
+-- Create table
+create table INDEX_INSTRUMENT_ALT_IDTFCN_CDM
+(
+  index_alt_idtfcn_id NUMBER not null,
+  instrument_id       NUMBER not null,
+  index_alt_cd        VARCHAR2(64) not null,
+  index_idtfcn_typ_id NUMBER not null,
+  valid_start_ts      TIMESTAMP(6) not null,
+  valid_end_ts        TIMESTAMP(6),
+  creator             VARCHAR2(255),
+  create_date         DATE,
+  updated_by          VARCHAR2(255),
+  update_date         DATE,
+  status_cd           VARCHAR2(2) not null,
+  effective_dt        DATE not null,
+  pack_id             NUMBER default 0 not null
+);
+
+-- Create/Recreate indexes 
+create index IDX_INDEX_INSTR_ALT_IDTFCN_CDM_01 on INDEX_INSTRUMENT_ALT_IDTFCN_CDM (INSTRUMENT_ID);
+create index XIF2INDEX_INSTR_ALT_IDTFC_CDM on INDEX_INSTRUMENT_ALT_IDTFCN_CDM (INDEX_IDTFCN_TYP_ID);
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table INDEX_INSTRUMENT_ALT_IDTFCN_CDM
+  add constraint PK_INDEX_INSTR_ALT_IDTFCN_CDM primary key (INDEX_ALT_IDTFCN_ID);
+
+alter table INDEX_INSTRUMENT_ALT_IDTFCN_CDM
+  add constraint FK_INDEX_INSTR_CDM_01 foreign key (INSTRUMENT_ID)
+  references INDEX_INSTRUMENT_CDM (INSTRUMENT_ID);
+
+  -- Grant/Revoke object privileges 
+grant select on INDEX_INSTRUMENT_ALT_IDTFCN_CDM to IRDS_DISTR;
+
+-- Create table
+create table INDEX_XREF_CDM
+(
+  base_object  VARCHAR2(30) not null,
+  rowid_object VARCHAR2(25) not null,
+  id_object    NUMBER not null,
+  pack_id      NUMBER not null
+)
+partition by list (BASE_OBJECT)
+(
+  partition FINANCIAL_INSTRUMENT values ('FINANCIAL_INSTRUMENT'),
+  partition ETP values ('ETP'),
+  partition INDEX_ISTRUMENT_ALT_IDTFCN values ('INDEX_ISTRUMENT_ALT_IDTFCN'),
+  partition INDEX_POSITION values ('INDEX_POSITION'),
+  partition INDEX_CONSTITUENT values ('INDEX_CONSTITUENT'),
+  partition ETP_CONSTITUENT values ('ETP_CONSTITUENT'),
+  partition ETP_BASKET values ('ETP_BASKET'),
+  partition ETP_SPEC_EXCHANGE_RATE values ('ETP_SPEC_EXCHANGE_RATE'),
+  partition INDEX_EXCHANGE_RATE values ('INDEX_EXCHANGE_RATE'),
+  partition ISSUE values ('ISSUE'),
+  partition ISSUE_ALT_ID values ('ISSUE_ALT_ID'),
+  partition LISTING values ('LISTING'),
+  partition LISTING_ALT_ID values ('LISTING_ALT_ID'),
+  partition DIVIDEND_POINT values ('DIVIDEND_POINT'),
+  partition PROVIDER_DIVIDEND values ('PROVIDER_DIVIDEND'),
+  partition DIVIDEND_FORECAST values ('DIVIDEND_FORECAST')
+);
+-- Create/Recreate indexes 
+create unique index UK_INDX_XREF_ID_OBJ_CDM on INDEX_XREF_CDM (BASE_OBJECT, ID_OBJECT)
+  local;
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table INDEX_XREF_CDM
+  add constraint UK_INDEX_XREF_ID_OBJ_CDM unique (BASE_OBJECT, ID_OBJECT);
+alter table INDEX_XREF_CDM
+  add constraint UK_INDEX_XREF_ROWID_OBJ_CDM unique (BASE_OBJECT, ROWID_OBJECT)
+  using index 
+  local;
+-- Grant/Revoke object privileges 
+grant select on INDEX_XREF_CDM to IRDS_PDM_DEV_READONLY;
+
+

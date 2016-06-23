@@ -1,0 +1,46 @@
+create or replace procedure P is
+begin
+  dbms_output.put_line($$PLSQL_UNIT || ':' || to_char($$PLSQL_LINE));
+end;
+/
+-------------
+exec P
+--P:3
+-------------
+С хранимой процедурой или функцией нет вопросов, в вот с пакетами и типами:
+
+--- использование $$plsql_unit в пакете
+create or replace package p1 is
+  procedure u1;
+end p1;
+
+create or replace package body p1 is
+  procedure u1 is
+  begin
+    dbms_output.put_line($$plsql_unit||': '||$$plsql_line);
+  end;
+end p1;
+
+begin
+  p1.u1; -- Печатает "P1: 4", а хотелось бы "P1.U1: 4"
+end;
+
+
+--- использование $$plsql_unit в типе
+create or replace type t1 as object(
+  f1 number,
+  member procedure p1
+);
+
+create or replace type body t1 is
+  member procedure p1 is
+  begin
+    dbms_output.put_line($$plsql_unit||': '||$$plsql_line);
+  end;
+end;
+
+declare
+  v_t1 t1 :=t1(123);
+begin
+  v_t1.p1;  -- Печатает "T1: 4", а хотелось бы "T1.P1: 4"
+end;

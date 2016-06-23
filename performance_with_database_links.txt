@@ -1,0 +1,71 @@
+Oracle SQL performance with database links - db link
+
+Oracle Tips by Burleson Consulting
+
+
+Question:  What are some of the performance issues when running SQL across a database link (dblink)?
+
+Answer:  Generally, the limiting factor in SQL performance of a distributed query (over a db-link) is the speed of the network (make sure that you have a high-speed network with proper SDU), but there are other issues:
+
+tnsnames.ora - Some recommend a separate listener and a larger value for SDU to accommodate jumbo Ethernet frames.
+"By using a separate listener for the gigabit network with a larger SDU - you can better exploit jumbo Ethernet frames. beware - interoperability just plain sucks."
+
+Pull vs. Push - In general, performance can be faster if you "pull" the data (calling the remote table from the master instance), as opposed to a "push" where you perform the join on the remote table.  This is especially true of you have a large sort, because the rows may be transferred to the remote host for sorting, and then back again afterwards.
+ 
+driving_site hint - The driving site hint forces query execution to be done at a different site than the initiating instance.  This is done when the remote table is much larger than the local table and you want the work (join, sorting) done remotely to save the back-and-forth network traffic.  n this example, we use the driving_site hint to force the "work" to be done on the site where the huge table resides:
+select /*+DRIVING_SITE(h)*/ 
+   ename
+from 
+  tiny_table        t, 
+  huge_table@remote h
+where
+   t.deptno = h.deptno;
+ 
+Note:  The driving_site hint will not work with CTAS (create table as select) and with create materialized view syntax because they are DDL and these operations must take place on the original instance.
+
+Views - Some recommend creating a view on the remote site referencing the local tables and calling the remote table via the local view. 
+create view local_cust as select * from cust@remote;
+
+You can get the same effect by using an inline view:
+
+SELECT /*+ DRIVING_SITE(a) */
+*
+FROM (SELECT stuff FROM emp@remote) a
+
+Sorting - If your SQL performs a sort, be aware that the sort will be performed on the LOCAL database.  This is one reason why it's bad to use a "push" approach, because the rows will traverse back-and-forth. 
+ 
+Parallelism - Parallel query across a database link can be quite complex.   In a distributed environment, pieces of a table may reside on many remote servers.  For example, assume that we have a distributed architecture where local customer tables are kept on each instance.  You could access all of the remote rows in a single query, using inter-instance parallel execution.  In this example, the query is executed from the north_carolina instance, accessing two remote instances in-parallel:
+ 
+   select customer_name, sum(purchase_amount) from sales
+   union
+   select customer_name, sum(purchase_amount) from sales@san_francisco
+   union
+   select customer_name, sum(purchase_amount) from sales@new_york
+   group by
+      customer_name;
+In this case the north_carolina instance drives the distributed parallel query and it is the north_carolina instance that must gather and sort the result set.
+
+ 
+
+Alberto Dell'Era notes this tip for distributed query parallelism:
+
+"I had some problems myself while mixing db-links and parallel operations; i solved them perfectly by creating a view at the remote site with the same text as the query, and then performing a "select *" from the view. "
+
+Also, note that there are many hidden parameters that influence OPQ performance (always consult Oracle technical support before changing an undocumented parameter)
+
+NAME                                VALUE
+----------------------------------- ---------------------_parallel_adaptive_max_users        1
+_parallel_default_max_instances     1
+_parallel_execution_message_align   FALSE
+_parallel_fake_class_pct            0
+_parallel_load_bal_unit             0
+_parallel_load_balancing            TRUE
+_parallel_min_message_pool          64560
+_parallel_recovery_stopat           32767
+_parallel_server_idle_time          5
+_parallel_server_sleep_time         10
+_parallel_txn_global                FALSE
+_parallelism_cost_fudge_factor      350
+ 
+
+Monitoring parallel query for remote distributed queries is also challenging.

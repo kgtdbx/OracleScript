@@ -1,0 +1,46 @@
+ќграничение количества сессий по условию
+ 
+¬от пример триггера, в котором устанавливаетс€ ограничение на количество сессий, 
+открытых одновременно и удовлетвор€ющих определЄнному условию (в дополнение к этому посту):
+
+CREATE OR REPLACE TRIGGER deny_logon_condition
+	AFTER LOGON ON DATABASE
+DECLARE
+	current_count NUMBER;
+	login_count NUMBER;
+BEGIN	
+	-- ”знаем, подходит ли наша сесси€ под услови€ ADDITIONAL_CONDITIONS
+	SELECT COUNT(*)
+	INTO current_count
+	FROM sys.v_$session
+	WHERE TYPE != 'BACKGROUND'
+		AND audsid = USERENV('sessionid')
+		AND ROWNUM = 1
+		AND ( ADDITIONAL_CONDITIONS );
+ 
+	-- ѕосчитаем количество сессий, подход€щих под это условие
+	SELECT COUNT(*)
+	INTO login_count
+	FROM sys.v_$session
+	WHERE TYPE != 'BACKGROUND'
+		AND ( ADDITIONAL_CONDITIONS );
+ 
+	-- ≈сли их больше 4-х и наша сесси€ тоже удовлетвор€ет условию,
+	-- то не дадим соединитьс€.
+	IF ((login_count > 4) AND (current_count = 1)) THEN
+	   RAISE_APPLICATION_ERROR(-20001, 'Too many sessions for this type of session');
+	END IF;
+ 
+	-- Ёто нужно, чтобы подавить исключение, которое 
+	-- возникнет в 1-м блоке, если наша сесси€ не подойдЄт под условие.
+	EXCEPTION WHEN NO_DATA_FOUND THEN NULL;
+END;
+/
+«десь ADDITIONAL_CONDITIONS - те самые услови€. Ёто может быть фильтраци€ по полю program, osuser, module, machine, etc., например: UPPER(program) = 'SQLPLUSW'
+ѕри попытке открыти€ сессии, пользователь получит сообщение об ошибке, 
+а мы можем врем€ от времени провер€ть alert log на предмет наличи€ подобных попыток и ругатьс€ вежливо напоминать пользовател€м, 
+что нельз€ открывать слишком много сессий такого типа.
+
+ѕри отладке триггера столкнулс€ с непри€тной ситуацией : процедура RAISE_APPLICATION_ERROR не действует, 
+если триггер срабатывает на сессию от имени пользовател€ с правами dba. —ообщение об ошибке попадает в alert log, 
+но сесси€ не завершаетс€ и никакой ошибки в клиентском приложении не возникает.

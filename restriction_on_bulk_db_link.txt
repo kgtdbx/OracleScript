@@ -1,0 +1,117 @@
+Overcoming the restriction on bulk inserts over a database link
+
+It appears as though there's an implementation restriction that forbids the use of forall .. insert on Oracle, when used over a database link. This is a simple example to demonstrate:
+
+connect schema/password@db1
+
+create table tmp_ben_test (
+   a number
+ , b number
+ , c date
+ , constraint pk_tmp_ben_test primary key (a, b)
+    );
+
+Table created.
+
+connect schema/password@db2
+Connected.
+
+declare
+
+   type r_test is record ( a number, b number, c date);
+   type t__test is table of r_test index by binary_integer;
+   t_test t__test;
+
+   cursor c_test is
+    select 1, level, sysdate
+      from dual
+   connect by level <= 10
+           ;
+
+begin
+
+   open c_test;
+   fetch c_test bulk collect into t_test;
+
+   forall i in t_test.first .. t_test.last
+     insert into tmp_ben_test@db1
+     values t_test(i)
+            ;
+
+   close c_test;
+
+end;
+/
+Very confusingly this fails in 9i with the following error:
+
+ERROR at line 1: ORA-01400: cannot insert NULL into ("SCHEMA"."TMP_BEN_TEST"."A") ORA-02063: preceding line from DB1 ORA-06512: at line 18
+If was only after checking in 11g that I realised this was an implementation restriction.
+
+ERROR at line 18: ORA-06550: line 18, column 4: PLS-00739: FORALL INSERT/UPDATE/DELETE not supported on remote tables
+The really obvious way round this is to change forall .. to:
+
+for i in t_test.first .. t_test.last loop
+    insert into tmp_ben_test@db1
+    values t_test(i);
+end loop;
+but, I'd rather keep it down to a single insert if at all possible. Tom Kyte suggests the use of a global temporary table. Inserting the data into a GTT and then over a DB link seems like massive overkill for a set of data that is already in a user-defined type.
+
+Just to clarify this example is extremely simplistic compared to what is actually happening. There is no way we will be able to do a simple insert into and there is no way all the operations could be done on a GTT. Large parts of the code have to be done in user-defined type.
+
+Is there another, simpler or less DMLy, way around this restriction?
+
+--**************************
+What restrictions do you face on the remote database? If you can create objects there you have a workaround: on the remote database create the collection type and a procedure which takes the collection as a parameter and executes the FORALL statement.
+
+--**************************
+If you create the t__test/r_test type in db2 and then create a public synonym for them on db1 then you should be able to call a procedure from db1 to db2 filling the t_table and returning in to db1. Then you should be able to insert into your local table.
+
+I'm assuming you would use packaged types and procedures in the real world, not anonymous blocks.
+
+Also, it would not be the ideal solution for big datasets, then GTT or similar would be better.
+
+-**************Tom Kyte**************
+No, there is not, forall and bulk collect do not function over a database link. 
+
+you could put the data into global temporary tables and 
+
+insert into remote select * from gtt; 
+
+to do it in "bulk" 
+-----------------------------------
+mcdonac@db11
+SQL> create table I_AM_ON_DB11 (x int, y int );
+
+Table created.
+
+
+mcdonac@np12
+SQL> create database link db11 using 'db11';
+
+mcdonac@np12
+SQL> create global temporary table GTT ( x1 int, y1 int )
+  2  on commit preserve rows;
+
+Table created.
+
+mcdonac@np12
+SQL> insert into GTT
+  2  select rownum, rownum
+  3  from dual connect by level <= 1000;
+
+1000 rows created.
+
+mcdonac@np12
+SQL>
+mcdonac@np12
+SQL> commit;
+
+Commit complete.
+
+mcdonac@np12
+SQL>
+mcdonac@np12
+SQL> insert into I_AM_ON_DB11@db11
+  2  select * from GTT;
+
+1000 rows created.

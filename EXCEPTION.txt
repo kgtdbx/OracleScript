@@ -1,0 +1,125 @@
+----для вставки в пакет------------
+
+dbms_output.put_line('Finished with error: ' || SUBSTR('format_call_stack: '     ||DBMS_UTILITY.FORMAT_CALL_STACK      ||CHR(10)||
+                                                    'format_error_backtrace: '||DBMS_UTILITY.FORMAT_ERROR_BACKTRACE ||CHR(10)||
+                                                    'format_error_stack :'    ||DBMS_UTILITY.FORMAT_ERROR_STACK
+                                                   ,1,1700));
+
+
+
+----------------------------------------------------
+EXCEPTION
+   WHEN OTHERS
+   THEN
+   RAISE_APPLICATION_ERROR(-20001, SQLERRM);
+   
+или
+
+EXCEPTION
+  WHEN OTHERS THEN
+    error_message := SQLERRM;
+    DBMS_OUTPUT.PUT_LINE (error_message);
+ 
+    COMMIT;  -- Commit results of successful updates
+    RAISE;
+-----------------------	
+DECLARE
+ecode    NUMBER(38);
+emesg VARCHAR2(250);
+thisproc CONSTANT VARCHAR2(50) := 'trap_errmesg';
+
+BEGIN
+  NULL;
+  RAISE too_many_rows;
+EXCEPTION
+  WHEN OTHERS THEN
+    ecode := SQLCODE;
+    emesg := SQLERRM;
+    dbms_output.put_line(thisproc || ' - ' || ecode|| ' / ' ||emesg);
+END;
+----------------------
+http://psoug.org/reference/exception_handling.html
+----------------------
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE S_TEST START WITH 1 INCREMENT BY 1';
+EXCEPTION
+    WHEN OTHERS THEN
+      IF SQLCODE = -955 THEN
+        NULL; -- suppresses ORA-00955 exception
+      ELSE
+         RAISE;
+      END IF;
+END;
+--
+DECLARE
+   name_in_use exception; --declare a user defined exception
+   pragma exception_init( name_in_use, -955 ); --bind the error code to the above 
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE S_TEST START WITH 1 INCREMENT BY 1';
+EXCEPTION
+    when name_in_use then
+       null; --suppress ORA-00955 exception
+END; 
+----------------------
+Функция dbms_utility.format_error_backtrace возвращает список вызовов функций и процедур от места генерации исключения до места его обработки.	
+Из примеров(http://www.orahome.ru/ora-prog/112) можно вывести две основные тактики применения dbms_utility.format_error_backtrace.
+Эту функцию надо вставлять в каждый обработчик исключений или обрабатывать все исключения в одной точке - стартовой процедуре(функции).
+----------------------
+alter session set plsql_warnings = 'ENABLE:ALL';
+alter session set plsql_debug = false;
+CREATE OR REPLACE PROCEDURE Insert_t_error authid definer IS
+begin
+insert into t values(1);
+for rec in (select 1/0 from dual) loop
+  null;
+end loop;
+EXCEPTION
+when others then
+dbms_output.put(dbms_utility.format_error_stack());
+dbms_output.put_line(dbms_utility.format_error_backtrace());
+--RAISE;
+end Insert_t_error;
+/
+select line, position, text from user_errors;
+--------------------------
+CREATE OR REPLACE PROCEDURE P0 IS
+  e_01476 EXCEPTION; pragma exception_init ( e_01476, -1476 );
+BEGIN
+  RAISE e_01476;
+END P0;
+
+....
+
+CREATE OR REPLACE PROCEDURE Top_With_Logging IS
+  -- NOTE: SqlErrm in principle gives the same info as Format_Error_Stack.
+  -- But SqlErrm is subject to some length limits,
+  -- while Format_Error_Stack is not.
+BEGIN
+  P5();
+EXCEPTION
+  WHEN OTHERS THEN
+    Log_Errors ( 'Error_Stack...' || Chr(10) ||
+      DBMS_UTILITY.FORMAT_ERROR_STACK() );
+    Log_Errors ( 'Error_Backtrace...' || Chr(10) ||
+      DBMS_UTILITY.FORMAT_ERROR_BACKTRACE() );
+    DBMS_OUTPUT.PUT_LINE ( '----------' );
+END Top_With_Logging;
+
+--------------нужно явно обрабатывать ora-03113, иначе вылетает процесс------------------------------
+DECLARE
+
+  v_error_constraint EXCEPTION;
+  PRAGMA EXCEPTION_INIT(v_error_constraint, -03113);
+
+BEGIN
+
+RAISE v_error_constraint;
+DBMS_OUTPUT.PUT_LINE('TEST');
+
+EXCEPTION
+
+  WHEN v_error_constraint 
+  THEN dbms_output.put_line('Y' || ' - ' || SQLCODE);
+  --RAISE v_error_constraint;
+  --RAISE_APPLICATION_ERROR(-20001, 'ERROR');
+END;

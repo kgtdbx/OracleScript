@@ -1,0 +1,27 @@
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE S_TEST START WITH 1 INCREMENT BY 1';
+EXCEPTION
+    WHEN OTHERS THEN
+      IF SQLCODE = -955 THEN
+        NULL; -- suppresses ORA-00955 exception
+      ELSE
+         RAISE;
+      END IF;
+END; 
+
+----------
+execute immediate 'begin :out_val := ' || gv_process.pkg_name||'.'||l_operation.check_empty||'; end;'
+                using out l_chk_empty;
+------------				
+execute immediate 'begin '||gv_process.pkg_name||'.'||l_operation.procedure_name||'; end;';
+
+--------------
+
+begin
+    if gv_process.save_state_proc is not null then
+      execute immediate 'begin '||
+                           gv_process.pkg_name||'.'||gv_process.save_state_proc||'(:p_curr_operation_cd,:p_curr_row_num);
+                         end;'
+        using ip_curr_operation_cd, ip_curr_row_num;
+    end if;
+  end;				

@@ -1,0 +1,54 @@
+--ѕеременные подстановки(bind variable or host variable) и переменные прив€зки(&)
+set autoprint on --for show bind veriable after run script
+variable b_name varchar2(50)--use only for anonymous blocks, syntax "var" use only for sqlplus
+variable b_emp_id number --if need to initialize this variable then we have to use anonymous blocks for this
+begin :b_emp_id:=107; end; --or exec :b_emp_id:=103;
+
+begin
+select ee.last_name into :b_name from employees ee
+where ee.employee_id = :b_emp_id;
+end;
+/
+------------------------------------------
+--for sqlplus run step by step
+--start
+set autoprint on 
+--2
+var b_name varchar2(50)
+--3
+var b_emp_id number 
+--4
+exec :b_emp_id:=103
+--5
+begin
+select ee.last_name into :b_name from employees ee
+where ee.employee_id = :b_emp_id;
+end;
+/
+--6
+exec :b_emp_id:=105
+--7
+/
+--end
+---------------------&---------------------
+set verify off
+variable b_salary number
+set autoprint on
+accept emp_no prompt 'Please enter a valid employee number: '
+
+begin
+select ee.salary into :b_salary from employees ee
+where ee.employee_id = &emp_no;
+end;
+/
+------with define---------
+set verify off --hide sql script in script output 
+variable b_salary number
+set autoprint on
+define emp_no = 200
+
+begin
+select ee.salary into :b_salary from employees ee
+where ee.employee_id = &emp_no;
+end;
+/

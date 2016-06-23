@@ -1,0 +1,246 @@
+
+Большие объекты в СУРБД ORACLE. Dbms_lob
+
+ 
+dbstalker, 02 июня
+    
+Dbms_lob - это стандартный пакет для работы с типом данных LOB (large objects) то есть с большими объектами.
+Основные правила работы с пакетом dbms_lob
+Короткий пример использования пакета
+Некоторые замечания по использованию пакета.
+Перечень процедур и функций.
+append
+compare
+copy
+erase
+instr
+read
+substr
+trim
+write
+getlength
+fileclose
+filecloseall
+fileexists
+filegetname
+fileisopen
+fileopen
+loadfromfile
+Перечень процедур и функций пакета.
+Во всех процедурах и функциях параметр amount – число байтов (для blob,bfile) или символов (для clob); параметр offset – это смещение относительно начала значения lob (в байтах для blob,bfile, в символах для clob); параметр buffer – переменная, принимающая значение или возвращая значение в большой объект. Amount и offset должны быть больше или равно 1. Обращаю ваше внимание на то, что LOB может быть размером в 4ГБ, но переменная buffer типа varchar2 или raw не превышает 32767 байт.
+ PROCEDURE append(IN OUT NOCOPY BLOB,src_lob  IN BLOB);
+PROCEDURE append(dest_lob IN OUT NOCOPY CLOB CHARACTER SET ANY_CS,
+                 src_lob  IN            CLOB CHARACTER SET   
+                 dest_lob%CHARSET);
+эта процедура присоединяет один внутренний lob (src_lob) в конец другого внутреннего lob (dest_lob)
+ FUNCTION compare(lob_1    IN BLOB,
+                   lob_2    IN BLOB,
+                   amount   IN INTEGER := 18446744073709551615,
+                   offset_1 IN INTEGER := 1,
+                   offset_2 IN INTEGER := 1)
+                   RETURN INTEGER;
+FUNCTION compare(lob_1    IN CLOB CHARACTER SET ANY_CS,
+                   lob_2    IN CLOB CHARACTER SET lob_1%CHARSET,
+                   amount   IN INTEGER := 18446744073709551615,
+                   offset_1 IN INTEGER := 1,
+                   offset_2 IN INTEGER := 1)
+                                         RETURN INTEGER;
+FUNCTION compare(file_1   IN BFILE,
+                   file_2   IN BFILE,
+                   amount   IN INTEGER,
+                   offset_1 IN INTEGER := 1,
+                   offset_2 IN INTEGER := 1)
+                                       RETURN INTEGER;
+Функция сравнивает два больших объекта одного и того же типа: lob_1, lob_2. Возвращает 0, если сравниваемые фрагменты объектов идентичны; ненулевое значение, если они отличны друг от друга.
+ PROCEDURE copy(dest_lob    IN OUT NOCOPY BLOB,
+                 src_lob     IN            BLOB,
+                 amount      IN            INTEGER,
+                 dest_offset IN            INTEGER := 1,
+                 src_offset  IN            INTEGER := 1);
+PROCEDURE copy(dest_lob    IN OUT NOCOPY  CLOB CHARACTER SET ANY_CS,
+                 src_lob     IN            CLOB CHARACTER SET
+                                       dest_lob%CHARSET,
+                 amount      IN            INTEGER,
+                 dest_offset IN            INTEGER := 1,
+                 src_offset  IN            INTEGER := 1);
+процедура копирует один внутренний lob(src_lob)в другой внутренний lob (dest_lob)
+ PROCEDURE erase(lob_loc IN OUT NOCOPY  BLOB,
+                  amount  IN OUT NOCOPY  INTEGER,
+                  offset  IN      INTEGER := 1);
+PROCEDURE erase(lob_loc IN OUT NOCOPY  CLOB CHARACTER SET ANY_CS,
+                  amount  IN OUT NOCOPY  INTEGER,
+                  offset  IN            INTEGER := 1);
+процедура удаляет весь объект lob_loc или определенную его часть.
+ FUNCTION instr(lob_loc IN BLOB,
+                 pattern IN RAW,
+                 offset  IN INTEGER := 1,
+                 nth     IN INTEGER := 1)
+                                RETURN INTEGER;
+
+FUNCTION instr(lob_loc IN CLOB     CHARACTER SET ANY_CS,
+                 pattern IN VARCHAR2 CHARACTER SET lob_loc%CHARSET,
+                 offset  IN INTEGER := 1,
+                 nth     IN INTEGER := 1)
+                               RETURN INTEGER;
+FUNCTION instr(file_loc IN BFILE,
+                 pattern  IN RAW,
+                 offset   IN INTEGER := 1,
+                 nth      IN INTEGER := 1)
+                  RETURN INTEGER;
+Функция возвращает позицию nth появления заданного образца pattern в большом объекте lob_loc. Возвращает номер позиции найденного образца; 0, если образец не найден.
+ PROCEDURE read(lob_loc IN            BLOB,
+                 amount  IN OUT NOCOPY INTEGER,
+                 offset  IN            INTEGER,
+                 buffer  OUT           RAW);
+PROCEDURE read(lob_loc IN            CLOB     CHARACTER SET ANY_CS,
+                 amount  IN OUT NOCOPY INTEGER,
+                 offset  IN            INTEGER,
+                 buffer  OUT           VARCHAR2 CHARACTER SET
+                                        lob_loc%CHARSET);
+PROCEDURE read(file_loc IN             BFILE,
+                 amount   IN OUT NOCOPY  INTEGER,
+                 offset   IN             INTEGER,
+                 buffer   OUT            RAW);
+процедура считывает фрагмент большого объекта lob_loc или file_loc в переменную buffer.
+ FUNCTION substr(lob_loc IN BLOB,
+                  amount  IN INTEGER := 32767,
+                  offset  IN INTEGER := 1)
+                                      RETURN RAW;
+FUNCTION substr(lob_loc IN CLOB CHARACTER SET ANY_CS,
+                  amount  IN INTEGER := 32767,
+                  offset  IN INTEGER := 1)
+                                    RETURN VARCHAR2 CHARACTER SET lob_loc%CHARSET;
+FUNCTION substr(file_loc IN BFILE,
+                  amount   IN INTEGER := 32767,
+                  offset   IN INTEGER := 1)
+                                     RETURN RAW;
+Функция получает фрагмент большого объекта file_loc или lob_loc, начиная с указанной позиции offset , длиной amount. Возвращает извлеченное количество байтов amount , начиная с заданной позиции offset.
+ PROCEDURE trim(lob_loc IN OUT NOCOPY  BLOB,
+                 newlen  IN            INTEGER);
+PROCEDURE trim(lob_loc IN OUT NOCOPY  CLOB CHARACTER SET ANY_CS,
+                 newlen  IN            INTEGER);
+процедура усекает объект lob_loc до указанной длины newlen.
+ PROCEDURE write(lob_loc IN OUT NOCOPY  BLOB,
+                  amount  IN            INTEGER,
+                  offset  IN            INTEGER,
+                  buffer  IN            RAW);
+PROCEDURE write(IN OUT NOCOPY  CLOB     CHARACTER SET ANY_CS,
+                  amount  IN           INTEGER,
+                  offset  IN           INTEGER,
+                  buffer  IN           VARCHAR2 CHARACTER SET 
+                                          lob_loc%CHARSET);
+процедура записывает данные в lob (lob_loc).
+ FUNCTION getlength(lob_loc IN BLOB)
+    RETURN INTEGER;
+FUNCTION getlength(lob_loc IN CLOB CHARACTER SET ANY_CS)
+    RETURN INTEGER;
+FUNCTION getlength(file_loc IN BFILE)
+    RETURN INTEGER;
+Функция возвращает длину заданного большого объекта lob_loc или file_loc.Возвращает значение в байтах для (bfile,blob) или в символах для Clob.
+ PROCEDURE fileclose(file_loc IN OUT NOCOPY  BFILE);
+Процедура закрывает внешний объект с заданным локатором file_loc
+ PROCEDURE filecloseall; 
+Процедура закрывает все внешние большие объекты.
+ FUNCTION fileexists(file_loc IN BFILE)
+    RETURN INTEGER;
+Функция проверяет, указывает ли указанный локатор на существующий файл. Возвращает 0, если файла не существует; 1, если существует.
+ PROCEDURE filegetname(file_loc  IN  BFILE,
+                        dir_alias OUT VARCHAR2,
+                        filename  OUT VARCHAR2);
+процедура возвращает псевдоним каталога dir_alias и имя файла filename для заданного локатора внешнего большого объекта типа bfile file_loc
+ FUNCTION fileisopen(file_loc IN BFILE)
+    RETURN INTEGER;
+Функция проверяет, открыт ли внешний объект типа BFILE с заданным локатором file_loc. Возвращает 1, если файл открыт; 0, если не открыт.
+ PROCEDURE fileopen(file_loc  IN OUT NOCOPY  BFILE,
+                     open_mode IN      BINARY_INTEGER := file_readonly);
+процедура открывает внешний объект типа BFILE с заданным локатором file_loc.
+ PROCEDURE loadfromfile(dest_lob    IN OUT NOCOPY  BLOB,
+                         src_lob     IN            BFILE,
+                         amount      IN            INTEGER,
+                         dest_offset IN            INTEGER := 1,
+                         src_offset  IN            INTEGER := 1);
+PROCEDURE loadfromfile(dest_lob    IN OUT NOCOPY  CLOB CHARACTER SET ANY_CS,
+                         src_lob     IN            BFILE,
+                         amount      IN            INTEGER,
+                         dest_offset IN            INTEGER := 1,
+                         src_offset  IN            INTEGER := 1);
+процедура копирует внешний большой объект типа BFILE (src_lob) во внутренний большой объект dest_lob
+Основные правила работы с пакетом dbms_lob
+Нельзя использовать в качестве параметра пустой локатор или локатор, имеющий значение null.
+Прежде чем осуществить доступ к внешнему большому объекту, ассоциированный с ним файл должен быть открыт.
+Перед завершение pl/sql –блока нужно закрыть файл объекта bfile. Иначе параметр SESSION_MAX_OPEN_FILES в init.ora будет исчерпан.
+Прежде чем выполнять запись во внутренний большой объект, необходимо заблокировать строку, которая содержит столбец этого объекта. Это можно сделать явными блокировками или sql –операторами: select for update, update, insert.
+Правила работы с согласованными по чтению и обновленными локаторами применимы ко всем процедурам и функциям данного пакета.
+Короткий пример использования пакета (скрипт заимствован у Тома Кайта).
+ SQL> drop table demo;
+Table dropped.
+
+SQL> drop sequence blob_seq;
+Sequence dropped.
+
+SQL> create table demo
+  2  ( id           int primary key,
+  3    theBlob      blob
+  4  )
+  5  /
+Table created.
+
+SQL> create or replace directory my_files as 'C:\hs';
+Directory created.
+
+SQL> create sequence blob_seq;
+Sequence created.
+
+SQL> create or replace
+  2  procedure dbst_load_a_file( p_dir_name in varchar2,p_file_name in varchar2 )
+  3  as
+  4      l_blob    blob;
+  5      l_bfile   bfile;
+  6  begin
+  7      insert into demo values ( blob_seq.nextval, empty_blob() )returning theBlob into l_Blob;
+  8      l_bfile := bfilename( p_dir_name, p_file_name );
+  9      dbms_lob.fileopen( l_bfile );
+ 10      dbms_lob.loadfromfile( l_blob, l_bfile,dbms_lob.getlength( l_bfile ) );
+ 11      dbms_lob.fileclose( l_bfile );
+ 12  end;
+ 13  /
+Procedure created.
+
+SQL> exec dbst_load_a_file( 'MY_FILES', 'my.jpg' );
+PL/SQL procedure successfully completed.
+
+SQL> select dbms_lob.getlength(theblob) from demo;
+DBMS_LOB.GETLENGTH(THEBLOB)
+---------------------------
+                    1964427
+
+Что же тут мы наваяли?
+создали таблицу с полем типа blob
+создали директорию, откуда буде брать файл для загрузки
+создаем в таблице запись с пустым полем типа blob
+инициализируем внешний файл в нашей директории
+открываем объект, который будем загружать.
+загружаем файл в таблицу
+закрываем файл.
+Вот ориентировочно так можно большие объекты загружать в таблицу на оракле.
+Теперь немного теории. Загружать большие объекты в базу данных можно с помощью sqlldr. Но мне кажется, что загрузка с помощью процедуры dbms_lob.loadfromfile, объекта directory и типа данных bfile (файл операционной системы), получается значительно проще, и это было продемонстрировано в первом примере.
+Есть несколько замечаний к нашему примеру, на которые прошу обратить внимание:
+Объект directory создаётся как папка в файловой системе сервера. То есть сервер ORACLE должен иметь доступ к этой папке. Таким образом, понятно, что большие объекты нельзя будет загрузить с локальной станции.
+Следующими командами create or replace directory my_files as 'C:\hs' и create or replace directory “my_files” as 'C:\hs' созданы две различные папки так как после выполнения первой команды название директории сохранилось в верхнем регистре. Так, например, для функции bfilename пакета standard это принципиально важно в каком регистре будет указано имя директории.
+empty_blob() – пустой объект. Это не Null типа blob, а непустой указатель на неопределённую структуру.
+Перед тем как работать с переменными lob их нужно создать или как временные переменные или как объект базы данных (см. наш пример).
+Перед тем как работать с lob-полем необходимо эту строку заблокировать (см. наш пример), иначе буде сгенерирована ошибка.
+Функция bfilename передает не сам объект, а имя.
+dbms_lob.getlength (l_bfile ) – функция передает количество байтов в объекте.
+Теперь еще один наглядный пример для того, чтобы ощутить разницу между функцией substr и функцией dbms_lob.substr
+ SQL> drop table dbst_t;
+Table dropped.
+SQL> create table dbst_t ( str varchar2(10), lob clob );
+Table created.
+SQL> insert into dbst_t values ( 'hello', 'hello' );
+1 row created.
+SQL> select substr( str, 3, 2 ),substr(dbms_lob.substr( lob, 3, 2),1,10) lob  from dbst_t;
+SU LOB
+-- ----------
+ll ell
+Тут мы видим, что аргументы в функциях несколько «перепутаны». Но проблем не будет, если об этом помнить всегда.

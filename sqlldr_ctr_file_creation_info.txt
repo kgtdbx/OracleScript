@@ -1,0 +1,5 @@
+используется для загрузки ин-и в БД с помощью SQL Loader
+генерит контрол файл .ctl с настройками для загрузки
+
+потом sqlldr <user>/<password>@<db_name> control=<path_to_control_file>
+sqlldr control=c:/Users/sbovkush/Desktop/1.ctl

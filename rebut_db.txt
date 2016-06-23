@@ -1,0 +1,3 @@
+сделать несколько алертсвитч логов и 
+SHUTDOWN IMMEDIATE;
+STARTUP;

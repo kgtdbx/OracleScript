@@ -1,0 +1,75 @@
+begin
+   
+      dbms_stats.gather_table_stats (ownname            => NULL,
+                                     tabname            => 'METER_INSTR_ALT_IDTFCN'--,
+                                     --partname           => 'METER_INSTR_ALT_IDTFCN',
+                                     --cascade            => TRUE,
+                                     --granularity        => 'PARTITION',
+                                     --no_invalidate      => FALSE,
+                                     --estimate_percent => 10
+                                     );
+
+end;
+
+--Собираем статистику по таблице:
+begin
+sys.dbms_stats.gather_table_stats('SB_DWH_TEST', 'ST_FT_ECP_PAF_CARR_SC_CDMA');
+end;
+или 
+exec sys.dbms_stats.gather_table_stats('SB_DWH_TEST', 'CUSTOMER_ITC_JBILL1');
+exec dbms_stats.gather_table_stats('','T1');
+---
+begin
+exec dbms_stats.set_index_stats(user, 'LRST_PK', clstfct => 100047);
+end;
+---
+SELECT * FROM TABLE(dbms_xplan.display_cursor('7fbhgmmbjwtv9',0,'ALL IOSTATS LAST')); 
+----------------------процедура----------------------------
+PROCEDURE p_analyze_trade_line(ip_num_of_processed in out number, ip_curr_row_num in out number, ip_curr_operation in varchar2) IS
+BEGIN
+  FOR c IN (SELECT /*' DBMS_STATS.gather_table_stats (user, ' ||*/ t.table_name /*||
+                   ')'*/ psql
+              FROM user_tables t
+             WHERE t.table_name IN ('ETD_FUTURE_CONTRACT','ETD_FUTURE_CONTRACT'))
+  LOOP
+   -- EXECUTE IMMEDIATE (c.psql);
+   DBMS_STATS.gather_table_stats (user, c.psql);
+  END LOOP;
+END p_analyze_trade_line;
+
+-----------Определение собрана ли статистика-------
+SELECT COUNT(*) FROM GMLD_XREF PARTITION(OPTION_CONTRACT_ALT_ID) G;
+SELECT COUNT(*) FROM GMLD_XREF PARTITION(OPTION_UNDRLR_ALT_ID) G; 
+--для партиций-----
+SELECT UPT.TABLE_NAME, 
+       UPT.LAST_ANALYZED,--когда последний раз собиралась статистика 
+       UPT.NUM_ROWS -- кол-во строк должно совпасть с count(*) по партиции
+,UPT.* FROM USER_TAB_PARTITIONS UPT
+WHERE UPPER(UPT.TABLE_NAME) = 'GMLD_XREF'
+AND UPT.PARTITION_NAME IN ('OPTION_CONTRACT_ALT_ID', 'OPTION_UNDRLR_ALT_ID'); 
+--для таблицы---
+SELECT A.TABLE_NAME,
+A.LAST_ANALYZED,
+A.NUM_ROWS, 
+A.* 
+FROM ALL_TABLES A
+WHERE A.OWNER = 'IRDS_OWNER'
+AND A.TABLE_NAME = 'GMLD_XREF';
+--для партиций индексов-------
+select ai.index_name, 
+       ai.last_analyzed,
+       ai.num_rows,
+       ai.*  
+from all_ind_partitions ai
+where ai.index_owner = 'IRDS_OWNER'
+and ai.index_name in ('UK_GMLD_XREF_ID_OBJECT', 'UK_GMLD_XREF_ROWID_OBJECT') 
+and ai.partition_name in ('OPTION_CONTRACT_ALT_ID', 'OPTION_UNDRLR_ALT_ID');
+
+--для индексов-------
+select i.index_name, 
+       i.last_analyzed,
+       i.num_rows,
+       i.*  
+from all_indexes i
+where i.owner = 'IRDS_OWNER'
+and i.index_name in ('UK_GMLD_XREF_ID_OBJECT', 'UK_GMLD_XREF_ROWID_OBJECT');

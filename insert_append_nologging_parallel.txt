@@ -1,0 +1,14 @@
+INSERT /*+ APPEND NOLOGGING PARALLEL */
+INTO sales SELECT product_id, customer_id, TRUNC(sales_date), 3,
+       promotion_id, quantity, amount
+FROM sales_activity_direct;
+
+-**********************
+
+/*+ APPEND */ only works if 
+
+a) there are no triggers 
+b) there is no RI regarding this table in effect 
+c) you used "as select", not values 
+
+otherwise it was silently ignored.

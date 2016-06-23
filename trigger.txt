@@ -1,0 +1,8 @@
+create or replace 
+TRIGGER it_files_trg_bi BEFORE INSERT ON it_files
+FOR EACH ROW
+BEGIN
+  IF :new.file_id IS NULL THEN
+    SELECT seq_it_files.nextval INTO :new.file_id from dual;
+  END IF;
+END;

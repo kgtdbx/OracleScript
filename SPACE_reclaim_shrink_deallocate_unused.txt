@@ -1,0 +1,212 @@
+RECLAIM SPACE USED BY TABLE AND INDEX AFTER DATA DELETION
+
+Scenario
+
+Significant amount of data (more than 80%) has been deleted from a database schema. However size of schema has not come down proportionately with the volume of data deleted.
+
+Solution
+
+ 1. Perform Online Segment Shrink
+
+The Online Segment Shrink process consolidates fragmented free space below the high water mark and compacts the segment. After compaction, the high water mark is moved, resulting in new free space above the high water mark. That space above the high water mark is then deallocated.
+
+1.1 Benefits
+
+Compaction of data leads to better cache utilization, which in turn leads to better online transaction processing (OLTP) performance.
+The compacted data requires fewer blocks to be scanned in full table scans, which in turns leads to better decision support system (DSS) performance.
+1.2 Downtime
+
+Segment shrink is an online, in-place operation. DML operations and queries can be issued during the data movement phase of segment shrink. Concurrent DML operation are blocked for a short time at the end of the shrink operation, when the space is deallocated. Indexes are maintained during the shrink operation and remain usable after the operation is complete. Segment shrink does not require extra disk space to be allocated.
+
+1.3 Limitation
+
+Shrink operations can be performed only on segments in locally managed tablespaces with automatic segment space management (ASSM). Within an ASSM tablespace, all segment types are eligible for online segment shrink except these:
+IOT mapping tables
+Tables with rowid based materialized views
+Tables with function-based indexes
+SECUREFILE LOBs
+Tables with LONG column
+As with other DDL operations, segment shrink causes subsequent SQL statements to be reparsed because of invalidation of cursors unless you specify theCOMPACT clause.
+1.4 Shrink Operation Types
+
+Two optional clauses let you control how the shrink operation proceeds:
+
+The COMPACT clause lets you divide the shrink segment operation into two phases. When you specify COMPACT, Oracle Database defragments the segment space and compacts the table rows but postpones the resetting of the high water mark and the deallocation of the space until a future time. This option is useful if you have long-running queries that might span the operation and attempt to read from blocks that have been reclaimed. The defragmentation and compaction results are saved to disk, so the data movement does not have to be redone during the second phase. You can reissue the SHRINK SPACE clause without the COMPACT clause during off-peak hours to complete the second phase.
+The CASCADE clause extends the segment shrink operation to all dependent segments of the object. For example, if you specify CASCADE when shrinking a table segment, all indexes of the table will also be shrunk. (You need not specify CASCADE to shrink the partitions of a partitioned table.) To see a list of dependent segments of a given object, you can run the OBJECT_DEPENDENT_SEGMENTS procedure of the DBMS_SPACE package.
+1.5 Perform Shrink
+Segment shrink requires that rows be moved to new locations. Therefore, you must first enable row movement in the object you want to shrink and disable any rowid-based triggers defined on the object. You enable row movement in a table with the ALTER TABLE … ENABLE ROW MOVEMENT command.
+ 
+Shrink a table and all of its dependent segments (including BASICFILE LOB segments):
+ALTER TABLE employees SHRINK SPACE CASCADE;
+Shrink a BASICFILE LOB segment only:
+
+ALTER TABLE employees MODIFY LOB (perf_review) (SHRINK SPACE);
+Shrink a single partition of a partitioned table:
+
+ALTER TABLE customers MODIFY PARTITION cust_P1 SHRINK SPACE;
+Shrink an IOT index segment and the overflow segment:
+
+ALTER TABLE cities SHRINK SPACE CASCADE;
+Shrink an IOT overflow segment only:
+
+ALTER TABLE cities OVERFLOW SHRINK SPACE;
+Generate Shrink script for all the tables of a schema
+ 
+set lines 300
+set pages 10000
+set trimspool on
+set feedback off
+spool shrink_space.sql
+select 'alter table ' || table_name || ' enable row movement;' from dba_tables where owner='<owner of the schema/schema name>';
+select 'alter table ' || table_name || ' shrink space cascade;' from dba_tables where owner='<owner of the schema/schema name>';
+select 'alter table ' || table_name || ' disable row movement;' from dba_tables where owner='<owner of the schema/schema name>';
+spool off
+spool shrink_space.txt
+@shrink_space.sql
+spool off
+ 
+1.6 Space not fully freed after Shrink Operation
+It has been observed that in some scenario space is not fully freed from the objects of the schema after shrink is performed.
+
+Also the expected size of the tables and indexes seem to be very high with respect to the amount of data in the tables and indexes.
+
+Check using the following query:
+
+select segment_name,sum(bytes)/1024/1024 size_mb from dba_segments where owner='<owner of the schema/schema name>' order by sum(bytes)/1024/1024 desc;
+
+ To reclaim the space further we need to perform the following:
+
+1.6.1.  Perform Index Re-Build
+
+Generate Index Rebuild script for all the tables of a schema
+ 
+set lines 300
+set pages 10000
+set trimspool on
+set feedback off
+spool rebuild_indexes.sql
+select 'alter index' || index_name || ' shrink space cascade;' from dba_indexes where owner='<owner of the schema/schema name>';
+spool off
+spool rebuild_indexes.txt
+@rebuild_indexes.sql
+spool off
+ 1.6.2.  Perform Deallocate unused
+
+It has been observed that the storage clause INITIAL in table definition remains high although space has been reclaimed using shrink and rebuild, which in turn keeps more space than required for tables and indexes of a schema resulting in drastic space usage by the schema.All the delete,row movement, shrink and index rebuild operation seems to have no effect in reducing the size of the schema.
+
+Suppose if a table  requires only 2 MB of space after delete,shrink etc. but in the table create definition the storage initial is set to 4 GB
+
+STORAGE(INITIAL 4294967296 ………………………………)
+
+This need to set to some lower value like  STORAGE(INITIAL 65536 ……………….) so that space useage by the table, index,schema is reduced.
+
+Also Restriction on INITIAL  is that You cannot specify INITIAL in an ALTER statement.
+
+In this scenario we need to use the deallocate unused space feature
+
+When you deallocate unused space, the database frees the unused space at the unused (high water mark) end of the database segment and makes the space available for other segments in the tablespace.
+
+Prior to deallocation, you can run the UNUSED_SPACE procedure of the DBMS_SPACE package, which returns information about the position of the high water mark and the amount of unused space in a segment. For segments in locally managed tablespaces with automatic segment space management, use the SPACE_USAGE procedure for more accurate information on unused space.
+
+The following statements deallocate unused space in a segment (table, index or cluster):
+
+ALTER TABLE table DEALLOCATE UNUSED KEEP integer;
+ALTER INDEX index DEALLOCATE UNUSED KEEP integer;
+ALTER CLUSTER cluster DEALLOCATE UNUSED KEEP integer;
+The KEEP clause is optional and lets you specify the amount of space retained in the segment. You can verify that the deallocated space is freed by examining the DBA_FREE_SPACE view.
+
+Generate deallocate unused space script for all the tables and indexes of a schema
+ 
+set lines 300
+set pages 10000
+set trimspool on
+set feedback off
+spool deallocate.sql
+select 'alter table ' || table_name || ' deallocate unused keep 0;' from dba_tables where owner='<owner of the schema/schema name>';
+select 'alter index' || index_name || ' deallocate unused keep 0;' from dba_indexes where owner='<owner of the schema/schema name>';
+spool off
+spool deallocate.txt
+@deallocate.sql
+spool off
+ 
+ Conclusion
+In summary to free up unused disk space by a schema the following need to be performed:
+Shrink the table with cascade clause
+Rebuild Index
+Deallocate unused space with deallocate command which in turn resets the INITIAL clause in Storage clause of Table Definition 
+Reference
+
+Oracle. (2013). Altering Indexes. Available: http://docs.oracle.com/cd/B28359_01/server.111/b28310/indexes004.htm#i1006864. Last accessed 08-Apr-2013.
+
+Oracle. (2013). Reclaiming Wasted Space. Available: http://docs.oracle.com/cd/B28359_01/server.111/b28310/schema003.htm. Last accessed 8-Apr-2013.
+
+Oracle. (2013). storage_clause. Available: http://docs.oracle.com/cd/B19306_01/server.102/b14200/clauses009.htm. Last accessed 08-Apr-2013.
+
+######################################################
+--Как сбросить HWM/убрать фрагментацию
+--Создаем новую табл. аналогичную нашей
+CREATE TABLE CUSTOMER_ITC_JBILL2 AS SELECT * FROM CUSTOMER_ITC_JBILL1;  
+  
+-- удаляем таблицу не помещаю в "корзину"  
+DROP TABLE CUSTOMER_ITC_JBILL1 PURGE;  
+-- Переиеновываем  
+RENAME CUSTOMER_ITC_JBILL2 TO CUSTOMER_ITC_JBILL1  
+ 
+--Собираем статистику по таблице:
+exec sys.dbms_stats.gather_table_stats('SB_DWH_TEST', 'CUSTOMER_ITC_JBILL1'); 
+
+begin
+ dbms_stats.gather_table_stats(ownname =>'BARS', tabname => 'OPER_ALL', method_opt=> 'FOR ALL INDEXED COLUMNS', degree=>4, cascade=>dbms_stats.auto_cascade, estimate_percent=>10);
+end;
+
+
+--Размер таблицы (с фрагментацией):
+SELECT TABLE_NAME, ROUND((BLOCKS * 8)/1024, 0) "SIZE, Mb"  
+  FROM USER_TABLES  
+ WHERE TABLE_NAME = 'ITC_FT_LEDGER';
+--Реальные данные:
+SELECT TABLE_NAME, ROUND((NUM_ROWS * AVG_ROW_LEN / 1024 / 1024), 0) "SIZE, Mb"  
+  FROM USER_TABLES  
+ WHERE TABLE_NAME = 'ITC_FT_LEDGER';
+ 
+Конечные пользователи часто задаются вопросом, почему поиск в таблице с небольшим количеством строк может отнять довольно много времени. 
+АБД знает, что, если в таблице когда-то было большое количество строк, поиск может замедлиться, потому что Oracle должен просмотреть каждый блок, 
+в котором когда-либо содержались данные – вплоть до маркера максимального заполнения таблицы (High Water Mark – HWM). 
+Кроме того, они могут также полагать, что единственный способ сбросить значение HWM состоит в том, чтобы повторно создать таблицу, 
+либо посредством экспорта/удаления/импорта, либо с помощью команды ALTER TABLE MOVE.
+В 10g это больше не является необходимым. Новая опция, названная Online Segment Shrink (оперативное сжатие сегмента), 
+может возвратить свободное пространство в таблице, а также скорректировать вниз HWM. Синтаксис опции:
+ALTER TABLE имя_таблицы SHRINK SPACE [COMPACT] [CASCADE];
+Задание этой команды без опций приводит к дефрагментации таблицы и уплотнению ее строк. 
+Затем HWM корректируется к новой высокой позиции и освобождает высвободившееся пространство.
+Опция COMPACT проводит дефрагментацию, но не корректирует HWM, и не освобождает высвободившееся пространство. 
+Опция CASCADE сжимает не только названную таблицу, но и любые зависимые объекты, например, индексы.
+А теперь то, о чем обычно говорится “мелким шрифтом”. Табличное пространство, в котором хранится таблица, 
+должно быть установлено для автоматического управления пространством в сегментах (Automatic Segment Space Management), 
+а для самой таблицы должно быть активировано перемещение строк. Поскольку перемещенные строки будут иметь новый ROWID, 
+Вы должны отключить любые триггеры, которые срабатывают на основании ROWID, или они будут выполнены повторно. 
+Имеются также и другие ограничения: проконсультируйтесь в документации.
+
+--######################################################
+
+declare
+ip_table_name user_tables.table_name%type default 'OPER_ALL';
+ip_index_name user_indexes.index_name%type;
+
+begin
+
+FOR CUR_T IN (select u.table_name from user_tables u where u.table_name = ip_table_name)
+
+LOOP
+  dbms_output.put_line( 'alter table ' || cur_t.table_name||' enable row movement;');
+  dbms_output.put_line( 'alter table ' || cur_t.table_name||' shrink space cascade;');
+  dbms_output.put_line( 'alter table ' || cur_t.table_name||' deallocate unused keep 0;');
+END LOOP;
+
+FOR CUR_I IN (select i.index_name from user_indexes i where i.table_name = ip_table_name)
+
+LOOP
+  dbms_output.put_line( 'alter index ' || cur_i.index_name||' deallocate unused keep 0;');
+END LOOP;
+ 
+end;

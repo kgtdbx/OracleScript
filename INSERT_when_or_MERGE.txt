@@ -1,0 +1,124 @@
+andrey_anonymous, mcureenab
+MERGE
+Ой, а что, условный инсерт уже отменили, что ли???
+Вот небольшая иллюстрация по проблеме:
+
+Вначале подготовим табличку DEMO_INSERT для экспериментов:
+--
+-- Демонстрация работы условного оператора INSERT.
+-- Используются исключительно стандарные средства,
+-- встроенные в сервер Oracle, начиная с версии 9i !!!
+--
+-- Скрипт для подготовки всего необходимого,
+-- дабы было на чем показывать своё решение...
+--
+-- Если существует таблица DEMO_INSERT, 
+-- то удалим её и создадим заново, 
+-- иначе просто создадим:
+declare
+  sql_str varchar2(50) := null;
+begin
+  select 'drop table '||table_name
+    into sql_str
+    from user_tables
+   where table_name = 'DEMO_INSERT';
+  
+  execute immediate sql_str;
+  execute immediate 'create table DEMO_INSERT 
+                                    (id number(10), 
+                                     parent_id number(10))';
+  
+  exception
+  when no_data_found then 
+  execute immediate 'create table DEMO_INSERT 
+                                    (id number(10), 
+                                     parent_id number(10))';
+end;
+/
+--
+-- Зададим ограничение уникальности 
+-- по обоим столбцам таблицы DEMO_INSERT:
+alter table DEMO_INSERT 
+add constraint DEMO_INSERT_UK unique (id, parent_id)
+/
+--
+-- Вставим пару строчек в таблицу DEMO_INSERT:
+insert into demo_insert (id, parent_id) values (1, 1);
+insert into demo_insert (id, parent_id) values (1, 2);
+insert into demo_insert (id, parent_id) values (2, 1);
+insert into demo_insert (id, parent_id) values (2, 2);
+commit;
+
+Убедимся, что таблица успешно создалась и в ней есть начальный набор данных:
+select id, parent_id
+  from demo_insert;
+
+Query finished, retrieving results...
+
+ID  PARENT_ID
+--  ---------
+1   1
+1   2
+2   1
+2   2
+
+4 row(s) retrieved
+
+Ну и собственно, демонстрация работы условного INSERT-а:
+insert 
+-- Задаем условие проверки вставляемых данных.
+  when -- Далее можно указать любое условие, выражение и т.д.,
+       -- которое в результате вернёт TRUE или FALSE.
+       -- В нашем случае это будет выражение NOT EXISTS
+       -- Вставляем только те данные, которых ещё нет в таблице:
+       not exists (
+                     select null
+                       from demo_insert
+                      where id = new_id
+                        and parent_id = new_parent_id
+                  ) 
+  then
+  into demo_insert (id, parent_id) 
+  values (new_id, new_parent_id)
+-- А вот и сами данные для вставки:
+select new_id, 
+       new_parent_id 
+  from (
+          -- Вот это новые данные, которые попадут в таблицу:
+          select 1 as new_id, 
+                 3 as new_parent_id 
+            from dual
+          union all
+          select 2 as new_id, 
+                 3 as new_parent_id 
+            from dual  
+          union all -- Конец новых данных.
+          --
+          -- При обычном INSERT-е вот эти данные привели бы 
+          -- к срабатыванию ограничения уникальности:
+          select id as new_id,
+                 parent_id as new_parent_id
+            from demo_insert
+       );
+commit;
+
+/*
+2 row(s) inserted -- Исходный набор данных для вставки имел 6 строк !!!
+*/
+
+Ну и проверяем, что всё именно так, как мы хотели:
+select id, parent_id
+  from demo_insert
+
+Query finished, retrieving results...
+
+ID  PARENT_ID
+--  ---------
+1   1
+1   2
+2   1
+2   2
+1   3
+2   3
+
+6 row(s) retrieved

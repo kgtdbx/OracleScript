@@ -1,0 +1,91 @@
+DECLARE 
+
+TYPE FNAME IS TABLE OF VARCHAR2(200) INDEX BY PLS_INTEGER ; 
+V_NAME FNAME; 
+V_LEN INTEGER ; 
+V_RVAL INTEGER ; 
+
+BEGIN 
+
+SELECT distinct ORIGINAL_VALUE BULK COLLECT INTO V_NAME FROM REF_VALUES 
+order by original_value; 
+V_LEN := V_NAME.COUNT; 
+
+DBMS_RANDOM.SEED(VAL => 12456); 
+
+FOR I IN 1 .. V_NAME.COUNT 
+LOOP 
+V_RVAL := ROUND(DBMS_RANDOM.VALUE(1,V_LEN)) ; 
+
+UPDATE REF_VALUES SET SHUFFLED_VALUE = V_NAME(V_RVAL) 
+WHERE ORIGINAL_VALUE = V_NAME(I) ; 
+COMMIT ; 
+
+V_NAME(V_RVAL) := V_NAME(V_LEN) ; 
+V_LEN := V_LEN -1 ; 
+DBMS_OUTPUT.PUT_LINE(V_RVAL); 
+END LOOP; 
+
+DBMS_OUTPUT.PUT_LINE('V_NAME(I) I' ); 
+DBMS_RANDOM.TERMINATE; 
+END;
+
+--ealised after posting that the database might just evaluate that once and effectively give rowid order. you may need to include rownum in the parameters, eg: DBMS_random.value --(rownum-rownum,1)
+
+
+
+DECLARE 
+SUBTYPE Name IS VARCHAR2(200); 
+TYPE Names_tab IS TABLE OF Name; 
+-- 
+tabOrigin	Names_tab; 
+tabShuffled	Names_tab; 
+vSwap	Name; 
+idx	BINARY_INTEGER; 
+BEGIN 
+-- Do simple play WITH DUAL instead of real data 
+WITH rs AS ( 
+SELECT DBMS_RANDOM.STRING( 'A', 1) name FROM dual 
+UNION ALL 
+SELECT DBMS_RANDOM.STRING( 'A', 1) name FROM dual 
+UNION ALL 
+SELECT DBMS_RANDOM.STRING( 'A', 1) name FROM dual 
+UNION ALL 
+SELECT DBMS_RANDOM.STRING( 'A', 1) name FROM dual 
+UNION ALL 
+SELECT DBMS_RANDOM.STRING( 'A', 1) name FROM dual 
+UNION ALL 
+SELECT DBMS_RANDOM.STRING( 'A', 1) name FROM dual 
+) 
+SELECT name origin, name shuffle 
+BULK COLLECT INTO tabOrigin, tabShuffled 
+FROM rs 
+; 
+-- 
+-- As mentioned in 'Operational Notes' for package DBMS_RANDOM 
+-- invocation of DBMS_RANDOM.SEED is necessary only for obtaining 
+-- repeatable sequence of values, therefore omit this call 
+-- 
+FOR i IN 1 .. tabOrigin.COUNT LOOP 
+idx := DBMS_RANDOM.VALUE( 1, tabOrigin.COUNT); 
+vSwap := tabShuffled(i); 
+tabShuffled(i) := tabShuffled(idx); 
+tabShuffled(idx) := vSwap; 
+END LOOP; 
+-- Lookup result after shuffling 
+FOR i IN 1 .. tabOrigin.COUNT LOOP 
+dbms_output.put_line( 
+'Origin: ' || tabOrigin(i) || ' Shuffled to: ' || tabShuffled(i) 
+); 
+END LOOP; 
+END; 
+/ 
+
+Output for this script is: 
+
+Origin: D Shuffled to: N 
+Origin: U Shuffled to: n 
+Origin: j Shuffled to: K 
+Origin: N Shuffled to: D 
+Origin: K Shuffled to: j 
+Origin: n Shuffled to: U

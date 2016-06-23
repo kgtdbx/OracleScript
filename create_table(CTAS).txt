@@ -1,0 +1,108 @@
+CREATE TABLE AS SELECT (CTAS) tips
+
+Oracle Tips by Burleson Consulting
+
+Also see Oracle Create Table Tips.
+
+If you don't want to use dbms_redefinition, or the CTAS statement is one method for reorganizing an Oracle table or moving the table to another tablespace. Instead of spending hours setting up parameter files and job steps, you can copy and rename the table in three simple SQL statements.
+
+Tip!  Gathering stats on a CTAS is no longer necessary in 12c, provided the CTAS statement is issued by a non-SYS user.  Prior to 12c you would need to analyze the table (dbms_stats.gather_table_stats) to get the metadata for the SQL optimizer:
+
+EXEC DBMS_STATS.gather_table_stats('SCOTT', 'EMP1');
+
+The Create table as select (CTAS) statement can be used to change storage parameters for a table (INITIAL, NEXT, FREELISTS) and also change the physical sequence of the table rows. Create table as select (CTAS) has the following syntax:
+
+create table xxx_new
+tablespace new_tablespace_name
+storage (initial new_initial next new_next freelists new_freelist_number )
+as
+select * from xxx
+order by primary_index_key_values;
+
+There are several way to execute CTAS to reorganize table; many of the options depend upon the version of Oracle and the particular configuration of the Oracle database. 
+
+Parallel CTAS
+
+Running a create table as select (CTAS) in parallel can dramatically speed up SAP table reorganization. As a rule of thumb, the parallel option is used only on SAP database servers that have multiple CPUs (for example, SMP processor CPUs), but there will be some performance improvement when invoking parallelism, even on a uni-processor CPU.
+
+Note that the UNRECOVERABLE clause can be used in conjunction with the parallel clause, or you can run UNRECOVERABLE CTAS without using parallelism. Here is an example of a parallel CTAS:
+
+create table 
+   vbap_sorted
+tablespace 
+   vbap_copy
+storage (
+   initial 500m
+   next 50m
+   maxextents unlimited
+   )
+parallel (degree 4) 
+as
+select *
+from 
+sapr3.vbap
+order by 
+mandt, 
+vbeln, 
+posnr;
+
+CTAS using INDEX hint
+
+This is an excellent way of reorganizing a table to physically re-sequence the rows in the table. It is commonly known that Oracle deliberately omitted the ORDER BY clause in their implementation of CREATE TABLE AS SELECT. This is because of Oracle?s early philosophy (pre-release 7.3.4 on AIX) that the physical sequence of rows within a table should not matter to the performance of the system. Unfortunately, this is not the case. As any DB2 professional is aware, ?clustering? the rows in a table in the same order as the primary key index can greatly improve the performance of the queries. 
+
+Note: Some releases of Oracle prior to 7.3.4 may support ORDER BY with CTAS, but for AIX 7.3.3 and before generate a syntax error when ORDER BY is used with CTAS.  Oracle does allow the use of the INDEX ?hint? to request an ordered copy of the table. 
+
+Here is an example of INDEX hint with CTAS.
+
+create table vbap_sorted 
+tablespace vbap_copy
+storage (initial 500m
+next 50m
+freelists 30 
+maxextents unlimited
+)
+as
+select /*+ index(vbap vbap___0) */
+*
+from 
+sapr3.vbap
+;
+
+CTAS with ORDER BY
+
+In some Oracle releases you can add the ORDER BY clause to the CTAS statement to physically re-sequence the table rows. Unlike CTAS with an index hint, the ORDER BY method can be run in parallel since a full-table scan will be invoked. Following the gathering of the table rows, all rows will be sorted in the PSAPTEMP tablespace before populating the new table.
+
+create table vbap_sorted 
+tablespace vbap_copy
+storage (initial 500m
+next 50m
+maxextents unlimited
+)
+as
+select *
+from 
+sapr3.vbap
+order by 
+mandt, 
+vbeln, 
+posnr;
+
+CTAS UNRECOVERABLE
+
+Please note that the UNRECOVERABLE option has been deprecated and replaced with the NOLOGGING option. 
+
+Using the UNRECOVERABLE clause can cut the time of a table reorganization by half because Oracle will bypass redo log processing. However, this approach can only be used when a full backup is taken immediately after the reorganization. In short, the archived redo logs that are created during an UNRECOVERABLE operation cannot be used for any database recovery. The UNRECOVERABLE clause can be added to any of the CTAS syntax. For example, below we use UNRECOVERABLE with PARALLEL to create a very fast reorganization.
+
+create table new_lips
+   tablespace lips_b
+   storage (initial 900m
+   next 50m
+   maxextents unlimited
+)
+parallel (degree 4)
+unrecoverable
+as
+select *
+from sapr3.lips;
+
+For large databases with small maintenance windows, parallel CTAS reorganizations are clearly the fastest way to reorganize tables. If you are using Oracle9i or beyond you can parallelize the dbms_redefinition procedure for online table reorganizations.

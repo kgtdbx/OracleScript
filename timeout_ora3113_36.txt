@@ -1,0 +1,124 @@
+--------------------------
+Troubleshooting & diagnosing TNS SQL*Net connectivity errors
+
+Oracle Tips by Burleson Consulting
+
+
+There are a variety of common network connectivity error messages, and most DBA's have seen TNS error messages these at sometime in their careers.  Here is just a small sample of possible TNS network connectivity-related errors:
+
+TNS-12545: Connect failed because target host or object does not exist
+
+ORA-12154: TNS: Could not resolve service name
+
+ORA-12157: TNS Internal network communication error 
+In the simplest of terms, the Oracle*Net architecture is like peeling on onion, with one transport layers nested inside the inner payer.  The lowest level of Oracle transport is TCP/IP (or rarely other protocols), where the packets are shipped between the servers.
+
+Steps to troubleshoot Oracle connectivity:
+
+Also see my notes on Oracle network tuning.
+
+To troubleshoot & diagnose Oracle connectivity problems, I like to start at the simplest, outermost level, and follow this checklist:
+
+Check with "ping" using the IP address ("ping 198.11.34.43")
+
+Check with "ping" using DNS name (e.g. "tnsping uranus")
+
+Try telnet to the IP on port 1521 (telnet 1.2.3.4 1521)
+
+Check with "tnsping" using TNS service name
+
+Invoke SQL*Plus from the OS command line "sqlplus fred@flintstone".  If this fails, check to ensure that your listener has the flintstone service defined.
+
+Sign-on to SQL*Plus and connect with the TNS name ("connect fred/flintstome@service_name")
+
+Within SQL*Plus, try a select from table@remote_db_link
+
+Let's look closer as we peel away the layers of our onion.
+
+Server-level connectivity layer in TNS
+
+When the Oracle DBA creates their tnsnames.ora file to define remote databases they often specify the host name of the foreign server that contains the remote Oracle database.  For example, a entry in the tnsnames.ora file for a remote database might look like this:
+
+berlin =
+   (DESCRIPTION =
+     (ADDRESS_LIST =
+         (ADDRESS =
+           (COMMUNITY = TCP)
+           (PROTOCOL = TCP)
+          (HOST = hum)
+           (PORT = 1521)
+          )
+      )
+     (CONNECT_DATA = (SID = kraus))
+    )
+Here we see a TNS service name of berlin, which defines a connection to a remote server named hum that contains an Oracle database named kraus. When a remote connection request is made from the UNIX server, the /etc/host file is accessed to get the IP address for the hum server. 
+
+From the listing below, we see that the hum server is located at 192.133.13.12.  In sum, the /etc/host file is used to isolate the IP address from the tnsnames.ora file.  If the IP address should ever change, the UNIX systems administrator only needs to change the IP address in one place.
+
+root> cat /etc/hosts
+192.133.13.22  hum    hum.com 
+192.144.13.22  dopey  dopey.com
+---------------------------
+Посмотреть ожидающие сессии на наличи в них SQL*Net more data from dblink
+select SID,
+       EVENT,
+       SECONDS_IN_WAIT
+ from V$SESSION_WAIT
+ WHERE WAIT_TIME = 0
+ order by SID desc
+ -----
+ select * from gv$session_wait_history where sid=9
+-------
+
+'SQL*Net more data from dblink' означает, что сообщение не помещается в байт пакета SDU(Session Data Unit)(SDU, как правило, 2048). Так сообщение фрагментированы SQLnet и вы можете видеть это ожидание. 
+Если вы хотите, чтобы сократилось количество ожидающих сессий, убедитесь SDU установлен к кратному MTU, Макс Transmission Unit вашей сетевой карты.
+
+---------------------------------
+решение - http://www.moreajays.com/2013/01/ora-02049-timeout-distributed.html
+
+
+Нужно увеличить время таймаутов на какое то бОльшое
+в фалах
+listener.ora: INBOUND_CONNECT_TIMEOUT_[LISTENER_NAME] =240
+
+sqlnet.ora: SQLNET.INBOUND_CONNECT_TIMEOUT=240
+
+либо вовсе не указывать
+
+# В $ORACLE_HOME/network/admin/listener.ora добавить строку INBOUND_CONNECT_TIMEOUT_LISTENER = 0
+# В $ORACLE_HOME/network/admin/sqlnet.ora добавить строку SQLNET.INBOUND_CONNECT_TIMEOUT = 0
+
+
+Установить параметры  sqlnet.ora(на сервере)
+SQLNET.INBOUND_CONNECT_TIMEOUT = 3000
+SQLNET.SEND_TIMEOUT = 30000
+SQLNET.RECV_TIMEOUT = 30000
+
+и в listener.ora
+INBOUND_CONNECT_TIMEOUT_[LISTENER_NAME]=3000
+
+если не помогло то дальше 
+
+Несколько основных причин ошибки и способы их решения
+
+1) Серверные ресурсы перегружены.
+
+Проверить насколько загружен сервер (процессор, диски, сеть). Выявить причину утечки ресурсов и устранить её. Большая загрузка сети может косвенно указывать на DoS. Если вы обнаружили высокую нагрузку сервера, но она оказалась полезной – то это указывает на нехватку мощности сервера и пора задуматься об его обновлении или замене.
+
+2) Проблемы сети.
+
+Если есть возможность проверить сетевой канал от клиента до сервера с помощью специализированых аппаратных или программных средств. Если нет, то можно запуститесь ping на некоторое время и посмотреть, какое время отклика и нет ли потерь пакетов.
+
+ping server1 -t
+
+3) База данных и Listener не функционируют.
+
+Проверить что сама база данных и Listener запущены и работают нормально, что к ним можно подключиться локально или с других компьютеров сети.
+
+4) Проблемы из-за антивируса или firewall.
+
+Отключить или даже полностью деинсталировать антивирус или firewall.
+
+5) Проблемы с DNS.
+
+Либо прописать соответствующие записи в файл host либо во всех конфигурационных файлах oracle net использовать вместо имен – ip-адреса.

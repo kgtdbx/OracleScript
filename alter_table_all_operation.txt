@@ -1,0 +1,105 @@
+--Переименование таблицы
+
+ALTER TABLE table_name
+ RENAME TO new_table_name;
+ 
+--Например Переименуем таблицу suppliers в таблицу vendors.:
+ALTER TABLE suppliers
+ RENAME TO vendors;
+
+--Добавление столбца (столбцов) в таблицу Синтаксис #1
+
+ALTER TABLE table_name
+ ADD column_name column-definition;
+
+--Например Добавим столбец supplier_name в таблицу supplier.:
+
+ALTER TABLE supplier
+ ADD supplier_name  varchar2(50);
+
+--Синтаксис оператора ALTER TABLE для добавления нескольких столбцов в существующую таблицу: Синтаксис #2
+ALTER TABLE table_name
+ADD (column_1	column-definition,
+ 	 column_2	column-definition,
+ 	 …	
+ 	 column_n	column_definition );
+	 
+--Например Добавим два столбца (supplier_name and city) в таблицу supplier.:
+
+ALTER TABLE supplier
+ADD (supplier_name	varchar2(50),
+ 	 city			varchar2(45) 
+	 );
+
+
+--Модификация столбца(-ов) в таблице Синтаксис #1
+--Синтаксис оператора ALTER TABLE для изменеия одного столбца в существующей таблице:
+
+ALTER TABLE table_name
+ MODIFY column_name column_type;
+
+--Например Изменим тип данных столбца supplier_name в varchar2(100) а также запретим запист null-значений.:
+
+ALTER TABLE supplier
+ MODIFY supplier_name   varchar2(100)   not null;
+
+
+--Синтаксис оператора ALTER TABLE для изменения нескольких столбцов в существующей таблице Синтаксис #2:
+
+ALTER TABLE table_name
+MODIFY (column_1	column_type,
+		column_2	column_type,
+		…	
+		column_n	column_type );
+
+--Например Изменим столбцыsupplier_name и city.:
+
+ALTER TABLE supplier
+MODIFY (supplier_name	varchar2(100)	not null,
+		city			varchar2(75)	 	
+		);
+
+
+--Удаление столбца(-ов) в таблице
+--Синтаксис оператора ALTER TABLE для удаления одного столбца в существующей таблице Синтаксис #1:
+
+ALTER TABLE table_name
+ DROP COLUMN column_name;
+
+--Например Удалим столбец supplier_name в таблице supplier.:
+
+ALTER TABLE supplier
+ DROP COLUMN supplier_name;
+
+
+--Переименование столбца(-ов) в таблице(НОВОЕ в Oracle 9i Release 2) Синтаксис #1
+
+--Синтаксис оператора ALTER TABLE для переименовывания одного столбца в существующей таблице:
+
+ALTER TABLE table_name
+ RENAME COLUMN old_name to new_name;
+
+--Например Переименуем столбец supplier_name в sname.:
+
+ALTER TABLE supplier
+ RENAME COLUMN supplier_name to sname;
+ 
+--
+ ALTER TABLE sgix_owner.stg_idx_issue_alt_id ENABLE ROW MOVEMENT;
+
+ ALTER TABLE sgix_owner.stg_idx_issue_alt_id DISABLE ROW MOVEMENT;
+ --
+ alter table DEAL
+add constraint FK_DEAL_REFERENCE_CUSTOMER
+foreign key ( CUSTOMER_ID ) 
+references CUSTOMER ( RNK)
+;
+ ----------------------
+ alter table BARS.BANKS$BASE
+  add constraint UK_BANKS_SAB unique (SAB);
+alter table BARS.BANKS$BASE
+  add constraint FK_BANKS_BANKS2 foreign key (MFOU)
+  references BARS.BANKS$BASE (MFO);
+alter table BARS.BANKS$BASE
+  add constraint CC_BANKS_MFO_NN
+  check ("MFO" IS NOT NULL);

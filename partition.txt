@@ -1,0 +1,172 @@
+SELECT table_name, partition_name, subpartition_name, subpartition_position
+FROM user_tab_subpartitions;
+/*
+Интервальное секционирование (Interval Partitioning)
+Интервальное секционирование позволяет создавать секции, основанные на диапазонах значений столбца-ключа секционирования. 
+Вот пример таблицы с интервальным секционированием:
+*/
+create table sales6
+(
+   sales_id    number,
+   sales_dt    date
+)
+partition by range (sales_dt)
+(
+   partition p0701 values less than (to_date('2007-02-01','yyyy-mm-dd')),
+   partition p0702 values less than (to_date('2007-03-01','yyyy-mm-dd'))
+);
+/*
+В ней определены секции только для января 2007 и февраля 2007, поэтому что будет, 
+если вставляемая в таблицу запись имеет sales_dt за март 2007? 
+Вставка не произойдет, будет выдан сообщение с ошибкой:
+ORA-14400: inserted partition key does not map to any partition
+Очевидно, что перед тем, как вставлять запись, необходимо добавить секцию за март 2007. 
+Однако часто это легче сказать, чем сделать. Иногда нет возможности предусмотреть создание множества секций заранее, 
+и некоторые из них могут возвращать эту ошибку.
+Не проще ли будет, если бы Oracle как-нибудь автоматически распознавал необходимость новых секций и создавал их? 
+Oracle Database 11g это умеет делать для механизма Interval Partitioning (интервального секционирования). 
+В примере ниже определяются не секции и их границы, а только интервал, который определяет границы каждой секции. 
+Вот демонстрационный пример такого интервального секционирования:
+*/
+create table sales6
+(
+   sales_id    number,
+   sales_dt    date
+)
+partition by range (sales_dt)
+                               
+interval (numtoyminterval(1,'MONTH'))
+(
+   partition p0701 values less than (to_date('2007-02-01','yyyy-mm-dd'))
+);
+
+--Заметьте, что интервал следует за интервалом. Это из инструкции Oracle по созданию интервалов для каждого месяца. 
+--Создаётся также начальная секция p0701 для января 2007. Теперь предположим, что вставляется запись за июнь 2007:
+
+SQL> insert into sales6 values (1,'01-jun-07');
+1 row created.
+--Oracle не возвращает ошибку; наоборот, он успешно выполняет предложение. И где же тогда находится вставленная запись? 
+--Секция p0701 не может содержать такую запись, а секция за июнь 2007 не описывалась. Однако проверим секции таблицы ещё раз:
+
+SQL> select partition_name, high_value
+  2  from user_tab_partitions
+  3  where table_name = 'SALES6';
+
+
+/* 
+PARTITION_NAME  HIGH_VALUE
+--------------- ----------------------------------------------------------------
+P0701           TO_DATE(' 2007-02-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_C
+                ALENDAR=GREGORIA
+
+SYS_P41         TO_DATE(' 2007-07-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_C
+                ALENDAR=GREGORIA
+Заметьте, что секция SYS_P1 с верхним значением 1 июля 2007 будет накапливать данные до конца июня. 
+Эта секция создана динамически Oracle и имеет имя, сгенерированное системой.
+Теперь предположим, что вводится значение меньше максимального, например 1 мая 2007. 
+Оно идеально соответствует его собственной секции, так как секционный интервал — это месяц.
+*/
+
+SQL> insert into sales6 values (1,'01-may-07');
+1 row created.
+
+SQL> select partition_name, high_value
+  2  from user_tab_partitions
+  3  where table_name = 'SALES6';
+  
+/*
+PARTITION_NAME  HIGH_VALUE
+--------------- ----------------------------------------------------------------
+P0701           TO_DATE(' 2007-02-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_C
+                ALENDAR=GREGORIA
+
+SYS_P41         TO_DATE(' 2007-07-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_C
+                ALENDAR=GREGORIA
+
+SYS_P42         TO_DATE(' 2007-06-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_C
+                ALENDAR=GREGORIA
+Заметьте, что новая секция SYS_P42 имеет верхнюю границу 1 июня — такая секция может содержать данные за май 2006. 
+Эта секция создана делением секции SYS_P41 (за июнь). Таким образом, Oracle автоматически создаёт и управляет секциями, 
+когда описана схема интервального секционирования. Если секции необходимо создавать в отдельных табличных пространствах, 
+следует использовать выражение store in:
+interval (numtoyminterval(1,'MONTH'))
+store in (TS1,TS2,TS3)
+тогда секции сохраняются в табличных пространствах TS1, TS2 и TS3 по очереди по кругу.
+Как разработчик приложения может обратиться к какой-либо секции? 
+Один из известных способов — по названию — может быть невозможным и даже часто приводящим к ошибкам, как вы знаете. 
+Для обеспечения доступа к некоторой секции Oracle Database 11g предлагает новый синтаксис запросов:
+*/
+SQL> select * from sales6 partition for (to_date('15-may-2007','dd-mon-yyyy'));
+
+/*
+
+  SALES_ID SALES_DT
+  -------- ---------
+      1    01-MAY-07
+Заметьте, что новое выражение for (значение) позволяет напрямую ссылаться на секции без явного обращения по их точному названию. 
+Если необходимо очистить или удалить секцию, можно использовать этот дополнительный синтаксис.
+Когда таблица создана так, как показано выше, столбец PARTITIONING_TYPE представления DBA_PART_TABLES показывает значение INTERVAL.
+*/
+#################################################################################
+--PKG_SGIX_UTILS--
+PROCEDURE p_gather_partition_stats (ip_table_name    VARCHAR2,
+                                    ip_group_pack    NUMBER) AS
+   l_sql              VARCHAR2 (2000);
+   l_partition_name   VARCHAR2 (30);
+
+   TYPE t_curr IS REF CURSOR;
+
+   curr               t_curr;
+BEGIN
+   l_sql := ' select  uo.subobject_name as partition_name
+      from (select rowid row_id from ' || ip_table_name || ' where  rownum<2 and group_pack=:group_pack) t, user_objects uo
+     where dbms_rowid.rowid_object(t.row_id) = uo.object_id ';
+
+   OPEN curr FOR l_sql USING ip_group_pack;
+
+   FETCH curr INTO l_partition_name;
+
+   IF curr%FOUND THEN
+      DBMS_STATS.gather_table_stats (
+                                     ownname            => NULL,
+                                     tabname            => ip_table_name,
+                                     partname           => l_partition_name,
+                                     estimate_percent   => 5,
+                                     cascade            => TRUE,
+                                     granularity        => 'PARTITION',
+                                     no_invalidate      => FALSE
+                                    );
+   ELSE
+      --partition not found
+      null;
+   END IF;
+
+   CLOSE curr;
+END p_gather_partition_stats;
+
+--********************************************************
+ops$tkyte%ORA10GR2> CREATE TABLE t
+  2  (
+  3    dt  date,
+  4    x   int,
+  5    y   varchar2(30)
+  6  )
+  7  PARTITION BY RANGE (dt)
+  8  (
+  9    PARTITION part1 VALUES LESS THAN (to_date('13-mar-2003','dd-mon-yyyy')) ,
+ 10    PARTITION part2 VALUES LESS THAN (to_date('14-mar-2003','dd-mon-yyyy')) ,
+ 11    PARTITION junk VALUES LESS THAN (MAXVALUE)
+ 12  )
+ 13  /
+
+Table created.
+
+ops$tkyte%ORA10GR2>
+ops$tkyte%ORA10GR2> alter table t split partition junk
+  2  at (to_date('15-mar-2003')) into
+  3  (partition part3 tablespace users, partition junk tablespace assm);
+
+Table altered.
+
+--*************************************************************
+

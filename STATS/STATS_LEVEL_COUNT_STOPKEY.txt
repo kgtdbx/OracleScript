@@ -1,0 +1,9 @@
+create table test_count_stopkey (n primary key) as select level from dual connect by level <= 1000;
+
+exec dbms_stats.gather_table_stats(user, 'TEST_COUNT_STOPKEY', cascade=>true);
+explain plan for 
+select rownum rn
+from test_count_stopkey
+where rownum < 11;
+
+select * from table(dbms_xplan.display);

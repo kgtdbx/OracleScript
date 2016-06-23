@@ -1,0 +1,94 @@
+--Перестроить индексы :
+SELECT STATUS, INDEX_NAME FROM USER_INDEXES  
+ WHERE TABLE_NAME = 'CUSTOMER_ITC_JBILL1';  
+-- 
+ALTER INDEX CUSTOMER_ITC_JB1_I_CUSTOMER_NO REBUILD; 
+
+--*************************
+Making an Index Unusable
+
+When you make an index unusable, it is ignored by the optimizer and is not maintained by DML. When you make one partition of a partitioned index unusable, the other partitions of the index remain valid.
+
+You must rebuild or drop and re-create an unusable index or index partition before using it.
+
+The following procedure illustrates how to make an index and index partition unusable, and how to query the object status.
+
+To make an index unusable: 
+
+Query the data dictionary to determine whether an existing index or index partition is usable or unusable.
+
+For example, issue the following query (output truncated to save space):
+
+hr@PROD> SELECT INDEX_NAME AS "INDEX OR PART NAME", STATUS, SEGMENT_CREATED
+  2  FROM   USER_INDEXES
+  3  UNION ALL
+  4  SELECT PARTITION_NAME AS "INDEX OR PART NAME", STATUS, SEGMENT_CREATED
+  5  FROM   USER_IND_PARTITIONS;
+ 
+INDEX OR PART NAME             STATUS   SEG
+------------------------------ -------- ---
+I_EMP_ENAME                    N/A      N/A
+JHIST_EMP_ID_ST_DATE_PK        VALID    YES
+JHIST_JOB_IX                   VALID    YES
+JHIST_EMPLOYEE_IX              VALID    YES
+JHIST_DEPARTMENT_IX            VALID    YES
+EMP_EMAIL_UK                   VALID    NO
+.
+.
+.
+COUNTRY_C_ID_PK                VALID    YES
+REG_ID_PK                      VALID    YES
+P2_I_EMP_ENAME                 USABLE   YES
+P1_I_EMP_ENAME                 UNUSABLE NO
+ 
+22 rows selected.
+The preceding output shows that only index partition p1_i_emp_ename is unusable.
+
+Make an index or index partition unusable by specifying the UNUSABLE keyword.
+
+The following example makes index emp_email_uk unusable:
+
+hr@PROD> ALTER INDEX emp_email_uk UNUSABLE;
+ 
+Index altered.
+The following example makes index partition p2_i_emp_ename unusable:
+
+hr@PROD> ALTER INDEX i_emp_ename MODIFY PARTITION p2_i_emp_ename UNUSABLE;
+ 
+Index altered.
+Optionally, query the data dictionary to verify the status change.
+
+For example, issue the following query (output truncated to save space):
+
+hr@PROD> SELECT INDEX_NAME AS "INDEX OR PARTITION NAME", STATUS, 
+  2  SEGMENT_CREATED
+  3  FROM   USER_INDEXES
+  4  UNION ALL
+  5  SELECT PARTITION_NAME AS "INDEX OR PARTITION NAME", STATUS, 
+  6  SEGMENT_CREATED
+  7  FROM   USER_IND_PARTITIONS;
+ 
+INDEX OR PARTITION NAME        STATUS   SEG
+------------------------------ -------- ---
+I_EMP_ENAME                    N/A      N/A
+JHIST_EMP_ID_ST_DATE_PK        VALID    YES
+JHIST_JOB_IX                   VALID    YES
+JHIST_EMPLOYEE_IX              VALID    YES
+JHIST_DEPARTMENT_IX            VALID    YES
+EMP_EMAIL_UK                   UNUSABLE NO
+.
+.
+.
+COUNTRY_C_ID_PK                VALID    YES
+REG_ID_PK                      VALID    YES
+P2_I_EMP_ENAME                 UNUSABLE NO
+P1_I_EMP_ENAME                 UNUSABLE NO
+ 
+22 rows selected.
+A query of space consumed by the i_emp_ename and emp_email_uk segments shows that the segments no longer exist:
+
+hr@PROD> SELECT SEGMENT_NAME, BYTES
+  2  FROM   USER_SEGMENTS
+  3  WHERE  SEGMENT_NAME IN ('I_EMP_ENAME', 'EMP_EMAIL_UK');
+ 
+no rows selected

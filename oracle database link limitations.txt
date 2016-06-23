@@ -1,0 +1,187 @@
+во первых - откройте доку и почитайте про ограничения собственно ораклового sql-языка при работе по линку.
+тормоза - отдельная тема. распределенные транзакции гораздо дороже (да и глюкавее) нераспределённых.
+короче говоря - линк это не та технология, которую следует применять без обоснования 
+--***************************
+коммит двухфазный
+http://www.jlcomp.demon.co.uk/faq/dblink_commit.html
+
+Because it does!  When Oracle performs a distributed SQL statement Oracle reserves an entry in the rollback segment area for the two-phase commit processing.  This entry is held until the SQL statement is committed even if the SQL statement is a query.  A demonstration of this fact follows.  The REM’s were added to the output, which is otherwise a cut and paste of the screen.  The script db/obj/rbs_users is SQL to show user sessions to rollback segment assignments (transactions) and similar SQL can be found in the FAQ entry: Is there a way to detect processes that are rolling back, and can I figure out how long it will take?
+
+REM  find the current session sid
+PFC> select * from v$mystat where rownum = 1;
+ 
+        SID STATISTIC#      VALUE
+ ---------- ---------- ----------
+          7          0          1
+ 
+REM  see who is using rollback, the current session should not be there
+ 
+ PFC> @db/org/rbs_users
+ 
+ no rows selected
+ 
+REM  perform a remote query
+ 
+ PFC> select count(*) from mpowel01.item_master@ut1.world;
+ 
+   COUNT(*)
+ ----------
+       2603
+ 
+REM  determine whether the current session is now a transaction or not
+ 
+ PFC> @db/org/rbs_users
+ 
+ NAME           USN    EXTENTS USERNAME            SID LOGON_TIM S STATUS
+ ------------ ----- ---------- ------------ ---------- --------- --------
+ START_TIME           T STATUS          USED_UBLK  USED_UREC
+ -------------------- ---------------- ---------- ----------
+ PROGRAM                                          TERMINAL
+ ------------------------------------------------ ------------------------------
+ ROLL01           2         20 MPOWEL01              7 05-SEP-01 ACTIVE
+ 09/05/01 12:34:36    ACTIVE                    1          1
+ sqlplus@seqdev (TNS V1-V3)                       ttyiR/iARS
+ 
+REM  end the transaction
+ 
+ PFC> commit;
+ 
+ Commit complete.
+ 
+REM  verify the current session no longer shows as a transaction
+ 
+ PFC> @db/org/rbs_users
+ 
+ no rows selected
+
+When Oracle performs a distributed SQL statement Oracle reserves an entry in the rollback segment area for the two-phase commit processing. This entry is held until the SQL statement is committed even if the SQL statement is a query.
+If the application code fails to issue a commit after the remote or distributed select statement then the rollback segment entry is not released.  If the program stays connected to Oracle but goes inactive for a significant period of time (such as a daemon, wait for alert, wait for mailbox entry, etc…) then when Oracle needs to wrap around and reuse the extent, Oracle has to extend the rollback segment because the remote transaction is still holding its extent.  This can result in the rollback segments extending to either their maximum extent limit or consuming all free space in the rbs tablespace even where there are no large transactions in the application.  When the rollback segment tablespace is created using extendable files then the files can end up growing well beyond any reasonable size necessary to support the transaction load of the database.  Developers are often unaware of the need to commit distributed queries and as a result often create distributed applications that cause, experience, or contribute to rollback segment related problems like ORA-01650 (unable to extend rollback).  The requirement to commit distributed SQL exists even with automated undo management available with version 9 and newer.   If the segment is busy with an uncommitted distributed transaction Oracle will either have to create a new undo segment to hold new transactions or extend an existing one.  Eventually undo space could be exhausted, but prior to this it is likely that data would have to be discarded before the undo_retention period has expired.
+
+Note that per the Distributed manual that a remote SQL statement is one that references all its objects at a remote database so that the statement is sent to this site to be processed and only the result is returned to the submitting instance, while a distributed transaction is one that references objects at multiple databases.  For the purposes of this FAQ there is no difference, as both need to commit after issuing any form of distributed query.
+
+Распределенные транзакции. 
+В ORACLE можно использовать распределенные транзакции, то есть выполнять транзакцию, в которой операторы работают на удаленных сервера (распределенная база данных). Для доступа к удаленной базе данных используется объект database link. Распределённая транзакция выглядит примерно так:
+update table1 set x=1; update remote_table1@remote_database set x=1; commit;
+Распределённая транзакция имеет то же свойство, что и обычная: все или ничего. Только фиксация происходит в две стадии (двухфазная фиксация транзакции): сначала мастер-сервер опрашивает о готовности все подчинённые сервера, затем, в случае если все сервера готовы, дает команду фиксировать транзакцию. Если хотя бы один сервер при опросе был не готов, то транзакция откатывается на всех серверах.
+
+СУБД Oracle выполнит фиксацию либо в обеих базах данных, либо ни в одной из них. Она использует протокол 2PC (двухфазной фиксации). Этот протокол позволяет выполнять модификации, затрагивающие множество различных баз данных, фиксируя их автоматически. Он, насколько возможно, пытается перекрыть все пути для распределенных сбоев перед тем, как выполнить фиксацию. В 2PC между многими базами данных одна из баз — обычно та, к которой клиент подключился изначально — служит координатором распределенной транзакции. Этот сайт запросит у других сайтов готовности к фиксации. То есть этот сайт обратится к другим сайтам и попросит их подготовиться к фиксации. Каждый из этих других сайтов рапортует о своем “состоянии готовности”, как “ДА” или “НЕТ”. Если любой из сайтов говорит “НЕТ”, выполняется откат всей транзакции. Если же все сайты рапортуют “ДА”, сайт-координатор рассылает сообщение с командой на выполнение фиксации на всех сайтах 
+• Вы не можете выдать COMMIT по связи баз данных. То есть, нельзя дать команду COMMIT@удаленный_сайт. Вы можете зафиксировать транзакцию только на сайте, который ее инициировал.
+• Вы не можете выполнять DDL в удаленной базе по связи баз данных. Это  - прямое следствие предыдущего ограничения. DDL выполняет фиксацию.
+Нельзя выполнить фиксацию ни с одного сайта, кроме инициирующего, а потому нельзя выполнять DDL по связи баз данных.
+• Нельзя выдать SAVEPOINT по связи баз данных. Короче говоря, вы не можете выдать ни одного оператора управления транзакциями по связи баз данных.
+Все управление транзакциями наследуется от сеанса, который первоначально открывает связи баз данных. Вы не можете осуществлять другого управления транзакциями на распределенных экземплярах в транзакции. Недостаток управления транзакциями по связи баз данных также оправдан, поскольку инициирующий сайт — единственный, имеющий список всех, кто вовлечен в транзакцию. Если в нашей конфигурации из трех сайтов сайт 2 попытается
+зафиксировать транзакцию, у него не будет никаких сведений о том, что в ней уча ствует сайт 3. Поэтому в Oracle только сайт 1 может выдать команду на фиксацию.
+В этой точке для сайта 1 допустимо делегировать ответственность за управление распределенной транзакцией другому сайту.
+Мы можем указать, какой сайт будет действительным фиксирующим сайтом, устанавливая параметр COMMIT_POINT_STRENGTH (“сила точки фиксации”) сайта.
+Сила точки фиксации ассоциирует относительный уровень важности с сервером в распределенной транзакции. Чем более важен сервер (больше доступных данных
+должно быть на нем), тем более вероятно, что именно он будет координировать распределенную транзакцию. Вам может понадобиться это в случае, когда необходимо выполнить распределенную транзакцию между вашим рабочим сервером и тестовым сервером. Поскольку координатор транзакции никогда не сомневается в исходе транзакции, будет лучше, если рабочий сервер станет координировать распределенную транзакцию. Вам не нужно особо беспокоиться о вашем тестовом
+сервере — что на нем вдруг окажутся открытые транзакции или блокированные ресурсы. Вам определенно стоит беспокоиться, если подобное случится на рабочем
+сервере. В невозможности выполнения DDL по связи баз данных вообще нет ничего плохого. Во-первых, DDL случается редко. Вы выполняете операторы DDL при инсталляции или обновлении. Рабочие системы не выполняют DDL (по крайней мере, не должны). Во-вторых, все-таки существует способ запустить DDL через связь
+баз данных — воспользоваться средством планирования заданий DBMS_JOB или, в Oracle 10g — пакетом планировщика DBMS_SCHEDULER. Вместо того чтобы пытаться
+выполнить DDL по связи, вы используете связь для планирования удаленного задания, чтобы оно выполнилось, как только вы осуществите фиксацию. Таким образом, задание запустится на удаленной машине, оно не будет частью распределенной транзакции и потому сможет выполнить операторы DDL. Фактически это
+метод, посредством которого сервер репликации Oracle (Oracle Replication Server) выполняет распределенные команды DDL, чтобы осуществить репликацию схемы.
+
+--*******************
+ограничения дмл, курсоров
+
+When I try to iterate over this cursor I get ORA-01001: invalid cursor Error
+Когда используем REF CURSOR.
+--Tom Kyte---------
+refcursors do not cross dblink, no.  you cannot return a refcursor over a dblink.  a refcursor can 
+reference a dblink, but it cannot be returned over one. 
+-------------------
+вот что такое голденгейт? (имхо) если, по-крупному, то это признание вендором вслух (страшной тайны), что линки на большом трафике тупо не тянут супротив технологии: вывалить в файл + доставить файл (хоть на оленях) + залить файл.
+технология, кстати (в отличие от самого GG) - настолько же древняя как и те линки.
+как вы думаете, почему? ;)
+
+
+--************************
+ERROR at line 18: ORA-06550: line 18, column 4: PLS-00739: FORALL INSERT/UPDATE/DELETE not supported on remote tables
+Question: Isn't it possible to use FORALL to insert data over a database into a 
+table in another database?
+No. FORALL can not be used over DBLink. Check documentation for more details.
+
+можно обойти
+You can define a procedure/function in target database and pass the data (that is to be inserted) to it. You can call this procedure/function from source database (by granting rights, creating synonym etc.). In the procedure/function, you can use FORALL to load data in target table.
+
+
+If you have the privileges to create synonyms then you could do the following:
+create synonym mySynonym
+for table@dblink
+Then use the synonym in the PL/SQL code as follows:
+var1 mySynonym.column%TYPE;
+This will avoid repetitive typing of table.column@dblink and if the dblink name changes then you have to make the change in only one place - the synonym
+но кто этим будет заниматься?
+--************************
+
+--******************************
+There are a variety of common network connectivity error messages, and most DBA's have seen TNS error messages these at sometime in their careers.  Here is just a small sample of possible TNS network connectivity-related errors:
+
+TNS-12545: Connect failed because target host or object does not exist
+
+ORA-12154: TNS: Could not resolve service name
+ORA-12170: TNS:Connect timeout occurred
+ORA-12157: TNS Internal network communication error 
+In the simplest of terms, the Oracle*Net architecture is like peeling on onion, with one transport layers nested inside the inner payer.  The lowest level of Oracle transport is TCP/IP (or rarely other protocols), where the packets are shipped between the servers.
+
+'SQL*Net more data from dblink' означает, что сообщение не помещается в байт пакета SDU(Session Data Unit)(SDU, как правило, 2048). Так сообщение фрагментированы SQLnet и вы можете видеть это ожидание. 
+Если вы хотите, чтобы сократилось количество ожидающих сессий, убедитесь SDU установлен к кратному MTU, Макс Transmission Unit вашей сетевой карты.
+
+--***********************************
+ORACLE "ORA--22992: невозможно использовать удаленный стол выбор лоб локатор, database link" 
+
+   Решения:  
+   Сначала создать временные таблицы, а затем содержащий столбца типа clob дистанционного поле импортировать в таблице временные таблицы, затем добавить в этой таблице.  
+    create global temporary table demo_temp as select * from demo; 
+    insert into demo_temp select * from demo@D_LINK; 
+    insert into demo select * from demo_temp; 
+    commit; 
+	
+--***********************************
+
+как вариант для всех 
+Datapump через dblink в данной постановке вполне справится.
+
+Вполне вероятно, что основной тормоз будет в сетке. Но в принципе, если это будет критично, с этим тоже можно бороться.
+	
+Если актуализировать только данные, то
+impdp tts
+
+Не забывать про
+sqlplus copy
+
+Ну или классика - вывалить данные во flat-file посредством sqlplus и загрузить посредством лодыря/external table	
+
+--*************************************
+
+автор
+вот есть три варианта, и в каждом из них - распределенные транзакции
+
+
+то, что в каждом из этих трех случаев возникают фактически регистрируемые распределенные транзакции - это достоверное знание, или "профессиональное мнение" твоего администратора?
+
+вьюхи
+https://docs.oracle.com/cd/B28359_01/server.111/b28310/ds_txnman003.htm#ADMIN12249
+
+в этот момент что-нибудь показывают?
+
+Если верить бумаге 
+http://www.oracle.com/technetwork/products/clustering/overview/distributed-transactions-and-xa-163941.pdf
+
+то больше похоже на то, что у тебя вполне
+автор
+“Single Phase” optimization
+
+и скорее
+автор
+“remote” transaction rather than a distributed transaction
+
+
+Ты упоминал 
+1051543.1
+1436696.1
+414168.1 
+
+На мой вариант прочтения 1051543.1, твой случай ясно и недвусмысленно отнесен к безопасному варианту использования временных таблиц в распределенных транзакциях.
+Сам ее почитай и потыкай этой нотой в делающего свою работу коллегу.
+Вот пусть и далее - делает в свою.

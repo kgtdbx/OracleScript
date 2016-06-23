@@ -1,0 +1,79 @@
+--usage temp space---------------------
+SELECT 
+   A.tablespace_name tablespace, 
+   D.mb_total,
+   SUM (A.used_blocks * D.block_size) / 1024 / 1024 /1024 mb_used,
+   D.mb_total - SUM (A.used_blocks * D.block_size) / 1024 / 1024/1024  mb_free
+FROM 
+   v$sort_segment A,
+(
+SELECT 
+   B.name, 
+   C.block_size, 
+   SUM (C.bytes) / 1024 / 1024 /1024 mb_total
+FROM 
+   v$tablespace B, 
+   v$tempfile C
+WHERE 
+   B.ts#= C.ts#
+GROUP BY 
+   B.name, 
+   C.block_size
+) D
+WHERE 
+   A.tablespace_name = D.name
+GROUP by 
+   A.tablespace_name, 
+   D.mb_total
+----------------monitoring inv--------------------------------
+SELECT l.inst_id,l.sid, l.serial#, l.sql_id, l.opname, l.username, l.target, l.sofar, l.totalwork, l.start_time,l.last_update_time,round(l.time_remaining/60,2) "REMAIN MINS", round(l.elapsed_seconds/60,2) "ELAPSED MINS", round((l.time_remaining+l.elapsed_seconds)/60,2) "TOTAL MINS", ROUND(l.SOFAR/l.TOTALWORK*100,2) "%_COMPLETE", l.message,s.sql_text 
+FROM gv$session_longops l 
+LEFT OUTER JOIN v$sql s on s.hash_value=l.sql_hash_value and s.address=l.sql_address and s.child_number=0
+WHERE l.OPNAME NOT LIKE 'RMAN%' AND l.OPNAME NOT LIKE '%aggregate%' AND l.TOTALWORK != 0 AND l.sofar<>l.totalwork AND l.time_remaining > 0
+--------------------tablespace size and freespace----------------------------
+select df.tablespace_name "Tablespace",
+totalusedspace "Used MB",
+(df.totalspace - tu.totalusedspace) "Free MB",
+df.totalspace "Total MB",
+round(100 * ( (df.totalspace - tu.totalusedspace)/ df.totalspace))
+"Pct. Free"
+from
+(select tablespace_name,
+round(sum(bytes) / 1048576) TotalSpace
+from dba_data_files 
+group by tablespace_name) df,
+(select round(sum(bytes)/(1024*1024)) totalusedspace, tablespace_name
+from dba_segments 
+group by tablespace_name) tu
+where df.tablespace_name = tu.tablespace_name ;
+----------------------full detail result of the following two queries:------------
+--Change the hardcoded $ORACLE_HOME in the query to yours.
+
+SELECT * FROM v$version;
+
+col tablespace_name format a15
+col file_size format 99999
+col file_name format a50
+col hwm format 99999
+col can_save format 99999
+
+SELECT tablespace_name, file_name, file_size, hwm, file_size-hwm can_save
+FROM (
+  SELECT /*+ RULE */ ddf.tablespace_name,
+    REPLACE(ddf.file_name, 'C:\ORACLE\PRODUCT','$ORACLE_HOME') file_name,
+    ddf.bytes/1048576 file_size,
+    (ebf.maximum + de.blocks-1)*dbs.db_block_size/1048576 hwm
+  FROM dba_data_files ddf,
+    (SELECT file_id, MAX(block_id) maximum FROM dba_extents GROUP BY file_id) ebf,
+    dba_extents de,
+    (SELECT value db_block_size FROM v$parameter WHERE name='db_block_size') dbs
+  WHERE ddf.file_id = ebf.file_id
+  AND de.file_id = ebf.file_id
+  AND de.block_id = ebf.maximum
+  ORDER BY 1,2);
+  ----------------------Query to find the top segment--------------------------------
+SELECT owner,segment_name, segment_type,  sum(BYTES)/1024/1024 M  
+FROM dba_segments where tablespace_name='SYSTEM'
+GROUP BY SEGMENT_NAME, SEGMENT_TYPE,owner ORDER BY 4 desc;
+---------------------------------------------------------------------------
+select dbms_sqltune.report_sql_monitor(report_level=>'ALL', type=>'TEXT', sql_id=>'....') monitor_report from dual;

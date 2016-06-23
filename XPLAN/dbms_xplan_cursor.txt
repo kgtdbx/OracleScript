@@ -1,0 +1,160 @@
+select --+ GATHER_PLAN_STATISTICS #ALT_MERGE#
+       object_type, count(*)
+ from all_objects 
+ group by object_type;
+
+  select * from v$sql s where s.SQL_TEXT like '%#ALT_MERGE#%'
+ 
+ SELECT * FROM table(DBMS_XPLAN.DISPLAY_CURSOR(sql_id => 'gv53814gup7ca', format => 'ALL ALLSTATS LAST'));
+  SELECT * FROM table(DBMS_XPLAN.DISPLAY_CURSOR(sql_id => 'gv53814gup7ca', format => 'ALL +PEEKED_BINDS'));
+
+
+dbms_xplan
+
+«Пакет DBMS_XPLAN предоставляет удобный интерфейс для вывода результатов команды EXPLAIN PLAN в нескольких предопределённых форматах. Также может быть использован для показа плана запросов, находящихся в Automatic Workload Repository (AWR) или в SQL tuning set. Кроме того [очень важно] позволяет в удобной форме показывать планы, используемые при реальном выполнении  SQL запросов и статистику выполнения (SQL execution runtime statistics) для запросов из кэша SQL курсоров на основании информации системных обзоров (fixed views) V$SQL_PLAN и V$SQL_PLAN_STATISTICS_ALL. Также показывает планы из SQL plan baseline«
+
+С точки зрения настройки запросов важна возможность получать и анализировать статистику реального плана выполнения. Для получения статистики (row source statistics) можно использовать подсказку GATHER_PLAN_STATISTICS, либо установить параметр STATISTICS_LEVEL = ALL (альтернативно можно установить скрытый параметр  _rowsource_execution_statistics = TRUE):
+
+SQL> show serveroutput
+serveroutput OFF
+ 
+SQL> alter session set "_rowsource_execution_statistics" = TRUE;
+Session altered.
+ 
+SQL> select object_type, count(*)
+2  from xxx_objects xxx
+3  group by object_type;
+...
+42 rows selected.
+ 
+SQL> SELECT * FROM table(DBMS_XPLAN.DISPLAY_CURSOR(null,null,'ALL ALLSTATS LAST'));
+ 
+PLAN_TABLE_OUTPUT
+----------------------------------------------------------------------------------------------------
+SQL_ID  1hnvx6b53s4vy, child number 0
+-------------------------------------
+select object_type, count(*) from xxx_objects xxx group by object_type
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation          | Name        | Starts | E-Rows |E-Bytes| Cost (%CPU)| E-Time   | A-Rows|   A-Time   | Buffers | Reads |  OMem |  1Mem | Used-Mem |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+|   1 |  HASH GROUP BY     |             |      1 |  66562 |   715K|   287   (2)| 00:00:04 |     42|00:00:00.11 |    1018 |   143 |   798K|   798K| 1210K (0)|
+|   2 |   TABLE ACCESS FULL| XXX_OBJECTS |      1 |  66562 |   715K|   284   (1)| 00:00:04 |  68873|00:00:00.07 |    1018 |   143 |       |       |          |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Query Block Name / Object Alias (identified by operation id):
+-------------------------------------------------------------
+1 - SEL$1
+2 - SEL$1 / XXX@SEL$1
+ 
+Column Projection Information (identified by operation id):
+-----------------------------------------------------------
+1 - "OBJECT_TYPE"[VARCHAR2,19], COUNT(*)[22]
+2 - "OBJECT_TYPE"[VARCHAR2,19]
+ 
+Note
+-----
+- dynamic sampling used for this statement
+Значения столбцов статистики плана выполнения
+
+Starts — количество выполнений (стартов) операции с данными — в примере операции HASH GROUP BY и TABLE ACCESS FULL выполнялись по одному разу
+
+E-rows (estimated rows) — ожидаемое количество строк при каждом выполнении операции
+
+E-Time (estimated time) — ожидаемое время выполнения
+
+A-rows (active/actual rows) — наблюдаемое суммарное количество строк за время всех выполнений операции, сравнивать имеет смысл с произведением Starts*E-rows
+
+A-Time (active|actual time) — наблюдаемое время выполнения
+
+Из исследования Rob van Wijk:
+
+Buffers — consistent gets + current gets
+
+Reads — количество physical reads
+
+OMem — соответствует значению V$SQL_WORKAREA.ESTIMATED_OPTIMAL_SIZE — «предполагаемое количество памяти (work area size), требуемое для операции [обработки курсора]  полностью в памяти (optimal execution)»
+
+1Mem — соответствует значению V$SQL_WORKAREA.ESTIMATED_ONEPASS_SIZE — «предполагаемое количество памяти (work area size), требуемое для операции [обработки курсора] за один проход (single path execution)»
+
+Used-Mem — соответствует значению V$SQL_WORKAREA.LAST_MEMORY_USED — «[реальное значение] памяти (work area size), использованной в течение последнего выполнения курсора»
+
+Значения параметра FORMAT функции DBMS_XPLAN.DISPLAY_CURSOR
+
+SELECT * FROM TABLE(dbms_xplan.display_cursor(
+     '&sql_id',
+     '&child_number',
+                     'BASIC
+                      TYPICAL
+                      SERIAL
+                      ALL      -- статистика выполнения QC+PX процессов
+                      ADAPTIVE -- начиная с 12.1 показывает все (включая потенциальные) варианты адаптивного плана выполнения запроса
+                               -rows
+                               -bytes
+                               -cost
+                               -parallel
+                               -partition
+                                              allstats
+                                                 -iostats
+                                                 -memstats
+                                                           advanced       -- расширенная форма вывода из секций:
+                                                            -alias
+                                                            -outline
+                                                            -peeked_binds -- значения связанных переменнных, использованные при разборе
+                                                            -predicate
+                                                            -projection
+                                                            -remote
+                                                            -note
+                                                            -report       -- для адаптивного плана
+                                                                            last'));
+BASIC — минимум информации в плане выполнения (operation ID, operation name + option)
+
+TYPICAL — Значение по умолчанию (operation id, name, option, #rows, #bytes + optimizer cost)…, — PROJECTION, — ALIAS , — REMOTE SQL
+
+ALL — «Максимальный пользовательский уровень,.. включает доп.информацию (PROJECTION, ALIAS и секцию REMOTE SQL для распределённых операций)»
+
+Из блога Jonathan Lewis:
+
+ADVANCED — то же, что и All, плюс информацию об используемых Outline (наборе подсказок, позволяющих воспроизвести план выполнения), из поля V$SQL_PLAN_STATISTICS_ALL.OTHER_XML. В предыдущем примере секция Outline будет выглядеть так:
+
+SQL> SELECT * FROM table(DBMS_XPLAN.DISPLAY_CURSOR(null,null,'ADVANCED ALLSTATS LAST'));
+ 
+...
+ 
+Outline Data
+-------------
+ 
+/*+
+BEGIN_OUTLINE_DATA
+IGNORE_OPTIM_EMBEDDED_HINTS
+OPTIMIZER_FEATURES_ENABLE('11.1.0.6')
+DB_VERSION('11.1.0.6')
+ALL_ROWS
+OUTLINE_LEAF(@"SEL$1")
+FULL(@"SEL$1" "XXX"@"SEL$1")
+USE_HASH_AGGREGATION(@"SEL$1")
+END_OUTLINE_DATA
+*/
+OUTLINE — выводит только основную секцию (basic plan), секции Outline и Predicate
+
+PEEKED_BINDS — выводит доп.секцию со значениями связанных переменных, которые оптимизатор учитывает при подготовке плана выполнения (механизм bind peeking), выглядит это так:
+
+SQL> alter session set cursor_sharing=similar;
+Session altered.
+ 
+SQL> select object_type, count(*)
+2  from xxx_objects xxx
+3  where object_name like '%$%'
+4  group by object_type;
+...
+ 
+SQL> SELECT * FROM table(DBMS_XPLAN.DISPLAY_CURSOR(null,null,'ALL +PEEKED_BINDS'));
+ 
+PLAN_TABLE_OUTPUT
+...
+ 
+Peeked Binds (identified by position):
+--------------------------------------
+ 
+1 - :SYS_B_0 (VARCHAR2(30), CSID=873): '%$%'
+ 
+...

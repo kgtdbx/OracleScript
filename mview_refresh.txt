@@ -1,0 +1,79 @@
+You can perform manual refreshes in addition to automatic refreshes as explained in my earlier article (Materialized Views). Oracle supplies DBMS_SNAPSHOT and DBMS_MVIEW packages, which we can use to refresh materialized views / snapshots.
+DBMS_SNAPSHOT
+
+SQL> execute DBMS_SNAPSHOT.REFRESH( 'MV_EMP','f');
+PL/SQL procedure successfully completed.
+Parameters of Procedure REFRESH
+
+The first parameter to the procedure REFRESH is the name of the materialized view or snapshot, the second parameter specifies the type of refresh.
+
+Type of Refresh	Description
+F, f	Fast Refresh
+C, c	Complete Refresh
+A	Always perform complete refresh
+?	Use the default option
+The manual refresh overtakes any previous refresh timing options, which were specified during the creation of the view. It more specifically overrides the 'start with' clause, which is specified with the 'create materialized view' command.
+
+
+begin dbms_mview.refresh(list => 'ETP_SPECIFICATION',method => 'C',atomic_refresh => false); end;
+--
+BEGIN dbms_mview.refresh( list => 'ETP_SPECIFICATION', method => 'F', atomic_refresh => false ); END;
+--
+execute dbms_mview.refresh( list => 'ETP_SPECIFICATION', method => 'F' );
+
+-------------------------
+Add condition to sub query and check whether query returns only those objects that you need to do FULL REFRESH !
+
+DECLARE
+  v_sql VARCHAR2(32000);
+BEGIN
+FOR q IN (select * from 
+            (select obj_name, 
+           'begin dbms_mview.refresh(list => '''||obj_name||''',method => ''C'',atomic_refresh => false); end;' as script,
+                   row_number() over(partition by obj_name order by obj_id) numb
+             from cc_dev.cfg_target_deploy
+            where 1=1
+            and obj_type = 'MATERIALIZED_VIEW'
+            and obj_name in ('DIVIDEND_POINT')
+            )
+            where numb = 1) 
+LOOP  
+  --v_sql := 'begin execute immediate '|| ''''||q.script || '''' ||'; end;';
+ DBMS_SCHEDULER.create_job(job_name        => SUBSTR('JOB_' || q.obj_name,1,30),
+                                job_type        => 'PLSQL_BLOCK',
+                                job_action      => q.script,
+                                start_date      => SYSTIMESTAMP,
+                                repeat_interval => NULL,
+                                end_date        => NULL,
+                                enabled         => TRUE,
+                                comments        => 'Any type');
+END LOOP;
+END;
+
+-------------
+DECLARE
+  v_sql VARCHAR2(32000);
+BEGIN
+FOR q IN (
+          select 'ETP_SPECIFICATION' as obj_name, 
+                 'begin dbms_mview.refresh(list => ''ETP_SPECIFICATION'',method => ''C'',atomic_refresh => false); end;' as script
+          from dual
+          union all
+          select 'DIVIDEND_FORECAST' as obj_name, 
+                 'begin dbms_mview.refresh(list => ''DIVIDEND_FORECAST'',method => ''C'',atomic_refresh => false); end;' as script
+          from dual) 
+LOOP  
+  --v_sql := 'begin execute immediate '|| ''''||q.script || '''' ||'; end;';
+ DBMS_SCHEDULER.create_job(job_name        => SUBSTR('JOB_' || q.obj_name,1,30),
+                                job_type        => 'PLSQL_BLOCK',
+                                job_action      => q.script,
+                                start_date      => SYSTIMESTAMP,
+                                repeat_interval => NULL,
+                                end_date        => NULL,
+                                enabled         => TRUE,
+                                comments        => 'Any type');
+END LOOP;
+END;
+/
+
+--------------

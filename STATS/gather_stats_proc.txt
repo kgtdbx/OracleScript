@@ -1,0 +1,78 @@
+ procedure p_gather_stat_pdm
+  is
+    l_estimate_percent pls_integer default 10;
+    l_table_name       varchar2(4000);
+
+    cursor cur_stat_pdm
+    is
+      select
+        t.table_name
+      from
+        user_tables t
+      where
+        t.table_name in
+          ('METER_INSTRUMENT',
+           'METER_INSTR_ALT_IDTFCN');
+  begin
+    if gv_intial_load_cd = 'T' then
+      open cur_stat_pdm;
+
+      loop
+        fetch cur_stat_pdm into l_table_name;
+
+        exit when cur_stat_pdm%notfound;
+        dbms_stats.gather_table_stats(ownname          => null,
+                                      tabname          => l_table_name,
+                                      cascade          => true,
+                                      no_invalidate    => false,
+                                      estimate_percent => l_estimate_percent);
+      end loop;
+      close cur_stat_pdm;
+    end if;
+  end;
+
+  ---------------------------------------------------------------------------------
+  procedure p_gather_stat_pdm_before
+  is
+  begin
+    p_gather_stat_pdm;
+  end;
+
+  ---------------------------------------------------------------------------------
+  procedure p_gather_stat_pdm_after
+  is
+  begin
+    p_gather_stat_pdm;
+  end;
+  
+  
+ ----###################################################################
+ PROCEDURE p_gather_stat_subq_fi (p_part_value in number)
+  IS
+    TYPE tt_part IS TABLE OF varchar2(30) INDEX BY varchar2(30);
+    v_tt tt_part;
+    cur sys_refcursor;
+    l_partition_name varchar2(30);
+  BEGIN
+  IF gv_source_type_cd <> 'CD_FEED' 
+  THEN
+     RETURN;
+  END IF; 
+   FOR cur IN (SELECT p.partition_name,p.high_value from user_tab_partitions p
+                WHERE p.table_name='XREF_IN_SUB_QUEUE_FI')
+      LOOP
+        v_tt(cur.high_value):=cur.partition_name;  
+      END LOOP;
+    IF  NOT v_tt.EXISTS(p_part_value+1) 
+       THEN RETURN;
+    END IF; 
+    l_partition_name := v_tt(p_part_value+1);
+    DBMS_STATS.gather_table_stats (ownname            => NULL,
+                                   tabname            => 'XREF_IN_SUB_QUEUE_FI',
+                                   partname           => l_partition_name,
+                                   estimate_percent   => 5,
+                                   cascade            => TRUE,
+                                   granularity        => 'SUBPARTITION',
+                                   no_invalidate      => FALSE);               
+   END;
+   -----------------------------

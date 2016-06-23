@@ -1,0 +1,23 @@
+jdbc:oracle:thin:ITC/ITC@10.0.62.254:1521:ORAW2K8
+jdbc:oracle:thin:@10.0.62.254
+jdbc:oracle:thin:@ORAW2K8
+jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=10.0.62.254)(PORT=1521)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=ORAW2K8)))
+jdbc:oracle:oci8:@ORAW2K8
+
+
+-----------
+SET CLASSPATH=C:\java\MyClasses\vertica_jdk_5.jar
+-----------
+enter
+set path=C:\Program Files\Java\jre6\bin;%path%;
+enter
+set classpath=%classpath%;c:\app\product\11.2.0\client_1\jdbc\lib\ojdbc6.jar;
+enter 
+cd C:\
+enter
+
+"C:\Progra~2\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe"
+-----------
+create .bat with 
+set path=C:\Program Files\Java\jdk1.6.0_45\bin;%path%;
+set classpath=%classpath%;c:\app\product\11.2.0\client_1\jdbc\lib\ojdbc6.jar;

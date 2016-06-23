@@ -1,0 +1,927 @@
+----############################
+
+Oracle 11g PL/SQL, еще несколько особенностей
+Я уже делился тем, что недавно (вновь или впервые) привлекло мое внимание в языке PL/SQL. Сегодня - продолжу.
+
+Когда %TYPE и %ROWTYPE берут с собой ограничения
+
+Переменные, объявленные с помощью %TYPE, наследуют от "прототипа" не только тип и размер, но также ограничения NOT NULL:
+
+SQL> SQL> declare
+  2      l_one number not null := 0;
+  3      l_two l_one%type;
+  4  begin
+  5      null;
+  6  end;
+  7  /
+ORA-06550: line 3, column 11:
+PLS-00218: a variable declared NOT NULL must have an initialization assignment
+А переменные, объявленные с помощью %ROWTYPE, наследуют не только типы, размеры и ограничения полей записи, но и их значения по умолчанию (эти значения - часть определения типа):
+
+SQL> declare
+  2      type t_rec is record (
+  3          id number,
+  4          name varchar2(50) not null default 'Qwerty'
+  5      );
+  6      l_rec1 t_rec;
+  7      l_rec2 l_rec1%type;
+  8  begin
+  9      dbms_output.put_line(
+ 10          nvl(to_char(l_rec1.id), 'NULL') || ', ' ||
+ 11          nvl(to_char(l_rec1.name), 'NULL')
+ 12      );
+ 13      dbms_output.put_line(
+ 14          nvl(to_char(l_rec2.id), 'NULL') || ', ' ||
+ 15          nvl(to_char(l_rec2.name), 'NULL')
+ 16      );
+ 17      l_rec2.name := to_char(NULL);
+ 18  exception
+ 19  when others then
+ 20      dbms_output.put_line(sqlerrm);
+ 21  end;
+ 22  /
+NULL, Qwerty
+NULL, Qwerty
+ORA-06502: PL/SQL: numeric or value error
+
+PL/SQL procedure successfully completed
+Вышесказанное справедливо только в случаях, когда %TYPE и %ROWTYPE используют как прототип переменную PL/SQL, а не столбец или строку таблицы БД. От столбцов таблицы наследуются только тип и размер, и не наследуются ограничения и значения по умолчанию:
+
+SQL> create table test_tab (
+  2      msg varchar2(50) default 'Hello' not null
+  3  );
+Table created
+
+SQL> declare
+  2      l_rec test_tab%ROWTYPE;
+  3  begin
+  4      dbms_output.put_line(nvl(to_char(l_rec.msg), 'NULL'));
+  5      l_rec.msg := NULL;
+  6  end;
+  7  /
+NULL
+PL/SQL procedure successfully completed
+Таблица test_tab нам еще пригодится для дальнейших примеров.
+
+Когда (не)уместны COMMIT и ROLLBACK
+
+В общем случае, нет органичений на количество транзакций, которые можно начинать и завершать внутри процедуры или функции PL/SQL, так же как нет требования обязательно использовать (или не использовать) в процедуре или функции COMMIT или ROLLBACK. Но есть несколько специальных случаев.
+
+* Автономную транзакцию в процедуре необходимо завершать - или она будет отменена и мы получим исключение:
+
+SQL> create or replace procedure test_proc as
+  2      pragma autonomous_transaction;
+  3  begin
+  4      insert into test_tab values ('Привет, мир');
+  5      commit;
+  6      insert into test_tab values ('Hello, world');
+  7  end test_proc;
+  8  /
+Procedure created
+
+SQL> exec test_proc
+begin test_proc; end;
+ORA-06519: active autonomous transaction detected and rolled back
+ORA-06512: at "AY.TEST_PROC", line 7
+ORA-06512: at line 1
+
+SQL> select * from test_tab;
+MSG
+--------------------------------------------------------------------------------
+Привет, мир
+
+SQL> drop procedure test_proc;
+Procedure dropped
+* Нельзя завершать транзакцию в функции, которая вызывается из команды DML или SELECT, или в табличном триггере:
+
+SQL> create or replace function test_func
+  2  return varchar2 as
+  3  begin
+  4      commit;
+  5      return 'commited';
+  6  end test_func;
+  7  /
+Function created
+
+SQL> select test_func from dual;
+select test_func from dual
+ORA-14552: cannot perform a DDL, commit or rollback inside a query or DML 
+ORA-06512: at "AY.TEST_FUNC", line 4
+
+SQL> update test_tab set msg = test_func;
+update test_tab set msg = test_func
+ORA-14552: cannot perform a DDL, commit or rollback inside a query or DML 
+ORA-06512: at "AY.TEST_FUNC", line 4
+При этом нет никаких препятствий для вызова test_func из PL/SQL:
+
+SQL> var v varchar2(50)
+SQL> exec :v := test_func
+PL/SQL procedure successfully completed
+SQL> print v
+v
+---------
+commited
+А вот триггер, завершающий транзакцию, и к чему это приводит:
+
+SQL> create or replace trigger test_tab_trg
+  2  after insert or update or delete on test_tab
+  3  begin
+  4      commit;
+  5  end;
+  6  /
+Trigger created
+
+SQL> insert into test_tab values ('Hello, world');
+insert into test_tab values ('Hello, world')
+ORA-04092: cannot COMMIT in a trigger
+ORA-06512: at "AY.TEST_TAB_TRG", line 2
+ORA-04088: error during execution of trigger 'AY.TEST_TAB_TRG'
+Удаляю следы экспериментов:
+
+SQL> drop trigger test_tab_trg;
+Trigger dropped
+
+SQL> drop function test_func;
+Function dropped
+* Завершение транзакции при открытом курсоре FOR UPDATE приводит к немедленному закрытию курсора:
+
+SQL> DECLARE
+  2      CURSOR c_test_tab IS SELECT * FROM test_tab FOR UPDATE;
+  3  BEGIN
+  4      FOR x IN c_test_tab LOOP
+  5          UPDATE test_tab
+  6          SET msg = LOWER(msg)
+  7          WHERE CURRENT OF c_test_tab;
+  8          COMMIT; -- !!!
+  9      END LOOP;
+ 10  END;
+ 11  /
+ORA-01002: fetch out of sequence
+ORA-06512: at line 4
+
+SQL> select * from test_tab;
+MSG
+--------------------------------------------------------------------------------
+привет, мир
+Сиквенсы доступны в PL/SQL напрямую
+
+Когда-то получить значения сиквенса можно было только в команде DML. Если требовалось присвоить значение сиквенса переменной PL/SQL, то требовалось выполнить SELECT INTO... В Oracle 11g можно сделать так:
+
+SQL> create sequence test_seq;
+Sequence created
+
+SQL> 
+SQL> declare
+  2      l_seq number;
+  3  begin
+  4      l_seq := test_seq.nextval;
+  5      l_seq := test_seq.currval;
+  6  end;
+  7  /
+PL/SQL procedure successfully completed
+
+SQL> drop sequence test_seq;
+Sequence dropped
+Режимы IN, OUT и IN OUT для связанных переменных
+
+В PL/SQL режимы IN, OUT и IN OUT используются не только для параметров процедур, но и для связанных переменных в части USING команды EXECUTE IMMEDIATE.
+
+По умолчанию переменные USING имеют режим IN. В динамическом коде, исполняемом с помощью EXECUTE IMMEDIATE,
+
+IN переменные доступны только на чтение,
+OUT переменные доступны только на запись.
+SQL> SQL> DECLARE
+  2      x VARCHAR2(50) := 'на входе';
+  3      y VARCHAR2(50) := 'на входе';
+  4      z VARCHAR2(50) := 'на входе';
+  5  BEGIN
+  6      EXECUTE IMMEDIATE '
+  7          begin
+  8              dbms_output.put_line(''1 '' || :x);
+  9              --:x := ''новое'';
+ 10              --ORA-06536: IN bind variable bound to an OUT position
+ 11  
+ 12              --dbms_output.put_line(''1 '' || :y);
+ 13              --ORA-06537: OUT bind variable bound to an IN position
+ 14  
+ 15              :y := ''новое'';
+ 16              dbms_output.put_line(''1 '' || :z);
+ 17              :z := ''новое'';
+ 18          end;'
+ 19      USING x, OUT y, IN OUT z;
+ 20      dbms_output.put_line('2 ' || x);
+ 21      dbms_output.put_line('2 ' || y);
+ 22      dbms_output.put_line('2 ' || z);
+ 23  END;
+ 24  /
+1 на входе
+1 на входе
+2 на входе
+2 новое
+2 новое
+PL/SQL procedure successfully completed
+Переменная OUT var в части USING и часть RETURNING INTO var взаимозаменяемы в предложении EXECUTE IMMEDIATE:
+
+SQL> DECLARE
+  2      l_msg test_tab.msg%type;
+  3  BEGIN
+  4      EXECUTE IMMEDIATE '
+  5          update test_tab
+  6          set msg = upper(msg)
+  7          where rownum = :x
+  8          returning msg into :y'
+  9      USING 1, OUT l_msg
+ 10      ;
+ 11      dbms_output.put_line(l_msg);
+ 12  
+ 13      EXECUTE IMMEDIATE '
+ 14          update test_tab
+ 15          set msg = initcap(msg)
+ 16          where rownum = :x
+ 17          returning msg into :y'
+ 18      USING 1
+ 19      RETURNING INTO l_msg
+ 20      ;
+ 21      dbms_output.put_line(l_msg);
+ 22  END;
+ 23  /
+ПРИВЕТ, МИР
+Привет, Мир
+PL/SQL procedure successfully completed
+Это разные звери
+
+Вы проводите различие между функциями SQL и PL/SQL? А ведь это разные звери.
+
+Попробую вызвать функцию NVL2 в PL/SQL коде, а затем в SQL:
+
+SQL> exec :n := NVL2(NULL, 1, 2)
+begin :n := NVL2(NULL, 1, 2); end;
+ORA-06550: line 1, column 13:
+PLS-00201: identifier 'NVL2' must be declared
+ORA-06550: line 1, column 7:
+PL/SQL: Statement ignored
+
+SQL> select NVL2(NULL, 1, 2) from dual;
+NVL2(NULL,1,2)
+--------------
+             2
+NVL2 - это функция языка SQL, но не языка PL/SQL. А вот COALESCE работает в обеих средах, потому что эта функция реализована и в SQL и в PL/SQL:
+
+SQL> select coalesce(null, null, 'hi') from dual;
+COALESCE(NULL,NULL,'HI')
+------------------------
+hi
+
+SQL> var x varchar2(5)
+SQL> exec :x := coalesce(null, null, 'hi')
+PL/SQL procedure successfully completed
+
+SQL> print x
+x
+---------
+hi
+Другой пример, демонстрирующий, что функции SQL и функции PL/SQL - это разные звери, использует тот факт, что в Oracle 11g стало возможным при вызове PL/SQL функций из SQL передавать параметры по именам. Создам собственную функцию, чтобы продемонстрировать это:
+
+SQL> CREATE OR REPLACE FUNCTION hello(x VARCHAR2) RETURN VARCHAR2
+AS
+BEGIN
+    RETURN 'hello '||x;
+END;
+/
+Function created
+
+SQL> select hello(x => 'world') from dual;
+HELLO(X=>'WORLD')
+-------------------------
+hello world
+Но попробуем вызвать с именованными параметрами функции, которые есть и в SQL и в PL/SQL (имена параметров посмотрите в пакете SYS.STANDARD):
+SQL> select upper(ch => 'hello') from dual;
+select upper(ch => 'hello') from dual
+ORA-00907: missing right parenthesis
+
+SQL> select concat(LEFT => 'hello ', RIGHT => 'world') from dual;
+select concat(LEFT => 'hello ', RIGHT => 'world') from dual
+ORA-00909: invalid number of arguments
+Дело в том, что в пакете SYS.STANDARD описаны идентификаторы PL/SQL, а в приведенных командах SELECT вызываются функции SQL! Вызовем функции PL/SQL, указав их полные имена:
+
+SQL> select sys.standard.upper(ch => 'hello') from dual;
+SYS.STANDARD.UPPER(CH=>'HELLO')
+--------------------------------------------------------------------------------
+HELLO
+
+SQL> select sys.standard.concat(LEFT => 'hello ', RIGHT => 'world') from dual;
+SYS.STANDARD.CONCAT(LEFT=>'HEL)
+--------------------------------------------------------------------------------
+hello world
+В заключение, замечание по поводу DECODE. Многие сталкивались с невозможностью использовать DECODE напрямую в PL/SQL:
+
+SQL> var n number
+SQL> exec :n := decode('a', 'a', 1, 'b', 2, 3)
+begin :n := decode('a', 'a', 1, 'b', 2, 3); end;
+ORA-06550: line 1, column 13:
+PLS-00204: function or pseudo-column 'DECODE' may be used inside a SQL statement only
+ORA-06550: line 1, column 7:
+PL/SQL: Statement ignored
+При этом функция DECODE определена в пакете SYS.STANDARD (в отличие от уже упоминавшейся NVL2). Выходит, DECODE стоит совсем особняком. Возможно, ее использование в PL/SQL запрещено из-за ее необычного обращения с NULL, которое идет в разрез с общей практикой?
+
+Зачищаю следы экспериментов:
+
+SQL> drop function hello;
+Function dropped
+
+SQL> drop table test_tab;
+Table dropped
+---############################
+
+
+cd, ls, less, grep
+
+ls  -ls  /usr/bin
+/*
+ls	имя команды выдачи содержимого директория,
+-ls	флаги ( "-" - признак флагов, l - длинный формат, s - об'ем файлов в блоках).
+/usr/bin	директорий, для которого выполняется команда.
+--------------
+Фоновые процессы (как и теневую экономику) сложно уничтожить, поскольку традиционная команда "CTL/C" прерывает только процессы переднего плана. Для уничтожения фонового процесса надо знать его номер. При запуске фонового процесса на экран выдается число, соответствующее номеру (идентификатору) этого процесса (PID). Если этот номер забыт или надо убедиться, что этот процесс не закончен, с помощью команды
+	ps -aux
+можно получить перечень идентификаторов процессов (PID), имена пользователей, текущее время, затраченное процессами, и т.д.
+В выведенной таблице можно найти номера процессов, подлежащих уничтожению, например это "849" и "866". Тогда командой
+	kill -9  866 849
+можно уничтожить эти процессы. При уничтожении процессов надо вы должны иметь то же имя пользователя, какое было приписано уничтожаемым процессам (или иметь имя привилегированного пользователя).
+--------------
+Конвейером можно об'единять и более двух команд, когда все они, возможно кроме первой и последней - фильтры:
+    cat f1 | grep -h result | sort | cat -b > f2
+Данный конвейер из файла "f1" ("cat") выберет все строки, содержащие слово "result" ("grep"), отсортирует ("sort") полученные строки, а затем пронумерует ("cat -b") и выведет результат в файл "f2".
+
+
+*/
+
+Try using something like this
+
+
+exec dbms_errlog.create_error_log('T1');
+
+
+insert into t1 select ID, OWNER, OBJECT_NAME, SUBOBJECT_NAME, OBJECT_ID, DATA_OBJECT_ID, decode( mod(rownum,100000), 1, rpad('*',20,'*'), OBJECT_TYPE ) object_type, CREATED, LAST_DDL_TIME, TIMESTAMP, STATUS, TEMPORARY, GENERATED, SECONDARY from big_table LOG ERRORS REJECT LIMIT UNLIMITED;
+------------------
+
+INSERT INTO dest 
+SELECT * 
+FROM source 
+LOG ERRORS INTO err$_dest ('INSERT') REJECT LIMIT UNLIMITED;
+
+https://oracle-base.com/articles/10g/dml-error-logging-10gr2
+------------
+SAVE EXCEPTIONS - http://docs.oracle.com/cd/B19306_01/appdev.102/b14261/tuning.htm#i49099
+
+--название БД--------
+SELECT * FROM GLOBAL_NAME;
+--версия БД------
+SELECT * FROM V$VERSION;
+select * from v$version where rownum = 1;
+SELECT * FROM PRODUCT_COMPONENT_VERSION;
+--service_name-------
+select value from v$parameter where name like '%service_name%';
+--------------------------------------------
+Временная зона сессии - параметр, влияющий на представление и преобразование данных типов TIMESTAMP WITH TIME ZONE и TIMESTAMP WITH LOCAL TIME ZONE 
+в конкретной сессии. Текущее значение данного параметра можно узнать простым запросом:
+
+SELECT SESSIONTIMEZONE FROM DUAL;
+Временная зона сессии задаётся с помощью переменной окружения ORA_SDTZ на клиентской машине либо явно, с помощью конструкции ALTER SESSION SET TIME_ZONE=...
+Переменная окружения ORA_SDTZ может принимать следующие типы значений:
+
+'OS_TZ' - локальная (клиентская) таймзона ОС
+'DB_TZ' - таймзона базы данных
+'+04:00' - смещение относительно UTC
+'Europe/Moscow' - именованная таймзона
+В случае явного задания с помощью ALTER SESSION временная зона может иметь значения:
+
+local - локальная (клиентская) таймзона ОС
+dbtimezone - таймзона базы данных
+'+04:00' - смещение относительно UTC
+'Europe/Moscow' - именованная таймзона
+Любопытный факт: нигде не документировано, какое значение будет возвращать sessiontimezone в случае, 
+если переменная ORA_SDTZ не установлена и значение никак не задано явно.
+В результате эксперимента удалось выяснить, что в этом случае временная зона сессии будет равняться временной зоне клиентской ОС, 
+приведённой к абсолютному смещению, т.е. если, например, в ОС установлена зона 'Europe/Moscow', 
+то sessiontimezone вернёт '+04:00', а если 'Asia/Vladivostok', то значение будет '+10:00'.
+Посвящается «проблеме 2011», вызванной отменой перехода на зимнее время в России.
+
+-----Размер пулов в SGA--------
+COMPUTE SUM OF BYTES ON POOL
+BREAK ON POOL SKIP 1
+SELECT POOL, NAME, BYTES
+FROM V$SGASTAT
+ORDER BY POOL, NAME;
+------Размер буфера журнала повторного выполнения------
+SHOW PARAMETER LOG_BUFFER
+SELECT * FROM V$SGA WHERE NAME = 'Redo Buffers';
+----Размер разделяемого пула(shared_pool)----
+SHOW PARAMETER shared_pool_size
+SELECT SUM(BYTES)
+FROM V$SGASTAT
+WHERE POOL = 'shared pool'
+-----версия клиента--------
+select distinct client_version from v$session_connect_info where sid = (select sys_context('userenv', 'sid') from dual);
+or
+select distinct client_version from v$session_connect_info where sid = USERENV('sid');
+----------------------------------
+--информация по юзеру---------
+SELECT USERNAME, USER_ID, PASSWORD, ACCOUNT_STATUS, DEFAULT_TABLESPACE, 
+TEMPORARY_TABLESPACE, PROFILE   
+FROM DBA_USERS
+WHERE USERNAME = user;
+
+--информация, которую можно получить из контекста USERENV в программу:
+SELECT 
+  SYS_CONTEXT ( 'userenv', 'AUTHENTICATION_TYPE' ) authent
+, SYS_CONTEXT ( 'userenv', 'CURRENT_SCHEMA' )      curr_schema
+, SYS_CONTEXT ( 'userenv', 'CURRENT_USER' )        curr_user
+, SYS_CONTEXT ( 'userenv', 'DB_NAME' )             db_name
+, SYS_CONTEXT ( 'userenv', 'DB_DOMAIN' )           db_domain
+, SYS_CONTEXT ( 'userenv', 'HOST' )                host
+, SYS_CONTEXT ( 'userenv', 'IP_ADDRESS' )          ip_address
+, SYS_CONTEXT ( 'userenv', 'OS_USER' )             os_user
+, SYS_CONTEXT ( 'userenv', 'SID' )             	   sid
+FROM dual
+;
+----------------Locks------------------
+
+SELECT /*+ rule */
+ bs.username||'('||bs.osuser||')' AS "Blocking_User",
+ ws.username||'('||ws.osuser||')' AS "Waiting_User",
+ bs.sid "block_SID",
+ ws.sid "wait_SID",
+ DECODE(wk.TYPE,
+        'MR',
+        'Media Recovery',
+        'RT',
+        'Redo Thread',
+        'UN',
+        'USER Name',
+        'TX',
+        'Transaction',
+        'TM',
+        'DML',
+        'UL',
+        'PL/SQL USER LOCK',
+        'DX',
+        'Distributed Xaction',
+        'CF',
+        'Control FILE',
+        'IS',
+        'Instance State',
+        'FS',
+        'FILE SET',
+        'IR',
+        'Instance Recovery',
+        'ST',
+        'Disk SPACE Transaction',
+        'TS',
+        'Temp Segment',
+        'IV',
+        'Library Cache Invalidation',
+        'LS',
+        'LOG START OR Switch',
+        'RW',
+        'ROW Wait',
+        'SQ',
+        'Sequence Number',
+        'TE',
+        'Extend TABLE',
+        'TT',
+        'Temp TABLE',
+        wk.TYPE) AS "lock_type",
+ DECODE(hk.lmode,
+        0,
+        'None',
+        1,
+        'NULL',
+        2,
+        'ROW-S (SS)',
+        3,
+        'ROW-X (SX)',
+        4,
+        'SHARE',
+        5,
+        'S/ROW-X (SSX)',
+        6,
+        'EXCLUSIVE',
+        TO_CHAR(hk.lmode)) mode_held,
+ DECODE(wk.request,
+        0,
+        'None',
+        1,
+        'NULL',
+        2,
+        'ROW-S (SS)',
+        3,
+        'ROW-X (SX)',
+        4,
+        'SHARE',
+        5,
+        'S/ROW-X (SSX)',
+        6,
+        'EXCLUSIVE',
+        TO_CHAR(wk.request)) mode_requested,
+ bo.object_name||'('|| bo.object_type||')' AS block_obj,
+ wo.object_name||'('|| wo.object_type||')' AS wait_obj
+  FROM v$lock          hk,
+       v$session       bs,
+       v$lock          wk,
+       v$session       ws,
+       sys.dba_objects bo,
+       sys.dba_objects wo
+ WHERE hk.block = 1
+   AND bs.row_wait_obj#=bo.object_id(+)
+   AND ws.row_wait_obj#=wo.object_id(+)
+   AND hk.lmode!=0
+   AND hk.lmode!=1
+   AND wk.request!=0
+   AND wk.type(+)=hk.type
+   AND wk.id1(+)=hk.id1
+   AND wk.id2(+)=hk.id2
+   AND hk.sid=bs.sid(+)
+   AND wk.sid=ws.sid(+)
+
+--сесси с БД-----------
+ SELECT S.SID, 
+        S.USERNAME, 
+        S.STATUS,     
+        S.SCHEMANAME, 
+        S.OSUSER, 
+        S.MACHINE, 
+        S.TERMINAL, 
+        S.PROGRAM 
+   FROM V$SESSION S 
+  WHERE S.TYPE = 'USER' 
+    AND S.USERNAME IS NOT NULL;
+    
+-----установить признак сесии-------------------   
+SELECT *--schemaname, osuser, client_info
+FROM v$session
+WHERE service_name NOT LIKE '%BACK%';
+
+exec dbms_application_info.set_client_info('IRDS');
+
+DECLARE 
+ x VARCHAR2(100); 
+BEGIN
+  dbms_application_info.read_client_info(x);
+  dbms_output.put_line(x);
+END;
+/
+-----------------активные сессии-----------------
+select * from v$session where status='ACTIVE'
+----------узнать SID сессии пользователя от которого запускается скрипт--------------
+SELECT s.serial#, s.sid
+  FROM sys.v_$session s
+  WHERE TYPE != 'BACKGROUND'
+    AND audsid = USERENV('sessionid')
+	--AND sid = USERENV('sid')
+    AND ROWNUM = 1;
+---активные сессии---
+SELECT s.*,s.sql_id 
+FROM   v$session s 
+WHERE  status = 'ACTIVE'
+AND    username = user
+AND    machine = SYS_CONTEXT('userenv', 'HOST')
+--берем SQL_ID и по нему смотрим что открывает сессия--
+SELECT * FROM V$SQL
+WHERE SQL_ID = '3xspkamrmqvj2'
+--или запрос по sid----
+SELECT * FROM V$SQLTEXT WHERE ADDRESS IN
+(SELECT SQL_ADDRESS FROM V$SESSION WHERE SID = USERENV('sid'))
+-------------история сессии----------------
+select * from gv$session_wait_history where sid=225
+ SELECT * FROM V$SESS_IO
+ WHERE SID = 19
+ SELECT * FROM  V$SESSTAT 
+ WHERE SID = 19
+ 
+ -------------
+ /*
+ Starting from 11g Oracle does all this work for you. There is a fixed table X$DBGALERTEXT, when you query it, Oracle reads the log.xml from alert directory (which contains all the data what alert.log does), parses it and returns the details back as rows:
+ */
+ 
+ select message_text from X$DBGALERTEXT where rownum <= 20;
+ 
+select lpad(' ',lvl,' ')||logical_file file_name
+from X$DBGDIREXT
+where rownum <=20;
+
+----------------------------------------------------------------
+ 
+ 
+-----------------Время ожидания буферного кэша-----------------
+select sum(value) "Time" from v$sysstat
+where name='redo log space wait time'
+    AND ROWNUM = 1;
+---------------------ожидающие сессии жрущие ресурсы-------------
+select *
+  from (select /*+ rule */          sa.sql_id,         sa.CPU_TIME "CPU",         s.sid "SID",         s.serial# "SERIAL",         s.program "PROGRAM",         s.machine "MACHINE",         sa.SQL_TEXT "SQL_TEXT",
+         vp.spid,         sw.event,         s.logon_time,         s.last_call_et / 60,         s.username,         s.status
+          from v$sqlarea sa, v$session s, v$process vp, v$session_wait sw
+         where sa.address = s.sql_address
+           and sw.sid = s.sid
+           and s.paddr = vp.addr
+         ORDER BY CPU_TIME DESC)
+ WHERE ROWNUM < 10;
+ ----------------------------столбцы потенциально пригодные для индексирования------------
+  SELECT * FROM (
+SELECT c.owner,c.table_name, cc.column_name, cc.position column_position
+FROM DBA_constraints c, DBA_cons_columns cc
+WHERE c.constraint_name = cc.constraint_name
+AND C.CONSTRAINT_TYPE = 'R'
+and c.owner not in ('SYS','SYSMAN','SYSTEM') and c.owner='SB_DWH_TEST'
+MINUS
+SELECT i.owner,i.table_name, ic.column_name, ic.column_position
+FROM DBA_indexes i, DBA_ind_columns ic
+WHERE i.index_name = ic.index_name
+)
+ORDER BY table_name, column_position
+ ----------------------------
+--информация по объектам БД-------
+--user_, all_, dba_
+--Информация о таблицах, в том числе и секционированных
+select * from user_tables;
+--Информация о секционированных таблицах
+select * from user_part_tables upt
+where upt.table_name = 'INDEX_CONSTITUENT_H';
+select * from all_part_tables apt
+where apt.table_name = 'INDEX_CONSTITUENT_H';
+--Информация о табличных секциях
+select * from user_tab_partitions utp
+where utp.table_name = 'INDEX_CONSTITUENT_H';
+--Информация о ключах секционирования
+select * from user_part_key_columns upk
+where upk.name = 'INDEX_CONSTITUENT_H';
+--Информация о сегментах хранения, в том числе о секциях
+select * from user_segments us
+where us.segment_name = 'INDEX_CONSTITUENT_H';
+--Информация об объектах БД, в том числе о таблицах и секциях
+select * from user_objects;
+----------------------------------
+--Простая проверка покажет, что аудит действительно включен.
+select name,value from v$parameter
+    where name like 'audit%';
+
+--Для того, что бы проверить наличие того, что какие-нибудь привилегии или выражения уже используются для аудита, сделайте следующее:
+select * from dba_stmt_audit_opts
+union
+select * from dba_priv_audit_opts;
+--Что бы найти какие объекты уже контролируются аудитом, запросите представление 
+select * from dba_obj_audit_opts;
+--------------
+--dictionary (dict)	словарь таблиц и представлений	
+select * from dict where table_name like '%PUMP%';-- список всех таблиц и представлений, в имени которых встречается "PUMP"
+-----
+--v$instance	информация об инстансе БД	
+select instance_name from v$instance;--	имя инстанса
+-----
+--v$session	информация об установленных сессиях	
+select sid||','||serial# sess,username,program,machine,status from v$session; --	кто откуда подключен, какой статус подключения. sess - готовое значение для  подстановки, например, в alter system disconnect session '' immediate;
+
+1. Команда 
+SQL>ALTER SYSTEM KILL SESSION 'sid,serial#';
+Эта команда, по сути дела, не "убивает" сессию - она всего лишь помечает сессию, как "намеченную к удалению" и просит её самоликвидироваться. 
+Так что, если сессия на данный момент времени чем либо занята (например, откатом или ждёт ответа от базы), 
+то ожидание может продлиться не определённое (иногда довольно долгое) время. 
+Для того, чтобы "кильнуть" такую сессию гарантированно, есть специальная утилита ORACLE для комнадной строки ОС ORAKILL.
+
+2. Команда
+SQL>ALTER SYSTEM DISCONNECT SESSION 'sid,serial#' POST_TRANSACTION;
+или
+SQL>ALTER SYSTEM DISCONNECT SESSION 'sid,serial#' IMMEDIATE;
+Эта команда, вместо того, чтобы "попросить" сессию самоликвидироваться, самостоятельно её ликвидирует,
+ исключая необходимость использовать для этого утилиты из-под операционной системы, снижая, тем самым, 
+ возможность ошибочной ликвидации не той сессии. 
+
+Параметры команды:
+POST_TRANSACTION
+При указании этого параметра, ORACLE, ждёт, когда сессия закончит текущие транзакции и только потом "киляет" её.
+IMMEDIATE
+При указании этого параметра, ORACLE незамедлительно ликвидирует сессию и начнёт откат происходящих в ней транзакций.
+Если указать в команде оба параметра, то ORACLE отдаст приоритет параметру POST_TRANSACTION.
+
+Если в команде не указать ни одного параметра, то ORACLE вернёт ошибку:
+ORA-02000: missing POST_TRANSACTION or IMMEDIATE keyword.
+
+ну и kill -9, когда перечисленные выше команды не помогли.
+-----
+--dba_objects	информация обо всех объектах БД	
+select * from dba_objects where status='INVALID';	--список объектов базы данных, которые по каким-либо причинам оказались невалидными.
+-----
+--dba_all_tables	информация обо всех таблицах БД	
+select * from dba_all_tables where tablespace_name not like 'sys%';	--выводит все таблицы, размещённые в табличных пространствах, имена которых не начинаются на sys
+-----
+--dba_data_files	информация обо всех файлах БД	
+select * from dba_data_files;	--выводит список всех файлов БД и информацию о них
+----
+select file_id
+, file_name
+, tablespace_name
+, bytes/1024/1024 as mbytes
+, status
+from dba_data_files;	--выводит названия всех data-файлов, связаных с ними tablespace'ов, размеров и статусов
+---
+select distinct aat.owner
+, aat.table_name
+, aat.tablespace_name 
+from all_all_tables aat
+, dba_data_files ddf 
+where aat.tablespace_name=ddf.tablespace_name
+and ddf.file_name like '%USERS01%';	--выводит названия всех таблиц (с указанием их владельцев) и tablespace'ов входящих в data-files USERS01
+-----
+--v$parameter	информация о параметрах БД	
+select name
+, value
+, display_value
+, isses_modifiable
+, issys_modifiable
+from v$parameter
+where name like 'sga%';	--имя параметра, его значение, отображаемое значение и указание возможности/невозможности модификации значения для сессии и системы
+------
+---v$version	информация о версии БД	
+select banner from v$version;	
+------
+v$sql	информация о sql-запросах	
+select s.sql_fulltext
+, ses.username
+, ses.osuser
+from v$sql s
+, v$session ses
+where ses.sql_address=s.address;	--выводит sql-запросы и пользователей их запустивших (и oracle-пользователей и пользователей os)
+---------
+--v$process	информация о процессах БД и используемых ими ресурсах	
+select * from v$process;
+---------	
+--user$	список пользователей	
+select * from user$;	--вывести всех пользователей
+-------
+dba_users	
+select * from dba_users;
+---------
+--dba_tab_privs	все пользователи и их полномочия, а так же кто выдал эти полномочия	
+select * from dba_tab_privs	
+--------------------------------
+SELECT grantee "Кому", granted_role "Что", NULL "На что"
+FROM Dba_Role_Privs 
+WHERE grantee LIKE 'ITC%' OR grantee LIKE 'PN%' OR granted_role LIKE 'SP%' OR granted_role LIKE 'PN%'
+UNION ALL 
+SELECT grantee, PRIVILEGE, table_name
+FROM Dba_Tab_Privs
+WHERE grantee LIKE 'ITC%' OR grantee LIKE 'PN%'
+UNION ALL 
+SELECT grantee, PRIVILEGE, NULL
+FROM dba_sys_Privs
+WHERE grantee LIKE 'ITC%' OR grantee LIKE 'PN%'ORDER BY 1,2,3
+----------------------------------
+--dba_tab_privs_made	кто и какие изменения полномочий проводил	
+select * from dba_tab_privs_made where grantee='ctxsys';	--кто, на что и какие изменения полномочий проводил для пользователя ctxsys
+--------
+--dba_tab_privs_recd	все пользователи и их полномочия, а так же кто выдал эти полномочия	
+select * from dba_tab_privs_recd
+--------	
+--dba_sys_privs	список получателей полномочий и их полномочия	
+select * from dba_sys_privs where grantee='sys';	--вывод привилегий получателя привилегий sys
+--------
+--dba_role_privs	роли предоставленные пользователям и другим ролям	
+select * from dba_role_privs where grantee='sys';	--вывод ролей получателя привилегий sys
+--------
+--dba_roles	список ролей	
+select * from dba_roles;
+--------	
+dba_ts_quotas	привилегии на tablespace	
+select * from dba_ts_quotas;	--список tablespace'ов и пользователей, имеющих привилегии на эти tablespace'ы
+--------
+--role_role_privs	список ролей, предоставленных другим ролям	
+select * from role_role_privs;	
+--------
+role_sys_privs	все назначения системных привелегий на таблицы	
+select * from role_sys_privs;	--все назначения системных привелегий на таблицы (владелец, какие привилегии, кто выдал)
+--------
+role_tab_privs	список таблиц, их владельцев и привилегий, данных определённым ролям	
+select * from role_tab_privs;
+--------	
+session_privs	все привилегии текущего пользователя	
+select * from session_privs;	
+--------
+session_roles	все роли текущего пользователя	
+select * from session_roles;
+--------	
+--user_sys_privs	список привилегий текущего пользователя	connect user/password@sid;
+select * from user_sys_privs;
+--------	
+user_role_privs	список ролей текущего пользователя	connect user/password@sid;
+select * from user_role_privs;
+--------	
+--v$nls_parameters	NLS-установки базы данных подключенного пользователя	
+select * from v$nls_parameters;
+---------	
+--nls_database_parameters	текущие NLS-установки базы данных	
+select * from nls_database_parameters;
+---------	
+--nls_instance_parameters	текущие NLS-установки инстанса	
+select * from nls_instance_parameters;	
+---------
+nls_session_parameters	текущие NLS-установки сессии	
+select * from nls_session_parameters;
+---------	
+--v$nls_valid_values	просмотр доступных корректных значений NLS	
+select *
+from v$nls_valid_values
+where parameter='CHARACTERSET'
+and VALUE like '%WIN%';	--отобрать все значения CHARACTERSET, содержащие в своём названии "WIN"
+----------
+--dba_errors	просмотр ошибок	
+select * from dba_errors;
+----------	
+dba_scheduler_jobs	просмотр информации о задачах по расписанию	
+select * from dba_scheduler_jobs;
+----------	
+--dba_scheduler_job_run_details	просмотр детализированной информации о выполненных задачах	
+select log_date
+, job_name
+, status
+, req_start_date
+, actual_start_date
+, run_duration 
+from dba_scheduler_job_run_details;
+---------	
+--dba_scheduler_job_log	просмотр истории о выполненных задачах по расписанию	
+select log_date
+, job_name
+, status 
+from dba_scheduler_job_log;	--вывести дату, имя и статус выполненых задач
+----------
+--dba_scheduler_running_jobs	просмотр информации о текущих задачах	
+select job_name
+, session_id
+, running_instance
+, elapsed_time
+, cpu_used
+from dba_scheduler_running_jobs;
+----------	
+--dba_scheduler_programs	вывести все программы и их атрибуты	
+select * from dba_scheduler_programs;
+----------	
+--dba_scheduler_program_args	вывести все программы и их аргументы	
+select * from dba_scheduler_program_args;
+----------	
+--dba_jobs	вывести все задания	
+select * from dba_jobs;	
+----------
+--dba_jobs_running	вывести все выполняемые задания	
+select * from dba_jobs_running;	
+----------
+--v$sga	вывести информацию о SGA	
+select * from v$sga;
+----------	
+--v$sgastat	вывести статистику SGA	
+select * from v$sgastat;
+----------
+--активные фоновые процессы 
+select * from  v$bgprocess;
+------------посмотреть что в курсоре---------------
+select * from  v$open_cursor;
+--
+select a.value, s.username, s.sid, s.serial#
+from v$sesstat a, v$statname b, v$session s
+where a.statistic# = b.statistic#  and s.sid=a.sid
+and b.name = 'opened cursors current';
+--
+SELECT s.machine, oc.user_name, oc.sql_text, count(1) 
+FROM v$open_cursor oc, v$session s
+WHERE oc.sid = s.sid
+GROUP BY user_name, sql_text, machine
+HAVING COUNT(1) > 2
+order by count(1) desc;
+
+------------проверка режима сервера--------
+select * from v$dispatcher; --должен быть диспетчер
+
+Подключение в режиме выделенного сервера возможно всегда (это невозможно понять, это надо запомнить ;-) ) - именно это я и хотел сказать
+
+Но дополнительно можно настроить сервер чтобы он принимал соединения и в режиме разделяемого. Как это настроить сервере - отдельная песня (самое простое добавить dispatchers='(PROTOCOL=TCP)' в init.ora)
+	
+Если сервер в режиме Shared (MTS) то по-умолчанию клиенты конектятся к нему как к разделяемому если только в (DECRIPTION = ... (CONNECT_DATA = ... нет кляузы (SERVER = DEDICATED)
+Еще вариант настроить листенер для разделяемого и выделенного сервера на разные порты
+А посмотреть, к какому ты подключился можно посмотрев поле SERVER в представлении V$SESSION:
+DEDICATED - выделенный
+SHARED - активный (в данный момент) разделяемый
+NONE - неактивный разделяемый
+PSEUDO - прибитая сессия
+-----------------list of all materialized views in oracle-----------------
+select *
+from  all_snapshots s
+where s.owner = 'IRDS_OWNER'
+--or
+select *
+from all_mviews m
+where m.owner = 'IRDS_OWNER'
+--for user--
+select mview_name, last_refresh_type 
+from user_mviews
+where mview_name like 'ETP_SPECIFICATION%' order by mview_name;
+

@@ -1,0 +1,110 @@
+Трассировка от SYSDBA
+
+23.11.2008 г.
+
+Находим интересующую нас сессию, например, так:
+select sid, serial#, username, machine, program from v$session;
+можно уточнить запрос с помощью where, например, так:
+
+select sid, serial#, username, machine, program from v$session where username = 'scott';
+Находим идентификатор процесса в операционной системе (он нам понадобится для нахождения файла трассировки):
+select p.spid,  s.username, s.machine, s.program from v$session s, v$process p where s.paddr=p.addr;
+нас интересует p.spid
+Можно упростить процесс следующим запросом (если мы знаем SID интересующей(их) нас сессии(й):
+
+select u_dump.value
+    || '/'
+    || db_name.value
+    || '_ora_'
+    || v$process.spid
+    || nvl2(v$process.traceid,  '_' || v$process.traceid, null ) 
+    || '.trc'  "Trace File"
+from v$parameter u_dump 
+cross join v$parameter db_name
+cross join v$process 
+join v$session on v$process.addr = v$session.paddr
+where u_dump.name   = 'user_dump_dest'
+  and db_name.name  = 'db_name'
+  and v$session.sid in (&SID)
+/
+Включаем сбор временной статистики (иначе трассировочные файлы будут появляться с нулевыми временами):
+alter system set timed_statistics=true;
+Включаем трассировку сессии:
+begin
+sys.dbms_system.set_ev(131, 1388, 10046, 12, '');
+end;
+/
+Где:
+
+131 - sid из запроса, описанного в п.1;
+1388 - serial# оттуда же;
+12 - уровень трассировки:
+0 - трассировка выключена.
+1 - минимальный уровень. результат не отличается от установки параметра sql_trace=true
+4 - в трассировочный файл добавляются значения связанных переменных.
+8 - в трассировочный файл добавляются значения ожидании событий на уровне запросов.
+12 - добавляются, как значения связанных переменных, так и информация об ожиданиях событий.
+
+Выполняем запрос или просто ожидаем какое-то время для сбора статистики и останавливаем трассировку:
+begin
+sys.dbms_system.set_ev(131, 1388, 10046, 0, '');
+end;
+/
+Уточняем месторасположение файлов трассировки:
+select value from v$parameter p where name='user_dump_dest';
+Переходим в каталог с трассировочными файлами (см. п.6) и обрабатываем трассировочный файл утилитой tkprof для получения "читабельной" информации:
+tkprof db01_ora_1756.trc d:\out.txt
+Файл должен иметь имя следующего вида <ORACLE_SID>_ora_<p.spid>.trc
+Где:
+
+<ORACLE_SID> - ORACLE_SID интересующей нас базы;
+<p.spid> - поле p.spid из запроса, описанного в п.2.
+Трассировка собственной сессии
+
+Пользователю должны быть выданы полномочия:
+
+grant alter session to <USER>;
+Включить timed_statistics:
+alter session set timed_statistics=true;
+Если нужно, то можно включить ограничение размера файла трассировки:
+alter session set max_dump_file_size='20M';
+Можно задать собственный идентификатор имени файла:
+alter session set tracefile_identifier="MyTrace";
+Включить трассировку:
+alter session set sql_trace=true;
+или
+
+alter session set events '10046 trace name context forever, level 12';
+Где level:
+
+1	— Базовая информация
+4	— level 1 + значения переменных
+8 — level 1 + события ожиданий
+12 — максимальный уровень трассировки
+Отключить трассировку:
+
+alter session set sql_trace=false;
+или
+
+alter session set events '10046 trace name context off';
+autotrace в сессии
+
+От SYSDBA.
+
+Пользователю должны быть выданы полномочия:
+
+grant alter session to <USER>;
+grant select any dictionary to <USER>
+От пользователя.
+
+Включить трассировку:
+
+set autotrace on;
+Выполняем, например:
+
+select table_name from user_tables;
+Отключить трассировку:
+
+set autotrace off;
+
+--------------------------------------------------------------------------

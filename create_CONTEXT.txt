@@ -1,0 +1,26 @@
+SQL> CREATE OR REPLACE VIEW VIEW_1 AS
+  2  SELECT 1 k FROM DUAL
+  3  WHERE TO_DATE(SYS_CONTEXT('CLIENTCONTEXT', 'DEFINED_DATE')) between TRUNC(SYSDATE) - 100 AND TRUNC(SYSDATE);
+ 
+View created
+ 
+SQL> execute dbms_session.set_context('CLIENTCONTEXT', 'DEFINED_DATE', SYSDATE-5);
+ 
+PL/SQL procedure successfully completed
+ 
+SQL> SELECT k from VIEW_1;
+ 
+         K
+----------
+         1
+ 
+SQL> execute dbms_session.set_context('CLIENTCONTEXT', 'DEFINED_DATE', SYSDATE+5);
+ 
+PL/SQL procedure successfully completed
+ 
+SQL> SELECT k from VIEW_1;
+ 
+         K
+----------
+ 
+SQL> 

@@ -1,0 +1,26 @@
+declare
+mv varchar2(30) DEFAULT 'bl';
+st varchar2(100) :='';
+objn user_objects.object_name%Type :='';
+objt user_objects.object_type%Type :='';
+begin
+DBMS_OUTPUT.enable(1000000);
+select * into objn, objt
+from
+(
+select object_name, object_type 
+		   from user_objects 
+		   where object_name=mv 
+		   		 and object_type in ('VIEW','MATERIALIZED VIEW')
+union	
+select a.object_name, a.object_type
+		   from user_objects a 
+		   where a.object_name=mv
+		   		 and a.object_type ='TABLE' 
+				 and not exists (select object_name, object_type
+				 	 	 		   from user_objects 
+								   where object_name=a.object_name 
+								   		 and object_type ='MATERIALIZED VIEW'));				 
+st:=('DROP '||objt||' "'||objn || '"');
+execute immediate st;
+end;

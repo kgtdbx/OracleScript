@@ -1,0 +1,1 @@
+select dbms_sqltune.report_sql_monitor(report_level=>'ALL', type=>'TEXT', sql_id=>'....') monitor_report from dual;

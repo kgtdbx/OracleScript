@@ -1,0 +1,177 @@
+Скрипты для сравнения планов выполнения
+--https://iusoltsev.wordpress.com/2013/10/06/execution-plan-comparision-scripts/
+
+
+Периодически появляется необходимость сравнить / найти различия в планах выполнения запроса, для последующих глубокомысленных умозаключений и выводов
+
+Пакет DBMS_XPLAN, как я понимаю, вплоть до последних версий такую возможность не реализовал (несмотря на сделанную в 11.2 недокументированную заявку в виде DBMS_XPLAN.DIFF_PLAN_AWR — см.легковоспроизводимый на 12.1.0.1 пример на morganslibrary.org)
+
+А поскольку планы (и запросы) встречаются весьма объёмные и сравнивать их на маленьком экране ноутбука не всегда удобно, написал пару скриптов:
+
+PLAN_OL_DIFF_AWR.SQL — для выявления отличий в секции Outline (т.е. в наборах подсказок, собственно, и формирующих сравниваемые планы)
+PLAN_QB_DIFF_AWR.SQL — для удобства просмотра / анализа отличий планов по конкретным блокам (Query Block)
+Далее — пример использования
+
+на практическом запросе со связанными переменными, разбор которого, к несчастью, чаще выполняется с «неудачным» набором переменных:
+
+11.1.0.7@ SQL> @dba_hist_sqlstat111 "sql_id = '6r6sanrs05550'"
+ 
+SNAP_ID INTERVAL               SQL_ID        EXECS_DELTA PLAN_HASH_VALUE ELA_PER_EXEC CPU_PER_EXEC GETS_PER_EXEC ROWS_PER_EXEC IOW_PER_EXEC CC_PER_EXEC
+------- ---------------------- ------------- ----------- --------------- ------------ ------------ ------------- ------------- ------------ -----------
+  24239 02:00-03.10.2013 03:00 6r6sanrs05550          95      3541904711     43952024     42931947        989188             1        91196         430 -- неуниверсальный план, ср. время выполнения более 40 сек.
+  24238 01:00-03.10.2013 02:00 6r6sanrs05550         157      3541904711     43308001     42292131        982988             1       106961         520 -- --//--
+  24237 00:00-03.10.2013 01:00 6r6sanrs05550         166      3541904711     41061603     40193751        912856             1        75736         273 -- --//--
+  24236 23:00-03.10.2013 00:00 6r6sanrs05550         162      3541904711     42233372     41301524        921588             1       184356         479 -- --//--
+  24235 22:00-02.10.2013 23:00 6r6sanrs05550         137      2970372553       161822        82973          2841             1        63285           0 -- более универсальный план, ср. время выполнения менее 1 сек.
+  24235 22:00-02.10.2013 23:00 6r6sanrs05550          45      3541904711     48545724     47461385       1022140             1       132334          30 -- неуниверсальный план, ср. время выполнения более 40 сек.
+...
+— т.е. для какого-то набора переменных:
+
+SQL> SELECT * FROM TABLE(dbms_xplan.display_awr('6r6sanrs05550', 3541904711, format => '+peeked_binds'));
+ 
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------
+SQL_ID 6r6sanrs05550
+--------------------
+...
+Plan hash value: 3541904711
+ 
+...
+ 
+Peeked Binds (identified by position):
+--------------------------------------
+   1 - :1 (NUMBER): 2839924513
+   2 - :2 (NUMBER): 2839924513
+   3 - :3 (NUMBER): 2839924513
+   4 - :4 (NUMBER): 2839924513
+   5 - :5 (NUMBER): 2839924513
+   6 - :6 (NUMBER): 2839924513
+— план 3541904711 является вполне удачным и быстрым, а вот для остальных наборов переменных — судя по статистике — не подходит
+
+По идее Oracle 11g в этом месте должен применять технологию Extended Cursor Sharing (ECS) и использовать разные планы для разных наборов переменных, однако в этом случае не срабатало, вероятно, в силу ограчичений технологиии типа отсутствия гистограмм на ключевых столбцах, или особенностей конструкции запроса
+
+Как вариант решения проблемы, стимулирование / форсирование ECS подсказкой BIND_AWARE в этом случае срабатывает безупречно:
+
+SQL> var n number
+SQL> exec :n := 2839924513               -- для переменной из предыдущего вывода DISPLAY_AWR
+ 
+PL/SQL procedure successfully completed.
+ 
+SQL> select--+ BIND_AWARE
+...
+ 28  /
+ 
+1 row selected.
+ 
+Elapsed: 00:00:00.20                     -- запрос выполняется быстро
+ 
+SQL> SELECT * FROM TABLE(dbms_xplan.display_cursor('','','+note'));
+ 
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------
+SQL_ID  g4bt9skt6puhh, child number 0
+-------------------------------------
+...
+ 
+Plan hash value: 3541904711              -- с ожидаемым неуниверсальным планом 3541904711
+...
+ 
+SQL> exec :n := 2655106616               -- для другого набора переменных
+ 
+PL/SQL procedure successfully completed.
+ 
+SQL> select--+ BIND_AWARE
+...
+ 28  /
+ 
+1 row selected.
+ 
+Elapsed: 00:00:02.04                     -- запрос выполняется вполне удовлетворительно, учитывая hard parsing
+ 
+SQL> SELECT * FROM TABLE(dbms_xplan.display_cursor('','','+note'));
+ 
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------------
+SQL_ID  g4bt9skt6puhh, child number 1
+-------------------------------------
+...
+ 
+Plan hash value: 2970372553              -- ,но с другим более подходящим планом
+...                                      -- Замечания о применении ECS в секции Note при этом отсутствуют
+ 
+SQL> select child_number,
+  2         plan_hash_value,
+  3         is_bind_sensitive,
+  4         is_bind_aware,
+  5         is_shareable
+  6    from v$sql
+  7   where sql_id = 'g4bt9skt6puhh'
+  8  /
+ 
+CHILD_NUMBER PLAN_HASH_VALUE IS_BIND_SENSITIVE IS_BIND_AWARE IS_SHAREABLE
+------------ --------------- ----------------- ------------- ------------
+           0      3541904711 Y                 Y             Y            -- тем не менее ECS работает
+           1      2970372553 Y                 Y             Y            -- --//--
+Если же этот вариант решения проблемы по каким-то причинам не может быть применён, и/или интересно/полезно увидеть различие в планах выполнения в разрезе подсказок секции Outline использую озвученный скрипт:
+
+SQL> @plan_ol_diff_awr 6r6sanrs05550 3541904711 2970372553
+ 
+PLH_3541904711                                                                            PLH_2970372553
+----------------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------
+INDEX(@"SEL$6444526D" "STARPER_MAPPING"@"SEL$7" ("STARPER_MAPPING"."PARTNER_ID"))
+NLJ_BATCHING(@"SEL$6444526D" "STARPER_MAPPING"@"SEL$7")
+USE_NL(@"SEL$6444526D" "STARPER_MAPPING"@"SEL$7")
+                                                                                          INDEX_RS_ASC(@"SEL$6444526D" "STARPER_MAPPING"@"SEL$7" ("STARPER_MAPPING"."PARTNER_ID"))
+                                                                                          USE_HASH(@"SEL$6444526D" "STARPER_MAPPING"@"SEL$7")
+— из вывода которого следует:
+
+универсально-оптимальный план 2970372553 использует HASH JOIN против NESTED LOOPS неоптимального плана 3541904711; хинт USE_HASH(@»SEL$6444526D» «STARPER_MAPPING»@»SEL$7″) можно сразу использовать для создания SQL Patch-а, либо непосредственно добавить в тело запроса в непреобразованном виде или упростив до читаемого состояния, т.е.:
+select--+ use_hash(@"SEL$6444526D" "STARPER_MAPPING"@"SEL$7") -- так
+        ...,
+       (select--+ use_hash(STARPER_MAPPING)                   -- или так
+               count(distinct r_id)
+          from starper_mapping
+         where partner_id = :n
+           and r_id in (select distinct r_id
+                               from starper_src
+                              where partner_id = :n
+                                and is_actual = 1)) as r_mapping_count,
+        ...
+  from dual
+/
+различаются эти планы только в одном блоке запроса SEL$6444526D, который можно посмотреть / сравнить следующим скриптом:
+SQL> @plan_qb_diff_awr 6r6sanrs05550 3541904711 2970372553 SEL$6444526D
+ 
+PLAN_HASH_VALUE QBLOCK_NAME   ID OPERATION                            OBJECT_OWNER OBJECT_NAME      CARDINALITY BYTES COST
+--------------- ------------- -- ------------------------------------ ------------ ---------------- ----------- ----- ----
+     3541904711 SEL$6444526D   4   SORT GROUP BY                                                              1    36
+     3541904711                5     NESTED LOOPS
+     3541904711                6       NESTED LOOPS                                                          10   360    2
+     3541904711 SEL$6444526D   7         TABLE ACCESS BY INDEX ROWID  SCOTTY        STARPER_SRC              10   190    1
+     3541904711 SEL$6444526D   8           INDEX RANGE SCAN           SCOTTY        IDX_PAR_SRC_PID          36          1
+     3541904711 SEL$6444526D   9         INDEX RANGE SCAN             SCOTTY        IDX_PAR_MAP_PID          21          1
+     3541904711 SEL$6444526D  10       TABLE ACCESS BY INDEX ROWID    SCOTTY        STARPER_MAPPING           1    17    1
+ 
+     2970372553 SEL$6444526D   4   SORT GROUP BY                                                              1    36
+     2970372553                5     HASH JOIN                                                               20   720    3
+     2970372553 SEL$6444526D   6       TABLE ACCESS BY INDEX ROWID    SCOTTY        STARPER_SRC              21   399    1
+     2970372553 SEL$6444526D   7         INDEX RANGE SCAN             SCOTTY        IDX_PAR_SRC_PID          72          1
+     2970372553 SEL$6444526D   8       TABLE ACCESS BY INDEX ROWID    SCOTTY        STARPER_MAPPING          21   357    1
+     2970372553 SEL$6444526D   9         INDEX RANGE SCAN             SCOTTY        IDX_PAR_MAP_PID          21          1
+— вывод которого кроме прочего показывает в плане 2970372553 нечастовстречаемый HASH JOIN на основании 2-х наборов данных, получаемых в результате индексного доступа TABLE ACCESS BY INDEX ROWID
+
+P.S. По умолчанию (без подсказки BIND_AWARE) неиспользование ECS в этом запросе вероятно связано с отсутствием гистограмм по ключевому для соединения столбцу R_ID:
+
+SQL> select table_name, column_name, histogram
+  2    from dba_tab_col_statistics
+  3   where table_name in ('STARPER_SRC', 'STARPER_MAPPING')
+  4     and column_name = 'R_ID'
+  5  /
+ 
+TABLE_NAME                COLUMN_NAME       HISTOGRAM
+------------------------- ----------------- ---------
+STARPER_MAPPING           PARTNER_ID        FREQUENCY
+STARPER_MAPPING           R_ID              NONE
+STARPER_SRC               PARTNER_ID        FREQUENCY
+STARPER_SRC               R_ID              NONE
+и / или расширенной статистики для пары столбцов (PARTNER_ID, R_ID) — как дополнительный вариант решения

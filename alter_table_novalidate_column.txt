@@ -1,0 +1,190 @@
+SQL> create table test ( id number(10) );
+
+Table created.
+
+SQL> create index test_idx on test(id);
+
+Index created.
+
+SQL> alter table test add constraint test_pk primary key (id) deferrable;
+
+Table altered.
+
+SQL> alter table test disable constraint test_pk;
+
+Table altered.
+
+SQL> select index_name, table_name from user_indexes where table_name='TEST';
+
+INDEX_NAME                     TABLE_NAME
+------------------------------ ------------------------------
+TEST_IDX                       TEST
+
+SQL> insert into test values(1);
+
+1 row created.
+
+SQL> insert into test values(1);
+
+1 row created.
+
+SQL> commit;
+
+Commit complete.
+
+SQL> alter table test enable novalidate primary key;
+
+Table altered.
+
+SQL> select * from test;
+
+        ID
+----------
+         1
+         1
+
+SQL> insert into test values(1);
+insert into test values(1)
+*
+ERROR at line 1:
+ORA-00001: unique constraint (HR.TEST_PK) violated
+
+14 фев 07, 17:32    [3786266]     Ответить | Цитировать Сообщить модератору
+  Re: Ограничение в состоянии ENABLE NOVALIDATE 
+Studying Oracle 
+Member
+
+Откуда: 
+Сообщений: 135
+А ведь создание нового индекса на больших таблицах в хранилищах данных наверно очень долгая и ресурсоёмкая процедура. Наверно и блокировки будут. Может так лучше будет:
+
+SQL> -- a. Создать таблицу без ограничения. Залить данные
+SQL> create table use_constraint  as
+  2  select table_name from user_tables;
+
+Таблица создана.
+
+SQL> select table_name from use_constraint;
+
+TABLE_NAME                                                                      
+------------------------------                                                  
+COUNTRIES                                                                       
+DEPARTMENTS                                                                     
+EMPLOYEES                                                                       
+JOBS                                                                            
+JOB_HISTORY                                                                     
+LOCATIONS                                                                       
+REGIONS                                                                         
+
+7 строк выбрано.
+
+SQL> -- b. Создать неуникальный индекс
+SQL> create index pk_use_constraint on use_constraint(table_name) tablespace indx;
+
+Индекс создан.
+
+SQL> --c. Создать ограничение
+SQL> alter table use_constraint add primary key(table_name);
+
+Таблица изменена.
+
+SQL> --d. Перед заливкой отключить ограничение с сохранением индекса
+SQL> alter table use_constraint disable novalidate primary key keep index;
+
+Таблица изменена.
+
+SQL> --e. Залить данные(формально в хранилище данные заливаются правильные. 
+-- здесь только для проверки enable novalidate)
+SQL> insert into use_constraint values('COUNTRIES');
+
+1 строка создана.
+
+SQL> commit;
+
+Фиксация обновлений завершена.
+
+SQL> -- f.Включить ограничение (не ругнулось)
+SQL> alter table use_constraint enable novalidate primary key;
+
+Таблица изменена.
+
+SQL> -- Проверим
+SQL> select table_name from use_constraint;
+
+TABLE_NAME                                                                      
+------------------------------                                                  
+COUNTRIES                                                                       
+DEPARTMENTS                                                                     
+EMPLOYEES                                                                       
+JOBS                                                                            
+JOB_HISTORY                                                                     
+LOCATIONS                                                                       
+REGIONS                                                                         
+COUNTRIES                                                                       
+
+8 строк выбрано.
+
+SQL> 
+SQL> spool off
+
+
+-------------------------------------------------------------------------
+Я разобрался почему опция deferrable может использоваться как альтернатива явному созданию неуникального индекса. 
+Оказывается когда ограничение создаётся с deferrable, то автоматически создаваемый индекс создается как неуникальный. 
+Я это не знал, поэтому не понимал как это работает, а никто выше это не объяснил.
+
+Вот пример для проверки:
+SQL> create table use_constraint  as
+  2  select table_name from user_tables order by table_name;
+SQL> select table_name from use_constraint order by table_name;
+
+TABLE_NAME                                                                      
+------------------------------                                                  
+COUNTRIES                                                                       
+DEPARTMENTS                                                                     
+EMPLOYEES                                                                       
+JOB_HISTORY                                                                     
+JOBS                                                                            
+LOCATIONS                                                                       
+REGIONS                                                                         
+
+7 строк выбрано.
+
+-- Создал ограничение как deferrable и сразу его отменил (disable)
+SQL> alter table use_constraint add constraint pk_use_constraint 
+primary key(table_name) deferrable disable;
+
+-- индекса для ограничения нет(результат работы опции disable)
+SQL> select index_type,UNIQUENESS from user_indexes 
+          where index_name='PK_USE_CONSTRAINT';
+строки не выбраны
+
+SQL> insert into use_constraint values('COUNTRIES');
+
+SQL> insert into use_constraint values('COUNTRIES');
+
+-- отрабатывает без ошибок
+SQL> alter table use_constraint modify constraint pk_use_constraint 
+enable novalidate;
+-- После чего автоматически создаётся неуникальный индекс
+SQL> select index_type,UNIQUENESS from user_indexes 
+         where index_name='PK_USE_CONSTRAINT';
+INDEX_TYPE                  UNIQUENES
+--------------------------- ---------
+NORMAL                      NONUNIQUE
+
+SQL> select table_name from use_constraint order by table_name;
+
+TABLE_NAME                                                                      
+------------------------------                                                  
+COUNTRIES                                                                       
+COUNTRIES                                                                       
+COUNTRIES                                                                       
+DEPARTMENTS                                                                     
+EMPLOYEES                                                                       
+JOB_HISTORY                                                                     
+JOBS                                                                            
+LOCATIONS                                                                       
+REGIONS                                                                         
+
+9 строк выбрано.

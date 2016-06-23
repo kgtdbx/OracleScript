@@ -1,0 +1,28 @@
+   MERGE /*+ INDEX(xs IDX_XREF_IN_SUB_QUEUE_01) */
+        INTO xref_in_sub_queue xs
+        USING (SELECT  to_number(pdm_table_name) AS entity_type_id,
+                       pdm_id         AS pdm_id,
+                       p_pack_id      AS pack_id
+                 FROM TABLE(CAST(p_xref_in_queue_tt AS tt_xref_in_queue))
+                WHERE pdm_table_name IN (to_char(pkg_xref_constants.c_indices_issue),
+                                         to_char(pkg_xref_constants.c_indices_listing))
+                GROUP BY pdm_table_name,
+                         pdm_id) src
+           ON (xs.entity_type_id = src.entity_type_id
+           AND xs.pdm_id = src.pdm_id)
+        WHEN NOT MATCHED
+          THEN INSERT (xs.entity_type_id,
+                       xs.pdm_id,
+                       xs.pack_id,
+                       xs.pack_id_cb,
+                       xs.pack_id_fi)
+               VALUES (src.entity_type_id,
+                       src.pdm_id,
+                       src.pack_id,
+                       src.pack_id,
+                       src.pack_id)
+        WHEN MATCHED
+          THEN UPDATE
+                  SET xs.pack_id = src.pack_id,
+                      xs.pack_id_cb = src.pack_id,
+                      xs.pack_id_fi = src.pack_id; 

@@ -1,0 +1,436 @@
+How to load Data very fast using Partition Exchange
+
+Overview
+
+One of the great features about partitioning, and most specifically range-based partitioning, is the ability to load data quickly and easily with minimal impact on the current users using:
+
+alter table call exchange partition data_2007 with table call_temp;
+
+This command swaps over the definitions of the named partition and the CALL table, so that the data suddenly exists in the right place in the partitioned table. Moreover, with the inclusion of the two optional extra clauses, index definitions will be swapped and Oracle will not check whether the data actually belongs in the partition - so the exchange is very quick.
+
+Example with no Parent Child Relation
+
+In this example, the primary key and the partition key in the partitioned table CALL both are build on the same column «id». Therefore the primary key on CALL can be a LOCAL index and the indexes doesn't become UNUSABLE (must not be rebuild) after the EXCHANGE.
+
+-- Create the Partition Table (Destination Table)
+
+CREATE TABLE call (
+    id    NUMBER(12,6),
+    v1    VARCHAR2(10),
+    data  VARCHAR2(100)
+)
+PARTITION BY RANGE(id) ( -- Partion Key = Primary Key
+    PARTITION call_partition VALUES LESS THAN (MAXVALUE)
+);
+
+-- Next, create the temporary Table which is used to load the Data offline
+
+CREATE TABLE call_temp (
+    id    NUMBER(12,6),
+    v1    VARCHAR2(10),
+    data  VARCHAR2(100)
+);
+
+-- Load 1'000'000 Rows into the offline Table
+
+INSERT /*+ append ordered full(s1) use_nl(s2) */
+INTO call_temp
+SELECT
+        TRUNC((ROWNUM-1)/500,6),
+        TO_CHAR(ROWNUM),
+        RPAD('X',100,'X')
+FROM
+        all_tables s1,
+        all_tables s2
+WHERE
+        ROWNUM <= 1000000;
+
+-- Add LOCAL Primary Key to the Partition Table as a local Index
+
+ALTER TABLE call
+  ADD CONSTRAINT pk_call PRIMARY KEY(id)
+  USING INDEX (CREATE INDEX pk_call ON CALL(id) NOLOGGING LOCAL);
+
+-- Add Primary Key to the offline Table
+
+ALTER TABLE call_temp
+  ADD CONSTRAINT pk_call_temp PRIMARY KEY(id)
+  USING INDEX (CREATE INDEX pk_call_temp ON call_temp(id) NOLOGGING);
+
+-- Now swap the offline Table into the Partition
+
+ALTER TABLE CALL
+  EXCHANGE PARTITION call_partition WITH TABLE call_temp
+  INCLUDING INDEXES
+  WITHOUT VALIDATION;
+
+Elapsed: 00:00:00.01
+Oracle is checking that the exchange won’t cause a uniqueness problem. The query is searching the entire CALL table (excluding the partition we are exchanging) to see if there are any duplicates of the rows which we are loading. This is particularly daft, since the unique constraint is maintained through a local index, so it must include the partitioning key ID, which means there is only one legal partition in which a row can be, and we have already promised (through the without validation clause) that all the rows belong where we are putting them.
+
+-- For the next load, first truncate the CALL Table, then process the next load.
+
+TRUNCATE TABLE call;
+
+ALTER TABLE CALL
+  EXCHANGE PARTITION call_partition WITH TABLE call_temp
+  INCLUDING INDEXES
+  WITHOUT VALIDATION;
+
+Example with Parent Child Relation
+
+In this example, the primary key and the partition key in the partitioned table CALL are NOT the same. The primary key is build on the column «id», but the partition key is build on «created_date». Therefore the primary key on CALL must be a GLOBAL index and the indexes must be maintained using the clause UPDATE GLOBAL INDEXES in the EXCHANGE.
+
+-- Create and populate a small lookup table
+
+CREATE TABLE lookup (
+  id            NUMBER(10),
+  description   VARCHAR2(50)
+);
+
+ALTER TABLE lookup ADD (
+  CONSTRAINT pk_lookup PRIMARY KEY (id)
+);
+
+INSERT INTO lookup (id, description) VALUES (1, 'ONE');
+INSERT INTO lookup (id, description) VALUES (2, 'TWO');
+INSERT INTO lookup (id, description) VALUES (3, 'THREE');
+COMMIT;
+
+-- Create and populate a temporary table to load the data
+
+CREATE TABLE call_temp (
+  id            NUMBER(10),
+  created_date  DATE,
+  lookup_id     NUMBER(10),
+  data          VARCHAR2(50)
+);
+
+-- Load the temporary table
+
+DECLARE
+  l_lookup_id    lookup.id%TYPE;
+  l_create_date  DATE;
+BEGIN
+  FOR i IN 1 .. 1000000 LOOP
+    IF MOD(i, 3) = 0 THEN
+      l_create_date := ADD_MONTHS(SYSDATE, -24);
+      l_lookup_id   := 2;
+    ELSIF MOD(i, 2) = 0 THEN
+      l_create_date := ADD_MONTHS(SYSDATE, -12);
+      l_lookup_id   := 1;
+    ELSE
+      l_create_date := SYSDATE;
+      l_lookup_id   := 3;
+    END IF;
+    INSERT INTO call_temp (id, created_date, lookup_id, data)
+    VALUES (i, l_create_date, l_lookup_id, 'Loaded Data for ' || i);
+  END LOOP;
+  COMMIT;
+END;
+/
+
+-- Apply Primary Key to the CALL_TEMP table.
+
+ALTER TABLE call_temp ADD (
+  CONSTRAINT pk_call_temp PRIMARY KEY (id)
+);
+
+-- Add Key and Foreign Key Constraint to the CALL_TEMP table.
+
+CREATE INDEX idx_call_temp_created_date ON call_temp(created_date);
+CREATE INDEX idx_call_temp_lookup_id ON call_temp(lookup_id);
+
+ALTER TABLE call_temp ADD (
+  CONSTRAINT fk_call_temp_lookup_id
+  FOREIGN KEY (lookup_id)
+  REFERENCES lookup(id)
+);
+
+-- Next we create a new table with the appropriate partition structure
+-- to act as the destination table. The destination must have the
+-- same constraints and indexes defined.
+
+CREATE TABLE call (
+  id            NUMBER(10),
+  created_date  DATE,
+  lookup_id     NUMBER(10),
+  data          VARCHAR2(50)
+)
+PARTITION BY RANGE (created_date)
+  (PARTITION call_temp_created_date VALUES LESS THAN (MAXVALUE));
+
+-- Add Primary Key to CALL which must be GLOBAL
+
+ALTER TABLE call ADD
+  CONSTRAINT pk_call PRIMARY KEY (id)
+  USING INDEX (CREATE INDEX pk_call ON CALL(id) GLOBAL
+);
+
+-- Add Keys and Foreign Key Constraint to the CALL table
+-- which can be LOCAL
+
+CREATE INDEX idx_call_created_date ON call(created_date) LOCAL;
+CREATE INDEX idx_call_lookup_id ON call(lookup_id) LOCAL;
+
+ALTER TABLE call ADD (
+  CONSTRAINT fk_call_lookup_id
+  FOREIGN KEY (lookup_id)
+  REFERENCES lookup(id)
+);
+
+-- With this destination table in place we can start the conversion.
+-- We now switch the segments associated with the source table and the
+-- partition in the destination table using EXCHANGE PARTITION
+
+SET TIMING ON;
+ALTER TABLE call
+  EXCHANGE PARTITION call_temp_created_date
+  WITH TABLE call_temp
+  WITHOUT VALIDATION
+  UPDATE GLOBAL INDEXES;
+
+Elapsed: 00:00:27.19
+
+This is significantly slower than in the previous example!
+
+The UPDATE GLOBAL INDEXES is needed because without it that would leave the global indexes associated with the partition in an UNUSABLE state. If the UPDATE GLOBAL INDEXES clause is added, the performance is reduced since the index rebuild is part of the issued DDL. The index updates are logged and it should only be used when the number of rows is low and data must stay available. For larger numbers of rows index rebuilds are more efficient and allow index reorganization.
+
+---******************************************************
+
+create table opldok_tmp
+   tablespace BRSBIGD
+   storage (initial 900m
+   next 50m
+   maxextents unlimited)
+parallel (degree 4)
+unrecoverable
+as
+select  * from bars.opldok where 1=2;
+--
+ 
+SET TIMING ON;
+ALTER TABLE BARS.OPLDOK   
+  EXCHANGE PARTITION OPLDOK_Y2014_Q1
+  WITH TABLE KF300465.OPLDOK_TMP
+  WITHOUT VALIDATION
+  UPDATE GLOBAL INDEXES;
+
+--- 
+SET TIMING ON;
+ALTER TABLE KF300465.OPLDOK   
+  EXCHANGE PARTITION OPLDOK_Y2014_Q1
+  WITH TABLE KF300465.OPLDOK_TMP
+  WITHOUT VALIDATION
+  UPDATE GLOBAL INDEXES;
+  
+  
+  --select  * from opldok partition (OPLDOK_Y2014_Q1) WHERE ROWNUM<3
+
+ --***************************************************
+CREATE TABLE sales
+  ( prod_id       NUMBER(6)
+  , cust_id       NUMBER
+  , time_id       DATE
+  , channel_id    CHAR(1)
+  , promo_id      NUMBER(6)
+  , quantity_sold NUMBER(3)
+  , amount_sold   NUMBER(10,2)
+  )
+ STORAGE (INITIAL 100K NEXT 50K) LOGGING
+ PARTITION BY RANGE (time_id)
+ ( PARTITION sales_q1_2006 VALUES LESS THAN (TO_DATE('01-APR-2006','dd-MON-yyyy'))
+    TABLESPACE tsa STORAGE (INITIAL 20K NEXT 10K)
+ , PARTITION sales_q2_2006 VALUES LESS THAN (TO_DATE('01-JUL-2006','dd-MON-yyyy'))
+    TABLESPACE tsb
+ , PARTITION sales_q3_2006 VALUES LESS THAN (TO_DATE('01-OCT-2006','dd-MON-yyyy'))
+    TABLESPACE tsc
+ , PARTITION sales_q4_2006 VALUES LESS THAN (TO_DATE('01-JAN-2007','dd-MON-yyyy'))
+    TABLESPACE tsd
+ )
+ ENABLE ROW MOVEMENT;
+ 
+ --***************************************************
+ prompt
+
+prompt Creating table ARC_RRP
+prompt ======================
+prompt
+
+create table KF300465.ARC_RRP 
+(
+ rec        NUMBER(38),
+  ref        NUMBER(38),
+  mfoa       VARCHAR2(12),
+  .
+  .
+  .
+  .
+  kf         VARCHAR2(6) default sys_context('bars_context','user_mfo')
+)
+partition by range (DAT_A)
+(
+  partition ARCRRP_Y2014_Q1 values less than (TO_DATE(' 2014-04-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'))
+    tablespace IMP_DATA
+    pctfree 10
+    initrans 1
+    maxtrans 255,
+	.
+	.
+	.
+	.
+  partition ARCRRP_Y2015_Q4 values less than (TO_DATE(' 2016-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'))
+    tablespace IMP_DATA
+    pctfree 10
+    initrans 1
+    maxtrans 255
+);
+comment on table KF300465.ARC_RRP
+  is 'Àðõèâ äîêóìåíòîâ ÐÐÏ';
+comment on column KF300465.ARC_RRP.rec
+  is 'Èäåíòèôèêàòîð äîêóìåíòà';
+.
+.
+.
+comment on column KF300465.ARC_RRP.fb_d_arm3
+  is 'Äàííàÿ ñòðîêà èñïîëüçóåòñÿ â ÑÝÏ ÍÁÓ (Íå èñïîëüçóþòñÿ)';
+create index KF300465.XIE_DAT_A_ARC_RRP on KF300465.ARC_RRP (TRUNC(DAT_A))
+  tablespace BRSARCRRPI
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 128K
+    minextents 1
+    maxextents unlimited
+  );
+.
+.
+.
+alter table KF300465.ARC_RRP
+  add constraint FK_ARCRRP_BANKS foreign key (MFOB)
+  references KF300465.BANKS$BASE (MFO);
+.
+.
+.
+alter table KF300465.ARC_RRP
+  add constraint CC_ARCRRP_DATP
+  check (datp = trunc(datp))
+  disable;
+ --*************************************************
+--check virtual column, to doasen't exist. If  exist recreate table CTAS with compress
+select col#, name
+from sys.col$
+where obj# in
+(select object_id from dba_objects where owner= user and object_name = 'ARC_RRP')
+order by col#;
+ 
+--*************************************
+
+ALTER TABLE ARC_RRP SET UNUSED COLUMN SYS_NC00049$;
+ALTER TABLE ARC_RRP DROP UNUSED COLUMNS;
+
+--*************************************
+ALTER TABLE sales TRUNCATE PARTITION dec94;
+
+ALTER TABLE diving
+   TRUNCATE SUBPARTITION us_locations
+      DROP STORAGE;
+
+--*************************************
+
+
+prompt Creating table ARC_RRP1
+prompt ======================
+prompt
+
+create table KF300465.ARC_RRP1 
+partition by range (DAT_A)
+(
+  partition ARCRRP_Y2014_Q1 values less than (TO_DATE(' 2014-04-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'))
+    tablespace IMP_DATA
+    pctfree 10
+    initrans 1
+    maxtrans 255,
+  .
+  .
+  .
+  partition ARCRRP_Y2015_Q4 values less than (TO_DATE(' 2016-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN'))
+    tablespace IMP_DATA
+    pctfree 10
+    initrans 1
+    maxtrans 255) compress as  select * from ARC_RRP;
+	
+	
+**********************************************************************
+
+This article presents a simple method for partitioning an existing table using the EXCHANGE PARTITION syntax.
+EXCHANGE PARTITION is also an easy and fast way to copy data from NON Partitioned table to a Partitioned one. Both tables should have the same definition (Columns orders, names and types).
+DROP TABLE PARTI_TABLE_1;
+DROP TABLE PARTI_TABLE_2;
+CREATE TABLE PARTI_TABLE_1
+—- the destinationTable
+(
+CREA_MONTH VARCHAR2(6) ,
+CREA_DAY VARCHAR2(8) ,
+CREA_DATE DATE ,
+DESC VARCHAR2(200) ,
+ID NUMBER
+)
+partition by list (CREA_MONTH)
+( partition PARTI_TABLE_201010 values (‘201010’) tablespace USERS )
+
+;
+
+CREATE TABLE PARTI_TABLE_2
+—- the Source Table
+(
+
+CREA_MONTH VARCHAR2(6) ,
+CREA_DAY VARCHAR2(8) ,
+CREA_DATE DATE ,
+DESC VARCHAR2(200) ,
+ID NUMBER
+)
+tablespace USERS NOLOGGING
+
+;
+
+INSERT INTO PARTI_TABLE_2 (CREA_MONTH,CREA_DAY,CREA_DATE,DESC,ID) VALUES (‘201010’, ‘20101001’, to_date(‘20101001?,’YYYYMMDD’), ‘ABC’, 1);
+COMMIT;
+
+ALTER TABLE
+—destination table
+PARTI_TABLE_1
+EXCHANGE PARTITION PARTI_TABLE_201010
+WITH TABLE
+—-Source data table
+PARTI_TABLE_2
+WITHOUT VALIDATION
+UPDATE GLOBAL INDEXES;
+
+SELECT * FROM PARTI_TABLE_1;
+
+************************************************************************
+
+Have you seen this? https://community.oracle.com/thread/889338?start=0&tstart=0
+
+It states you can only exchange partitions from a partitioned table to a non-partitioned table, or vice-versa.
+
+You'd need to temporarily exchange the partition into an interim, non-partitioned, table, then into the target partitioned table.
+
+There are some interesting wrinkles to the broadly stated rule above; see the following excerpt taken from the Oracle documentation:
+
+exchange_partition_subpart
+
+Use the EXCHANGE PARTITION or EXCHANGE SUBPARTITION clause to exchange the data and index segments of:
+
+One nonpartitioned table with:
+
+one range, list, or hash partition
+one range, list, or hash subpartition
+One range-partitioned table with the range subpartitions of a range-range or list-range composite-partitioned table partition
+One hash-partitioned table with the hash subpartitions of a range-hash or list-hash composite-partitioned table partition
+One list-partitioned table with the list subpartitions of a range-list or hash-list composite-partitioned table partition
+In all cases, the structure of the table and the partition or subpartition being exchanged, including their partitioning keys, must be identical. In the case of list partitions and subpartitions, the corresponding value lists must also match.

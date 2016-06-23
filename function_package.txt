@@ -1,0 +1,160 @@
+Пример пакетной переменной()
+   TYPE t_Rec_Pointer IS RECORD(
+       n_Ref_Pointer        NUMBER
+      ,Last_Rowid_System    CHAR(14)
+      ,VD                   Date
+      ,Utc_Last_Update_Date DATE
+      ,Mdm_Pack_Id          Batch_Process_Status.Process_Id%TYPE);
+
+   TYPE t_Pointer IS TABLE OF t_Rec_Pointer INDEX BY VARCHAR2(14);
+
+
+
+Пример функции 
+   FUNCTION f_Get_Pointer(p_Id                   IN VARCHAR2
+                         ,p_Last_Rowid_System    IN VARCHAR2
+                         ,p_VD                   In DATE default null
+                         ,p_Utc_Last_Update_Date IN DATE
+                         ,p_Mdm_Pack_Id          IN Batch_Process_Status.Process_Id%TYPE)
+      RETURN NUMBER IS
+      r_Pointer t_Rec_Pointer;
+   BEGIN
+      IF NOT l_Pointer.Exists(p_Id)
+      THEN
+         r_Pointer.n_Ref_Pointer := Seq_Hist_Get_Pointer.Nextval;
+         r_Pointer.Last_Rowid_System := p_Last_Rowid_System;
+         r_Pointer.VD                := p_VD;
+         --- r_Pointer.Utc_Last_Update_Date  := p_Utc_Last_Update_Date;
+         r_Pointer.Mdm_Pack_Id := p_Mdm_Pack_Id;
+         l_Pointer(p_Id) := r_Pointer;
+      ELSE
+         r_Pointer := l_Pointer(p_Id);
+         IF p_Utc_Last_Update_Date > r_Pointer.Utc_Last_Update_Date
+         THEN
+            --- r_Pointer.Utc_Last_Update_Date := p_Utc_Last_Update_Date;
+            r_Pointer.Last_Rowid_System := p_Last_Rowid_System;
+            r_Pointer.VD                := p_VD;
+            r_Pointer.Mdm_Pack_Id := p_Mdm_Pack_Id;
+            l_Pointer(p_Id) := r_Pointer;
+         END IF;
+      END IF;
+      RETURN r_Pointer.n_Ref_Pointer;
+   END f_Get_Pointer;
+
+
+В пакете не забыйвай очищать ту пакетную переменную 
+      l_Pointer.Delete;
+
+и функцию можно вызывать прямо в селекте
+
+
+--##################################################################################
+------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+хидер
+
+CREATE OR REPLACE PACKAGE Pkg_Hist_TST IS
+
+   FUNCTION f_Get_LST(p_Id                   IN VARCHAR2
+                     )
+      RETURN NUMBER;
+      
+procedure p_insert_listing;      
+
+END Pkg_Hist_TST;
+------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+Бодик
+CREATE OR REPLACE PACKAGE BODY Pkg_Hist_TST IS
+
+   TYPE t_Rec_Pointer IS RECORD(
+       n_Ref_Pointer        NUMBER
+      ,Last_Rowid_System    CHAR(14)
+      ,VD                   Date
+      ,Utc_Last_Update_Date DATE
+      ,Mdm_Pack_Id          Batch_Process_Status.Process_Id%TYPE);
+
+   TYPE t_Pointer IS TABLE OF t_Rec_Pointer INDEX BY VARCHAR2(14);
+
+   l_Pointer t_Pointer;
+
+
+
+   /*----------------------------------------------------------------------------------------------------------------------------------------------*/
+   /*----------------------------------------------------------------------------------------------------------------------------------------------*/
+   /*----------------------------------------------------------------------------------------------------------------------------------------------*/
+   FUNCTION f_Get_LST(p_Id                   IN VARCHAR2)
+      RETURN NUMBER IS
+      r_Pointer t_Rec_Pointer;
+   BEGIN
+      IF NOT l_Pointer.Exists(p_Id)
+      THEN
+          l_Pointer(p_Id) := r_Pointer;
+         return 1;
+      ELSE
+        return 0;
+      END IF;
+   END f_Get_LST;
+
+procedure p_insert_listing is
+  n number;
+begin
+
+insert into qqq
+  select *
+    from (with q as (select 1 as listing_id, 'A' as Status, 1 as val
+                       from dual
+                     union all
+                     select 1 as listing_id, 'F' as Status, 2 as val
+                       from dual
+                     union all
+                     select 2 as listing_id, 'A' as Status, 3 as val
+                       from dual
+                     union all
+                     select 3 as listing_id, 'F' as Status, 4 as val
+                       from dual), w as (select q.*,
+                                                row_number() over(partition by listing_id order by status) rn
+                                           from q)
+           select *
+             from w
+            order by status)
+            where Pkg_Hist_TST.f_Get_LST(listing_id) = 1;
+
+end ;
+
+END Pkg_Hist_TST;
+
+
+Запрос – можно вызывать из пакета  не забівай перед каждім запуском – перед каждой транзакцией очищать перемиенную 
+      l_Pointer.Delete; 
+
+
+insert into qqq
+  select t.*,  Pkg_Hist_TST.f_Get_LST(listing_id)
+    from (with q as (select 1 as listing_id, 'A' as Status, 1 as val
+                       from dual
+                     union all
+                     select 1 as listing_id, 'F' as Status, 2 as val
+                       from dual
+                     union all
+                     select 2 as listing_id, 'A' as Status, 3 as val
+                       from dual
+                     union all
+                     select 3 as listing_id, 'F' as Status, 4 as val
+                       from dual), w as (select q.*,
+                                                row_number() over(partition by listing_id order by status) rn
+                                           from q)
+           select *
+             from w
+            order by listing_id, status) t
+            where Pkg_Hist_TST.f_Get_LST(listing_id) = 1;
+
+
+
+
+
+
+
+

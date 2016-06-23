@@ -1,0 +1,1 @@
+select dump ('C С') from dual

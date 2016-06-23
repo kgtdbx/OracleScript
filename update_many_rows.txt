@@ -1,0 +1,84 @@
+declare
+
+  cursor cur is
+    select rowid as rid, exception_type_code
+    from irds_em e
+    where e.exception_type_code = '24';
+
+  type t is table of cur%rowtype index by pls_integer;    
+  
+  v t;
+  v_count pls_integer := 0;
+
+begin
+
+  update irds_em_type_list
+  set exception_type_id = 9
+  where exception_type_id = 24;
+
+  open cur;
+  
+  loop
+  
+    fetch cur bulk collect into v limit 10000;
+    
+    exit when v.count = 0;
+    
+    forall indx in indices of v
+      update irds_em
+      set exception_type_code = '9'
+      where rowid = v(indx).rid;
+      
+    commit;
+    
+    v_count := v_count + 10000;
+    dbms_application_info.set_action('delete : ' || to_char(v_count)||'/'||to_char(sql%rowcount));
+      
+  end loop;
+
+end;
+/
+
+
+--------------------------------------------------------------------------------
+PROMPT UPDATE PMI to NULL for Inactive listing
+
+alter trigger trg_aft_iu_indices_listing disable;
+
+
+declare
+
+cursor cur is 
+    select ic.indices_listing_id
+      from indices_listing ic
+      join underlier_bridge ub
+       on ub.underlier_pdm_id=ic.indices_listing_id
+       and ub.underlier_pdm_type=800200
+       and ub.status_cd='I'
+       and ic.primary_market_in='Y';
+      
+type tt is table of cur%rowtype index by pls_integer;
+
+v_tt tt;
+
+begin
+  open cur;
+  loop
+    fetch cur bulk collect into v_tt limit 2000;
+     exit when v_tt.count=0;
+      
+     forall i in v_tt.first .. v_tt.last
+     
+     update indices_listing c set c.primary_market_in =null
+     where c.indices_listing_id =v_tt(i).indices_listing_id;
+     
+     
+     commit;                                  
+  
+  end loop;
+  close cur;
+  
+
+end;
+/
+alter trigger trg_aft_iu_indices_listing enable;

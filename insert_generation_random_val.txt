@@ -1,0 +1,262 @@
+Для работы со случайными значениями в PL SQL используется пакет DBMS_RANDOM
+DBMS_RANDOM пакет содержит встроенный генератор случайных чисе
+
+Модель безопасности 
+Этот пакет должен быть установлен как SYS . По умолчанию в пакете инициализируется с текущим именем пользователя, текущее время с точностью до секунды, и на нынешней сессии. Oracle рекомендует пользователям, которым необходимо выполнять этот пакет должны быть EXECUTE привилегии , и не должны полагаться на PUBLIC EXECUTE привилегии. 
+•	DBMS_RANDOM.RANDOM возвращает целые [-2 ^ 31, 2 ^ 31). 
+•	DBMS_RANDOM.VALUE возвращает чисела из [0,1) с 38 цифр точности. 
+DBMS_RANDOM может быть явно инициализирован, но не нужно специально инициализировать каждый раз перед вызовом генератора случайных чисел. Будет автоматически инициализировать с даты, идентификатор пользователя и идентификатор процесса, если явной инициализации не выполняется. 
+Процедуры и функции пакета
+INITIALIZE процедуры 
+
+Эта процедура инициализирует генератор случайных чисел
+Синтаксис 
+  DBMS_RANDOM.INITIALIZE (
+    val BINARY_INTEGER);
+
+Эта процедура является устаревшей с версии 11gR1, и, хотя в настоящее время поддерживается, она не используется в версии 11G . 
+RANDOM 
+Эта процедура генерирует случайное число. 
+select dbms_random.random from dual
+    --1900966755
+
+Эта процедура является устаревшей с версии 11gR1, и, хотя в настоящее время поддерживается, она не используется в версии 11G . 
+Синтаксис 
+  DBMS_RANDOM.RANDOM
+
+return binary_integer;
+Возвращаемые значения 
+случайное число binary_integer 
+________________________________________
+SEED 
+Эта процедура сбрасывает генератор случайных чисел
+Синтаксис 
+  DBMS_RANDOM.SEED (
+    val BINARY_INTEGER);
+
+ DBMS_RANDOM.SEED (
+    val VARCHAR2);
+
+Параметры 
+Val - номер генератора случайных числе
+________________________________________
+Функция String 
+Эта функция получает случайную строку. 
+Синтаксис 
+DBMS_RANDOM.STRING
+   opt  IN  CHAR,
+   len  IN  NUMBER)
+  RETURN VARCHAR2;
+ 
+
+Параметры 
+Таблица 108-6 параметров строки Функция 
+Параметр Описание 
+opt Указывает, что возвращается строка выглядит так: 
+•	'U', 'U' - результат прописные буквы, 
+•	'L', 'L' - результат в строчные буквы 
+•	'А', 'A' - результат в смешанные буквы, дело 
+•	'X', 'X' - результат в верхний регистр букв и цифр 
+•	'Р', 'P' - результат любых печатных символов. 
+В противном случае возвращается строка в заглавных букв альфа. 
+len -	Длина возвращаемой строки 
+
+Возвращаемые значения 
+Строка varchar2
+
+Примеры 
+    select DBMS_RANDOM.STRING('u',  4)  from dual;
+-- NXBM    
+    select DBMS_RANDOM.STRING('i',  5)  from dual;
+-- TTULB    
+    select DBMS_RANDOM.STRING('a',  6)  from dual;
+-- drpGPp    
+    select DBMS_RANDOM.STRING('x',  7)  from dual;
+-- RXP5CGQ    
+    select DBMS_RANDOM.STRING('p',  7)  from dual;
+-- 	(>Mf$h@
+
+Процедура TERMINATE 
+После окончания работы с пакетом DBMS_RANDOM, необходимо вызвать TERMINATE процедуру. 
+Эта процедура является устаревшей с версии 11gR1, и, хотя в настоящее время поддерживается, она не используется в версии 11G . 
+Синтаксис 
+DBMS_RANDOM.TERMINATE;
+________________________________________
+функция VALUE 
+возвращает случайное число, большее или равное 0 и меньшее 1, с 38 цифр справа от десятичной (38-знаков после запятой). Кроме того, вы можете получить случайное число х, где х больше или равно low и менее high . 
+Синтаксис 
+  DBMS_RANDOM.VALUE
+  RETURN NUMBER;
+
+DBMS_RANDOM.VALUE(
+  low  IN  NUMBER,
+  high IN  NUMBER)
+RETURN NUMBER;
+
+
+Параметры :
+low -	Наименьшее количество в диапазоне от которых для генерации случайного числа. Номер, который генерируется может быть равна low 
+high -	Наибольшее число ниже которой для генерации случайного числа. Номер, который генерируется будет меньше, чем high 
+
+Возвращаемое значение number
+Примеры
+  select dbms_random.value from dual
+-- 0,777585712081073    
+
+    select dbms_random.value(10,15) from dual
+--11,3383710413575   
+
+    select dbms_random.value(3,5) from dual
+--3,67901998206503  
+
+-----------------------
+--Вот такой код сейчас генерит случайные данные для каждого столбца в отдельности:
+STR := STR
+  || '(SELECT ' 
+  || I.COLUMN_NAME
+  || ' FROM '
+  || I.TABLE_NAME
+  || ' WHERE ROWID = '    
+  || ' (SELECT MIN(ROWID) KEEP (DENSE_RANK FIRST ORDER BY DBMS_RANDOM.RANDOM)'
+  || ' FROM '
+  || I.TABLE_NAME
+  || '))';
+  
+
+insert all
+  when
+ int_col<1000 then into t1 values(int_col, int_col2)
+ when
+ int_col<1001 then into t2 values(int_col, int_col2)
+ select int_col, int_col2 from int_var;
+-------------------------------------------------
+/*
+в строчке ((select int_col from DATA_TEST where int_col=2) ,int_col+1,int_col-1) - я хотел показать что ты можешь и др. значениявставить из др. табл.
+теперь что касается входных параметров, то ты можешь сделать курсор
+типа: cursor FetchCN is
+select column_name from cols where table_Name=TName; --который выбирает имена столбцов... или имя таблицы...
+ */
+create table T1
+  2  (col1 varchar2(20),
+  3  col2 varchar2(20),
+  4  col3 varchar2(20))
+  5  /
+  ---таблицы в которые T1 и  T2 - в которые будем вставлять
+create table T2           
+  2  (col1 varchar2(20),
+  3  col2 varchar2(20),
+  4  col3 varchar2(20))
+  5  /
+--DATA_TEST -  это таблица в которой наход. 100..200 нач. значений по которым ты --бедешь генерить другие данные
+SQL> create table DATA_TEST 
+  2  (
+  3  D_test1 varchar2(20),
+  4  D_test2 varchar2(20),
+  5  D_test3 varchar2(20),
+  6  int_col  number )
+  7  /
+--теперь пробно залей в DATA_TEST :
+SQL> begin
+  2   for i in 1..5
+  3  loop
+  4  insert into DATA_TEST
+  5   values ('Ivan','IVANOV', 'ICH', i);
+  6  end loop;
+  7  end; /
+--и собственно сама процедура (пока приним. 1 парам. - кол-во вставок):
+ create or replace PROCEDURE D_INS (n in number)
+as
+begin
+for i in 1..n
+loop
+-- здесь много вариантов т.к. ты можешь вместо "i" вставить int_col, тоесть --столбец табл. DATA_TEST в котором будут "управляющие" значения. В --нашем же случае , где i<200 будет 199 раз вставлено 5 строк из табл. --DATA_TEST 
+insert all 
+when  
+i<200 then into T1 values (D_test1||' '||D_test2, D_test2||D_test3,int_col)
+when 
+i<300 and i>200 then 
+into T2 values ((select int_col from DATA_TEST where int_col=2) ,int_col+1,int_col-1)
+select int_col, D_test1, D_test2, D_test3 FROM DATA_TEST; 
+end loop;
+end;
+-- при выполнении:
+SQL> exec DATA_INS(10000);
+
+Процедура PL/SQL успешно завершена.
+
+Затрач.время: 00:00:02.51
+SQL> select count(*) from t1;
+
+  COUNT(*)
+----------
+     49995
+SQL> select count(*) from t2;
+
+  COUNT(*)
+----------
+     34495
+
+	 
+	 
+	 -------------------------------
+	 
+declare
+c number;
+m number;
+begin
+ select count(1) into m from test1; --табл. уже содержит 200 записей;
+for i in m..1813 loop --теперь от 200 до 1813 формируем
+c:=i; 
+ insert into test1 (col1,col2)
+ values
+ ((Select col1  from test1 where col3=(select mod((c*i+1),(m+1)) from DUAL)),
+(Select col2 from test1 where col3=(select mod((c*i+1),(m+1)) from DUAL))); -- --причем ты можешь написать даже
+
+/*(Select col2 from test1 where col3=(select (mod((c*i+1),(m+1))-1) from DUAL)));*/ --тоесть , скажем,  имея:
+"1", "A"
+"2", "B" Ж получить: "2", "А"!
+
+ end loop;
+end;
+/
+ 
+ ------------------------------
+ declare
+cursor c1 (vstart number, vend number) is
+  Select col1,col2 
+  from test1 
+  where col3=(select mod((i*i+1),(vend+1)) 
+                   from (select rownum i
+                           from dba_objects
+                           where rownum<vend-vstart
+                          )
+                  );
+type t_myBulk is table of  test1%rowtype index by pos_integer;
+myBulk  t_myBulk;
+begin
+  open c1(200,1813);
+  fetch c1 bulk collect into myBulk;
+  close c1;
+  forall i in myBulk.first..myBulk.last
+    insert into test1 (col1,col2)
+    values (myBulk(i).col1, myBulk(i).col2);
+
+end;
+
+/* или так 
+declare
+cursor c2 (vstart number, vend number) is
+  select mod((i*i+1),(vend+1))  col3
+  from (select rownum i
+          from dba_objects
+           where rownum<vend-vstart
+         );
+type t_myBulk2 is table of  test1.col3%type index by pos_integer;
+myBulk2  t_myBulk2;
+begin
+  open c2(200,1813);
+  fetch c2 bulk collect into myBulk2;
+  close c2;
+  forall i in myBulk2.first..myBulk2.last
+    insert into test1 (col1,col2)
+    values (select col1, col2 from test where col3=myBulk2(i).col3);

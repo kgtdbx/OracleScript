@@ -1,0 +1,280 @@
+В подкаталоге c:\Users\sbovkush\Desktop\ создаем подкаталог load. Заходим в этот каталог и создаем в нем файл 1.bat вот с таким содержимым:
+
+sqlldr.exe userid=irds_owner/temp1234@LNNRDSU4 control=c:\Users\sbovkush\Desktop\load\1.ctl errors=10000 bad=c:\Users\sbovkush\Desktop\load\1.bad
+
+создаем control фаил(.ctl) с таким содержимым:
+
+OPTIONS (DIRECT=FALSE, PARALLEL=FALSE)
+LOAD DATA
+INFILE *
+BADFILE './1.BAD'
+DISCARDFILE './1.DSC'
+--Table should be truncated before load
+TRUNCATE INTO TABLE xref_identification_upd
+FIELDS TERMINATED BY ";" OPTIONALLY ENCLOSED BY '"'
+(
+XREF_ID
+)
+BEGINDATA
+"1703920370"
+"1703971607"
+"1703996897"
+"1704022030"
+"1704123620"
+"1704356773"
+
+Запускаем 1.bat, проверяем .log и все ли загрузилось в таблицу.
+
+
+Возможные опции control файла:
+Здесь слово BEGINDATA означает начала блока загружаемых данных. В данном случае контрольный файл выполняет двойную функцию и описывает правила загрузки и несет данные для нее! 
+
+вместо TRUNCATE указываем APPEND(для минимальной генерации undo)
+						  INSERT
+						  REPLACE
+
+BAD = имя_файла – Здесь можно указать файл, куда запишутся все данные, которые SQL*Loader по каким-либо причинам не смог загрузить.
+CONTROL = имя_файла – имя управляющего файла загрузчика (этот параметр указывается в командной строке).
+DATA = имя_файла – имя входного файла данных .
+DIRECT = ( TRUE или FALSE ) – Использовать ли прямой метод загрузки данных. Этот метод рассмотрим чуть ниже.
+PARALLEL = ( TRUE или FALSE ) – это директива параллельной загрузки данных.
+LOAD = n – Количество записей, которые надо загрузить. По-умолчанию – все.
+LOG = имя_файла – Имя файла журнала произведенных действий (будет записан весь консольный вывод).
+ROWS = n – Для обычного режима загрузки этот параметр указывает количество команд INSERT , после которых необходимо осуществлять фиксацию транзакции. Для прямого режима это количество строк данных, которые читаются в оперативную память перед записью их на физический носитель. Обычный ( conventional ) и прямой ( direct ) режимы рассмотрим ниже.
+SKIP = n – Количество строк файла данных (от начала), которые надо пропустить при загрузке. Обычно используется для продолжения прерванной операции загрузки данных.
+
+Прямой (direct) режим загрузки данных
+В обычном режиме загрузки данных используются SQL -операторы INSERT . При этом каждая команда выполняется, проходя всю логику SQL -анализатора. Для улучшения производительности загрузки данных (т.е. для ускорения этого процесса) используют дополнительный режим, называемый «прямым» ( direct path ).
+
+При использовании прямого режима, данные записываются в файлы данных БД напрямую, минуя SQL -логику. Этот режим быстрее и намного эффективнее, но имеет несколько ограничений. Вот некоторые из ситуаций, когда нельзя применять прямой режим загрузки:
+
+загружаемая таблица - кластерная;
+с таблицей, в которую происходит загрузка данных, работают посторонние транзакции;
+таблица, в которую направляются данные, индексирована.
+Как и все прочие инструменты Oracle , SQL*Loader работает в командной строке и в графическом режиме ( Data Manager ). Для работы в командной строке, надо набрать команду "sqlldr" с параметрами. Например, так:
+
+> SQLLDR CONTROL=my_control.ctl, LOG=my_log.log, BAD=my_bad.bad,
+DATA=my_data.dat USERID=scott/tiger, LOAD=2000
+------------------------------------------------------------------------------------------------
+
+В подкаталоге C:\Oracle\ora81\bin создаем подкаталог LOAD. Заходим в этот каталог и создаем в нем файл PRODUCTS.bat вот с таким содержимым:
+set nls_lang=russian_cis.ru8pc866
+sqlldr.exe userid=miller/kolobok@proba control=PRODUCTS.ctl errors=100 bad=PRODUCTS.bad
+
+Теперь самое интересное! Создаем файл загрузки для считывания данных фиксированной длинны PRODUCTS.ctl. Он будет иметь вот такое содержание:
+LOAD DATA
+INFILE 'PRODUCTS.DAT'
+INTO TABLE PRODUCTS
+	( 
+		MFR_ID      POSITION(01:03) CHAR, 
+		PRODUCT_ID  POSITION(04:10) CHAR,  
+		DESCRIPTION POSITION(11:31) CHAR, 
+		PRICE       POSITION(32:36) INTEGER EXTERNAL,  
+		QTY_ON_HAND POSITION(37:39) INTEGER EXTERNAL
+	)
+Помните прошлый шаг? Все правила соблюдены для загрузки данных! А ключевое слово POSITION читает данные согласно заданных значений! Далее там же создаем файл PRODUCTS.dat с вот таким содержимым:
+
+REI2A45C  Бочка металлическая  79   210
+ACI4100Y  Коробка картонная    2750 25
+QSAXK47   Труба алюминиевая    355  38
+BIC41672  Тарелка фарфоровая   180  0
+IMM779C   Профиль специальный  1875 9
+
+Здесь имеются позиции загрузки 01:03, 04:10, 11:31, 32:36, 37:39, если что-то не верно, то можете проверить сами. Это просто позиции знаков в строке отсюда и название загрузка данных, фиксированной длинны. Итак, наши файлы готовы, таблица пустая можно приступать к загрузке! Запустите PRODUCTS.bat на исполнение и получите следующее сообщение в командной строке:
+C:\Oracle\ora81\bin\LOAD>set nls_lang=russian_cis.ru8pc866
+C:\Oracle\ora81\bin\LOAD>sqlldr.exe userid=miller/kolobok@proba control=PRODUCTS.ctl errors=100 
+bad=PRODUCTS.bad
+SQL*Loader: Release 8.1.5.0 - Production on Вск Май 16 14:13:34 1004
+Copyright (c) 1881, 1001, Oracle Corporation.  All rights reserved.
+
+Достигнута точка фиксации - счетчик логич. записей 27
+А, вот теперь заглянем в табличку PROCDUCTS, выполнив такой простой запрос к таблице PRODUCTS:
+
+SELECT * FROM PRODUCTS
+/
+Получаем:
+
+SQL> SELECT * FROM PRODUCTS
+  2  /
+  
+MFR_ID  PRODUCT_ID  DESCRIPTION           PRICE      QTY_ON_HAND
+------  ----------  --------------------- ---------- ------------
+
+REI     2A45C       Бочка металлическая   79         210
+ACI     4100Y       Коробка картонная     2750       25
+QSA     XK47        Труба алюминиевая     355        38
+BIC     41672       Тарелка фарфоровая    180        0
+IMM     779C        Профиль специальный   1875       9
+
+Сразу замечу, если вместо русских букв у вас будут вражеские кабалистические символы, нужно все проделать снова, но файл PRODUCTS.dat открыть при помощи Microsoft Word и сохранить его в формате Text DOS(!) И тогда все получится! Не знаю как у вас, а у меня этот фокус прокатывал обычно! И последнее взглянем на содержимое файла журнала PRODUCTS.log:
+
+Вот таким образом производиться загрузка данных в БД Oracle фиксированной длинны!
+
+---------------если не стандартной длинны---------------------
+LOAD DATA
+
+INFILE 'PRODUCTS.dat'
+
+INTO TABLE PRODUCTS
+
+FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '"' TRAILING NULLCOLS
+
+	(MFR_ID, PRODUCT_ID, DESCRIPTION, PRICE, QTY_ON_HAND)
+Здесь FIELDS TERMINATED BY ';' означает, что границы данных определены по символу ";", а OPTIONALLY ENCLOSED BY '"' определяет, что данные могут содержать символ обрамления. TRAILING NULLCOLS говорит о том, что если поле для загрузки не имеет данных в файле данных, то в поле записать NULL! Далее идет просто описание полей и все! А, вот PRODUCTS.dat будет иметь следующее содержимое:
+
+REI;2A45C;Бочка металлическая;79;210
+ACI;4100Y;Коробка картонная;2,750;25
+
+-----------------------с условием---------------------------------
+LOAD DATA
+
+INFILE 'ORDTWO.DAT'
+
+INTO TABLE ORDERSTWO
+WHEN MFR = 'ACI'
+
+FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '"' TRAILING NULLCOLS
+
+(ORDER_NUM, ORDER_DATE, CUST, REP, MFR, PRODUCT, QTY, AMOUNT ":AMOUNT * 2")
+
+Здесь задано условие WHEN MFR = 'ACI', которое определит загрузку только данных с идентификатором ACI, все остальное будет отброшено! Так же я хочу продемонстрировать возможность использования хост переменных, которые во время загрузки данных позволяют изменять содержимое полей. Например, выражение AMOUNT ":AMOUNT * 2" увеличивает значение в столбце AMOUNT в двое! Ну и последнее создадим, исполняемый файл для загрузки данных с именем ORDTWO.bat:
+
+..\->ORDTWO.bat
+
+@echo off
+
+set nls_lang=russian_cis.ru8pc866
+
+sqlldr.exe userid=miller/kolobok control=ORDTWO.ctl errors=100 bad=ORDTWO.bad discard=ORDTWO.dis
+--------------------------в партиционированные таблицы------------------------------------------
+LOAD DATA
+
+INFILE 'xact.dat'
+INTO TABLE partition_xact PARTITION (P4)
+WHEN xact_flag = 'D'
+
+    (acct_nbr    POSITION(01:10)    INTEGER EXTERNAL,
+     xact_amt    POSITION(11:20)    INTEGER EXTERNAL ":xact_amt * -1",
+     xact_flag    POSITION(21:21)    CHAR,
+     xact_date    POSITION(22:31)    DATE "DD-MM-YY" NULLIF xact_date=BLANKS)
+
+INTO TABLE partition_xact PARTITION (P4)
+WHEN xact_flag = 'C'
+    (acct_nbr    POSITION(01:10)    INTEGER EXTERNAL,
+     xact_amt    POSITION(11:20)    INTEGER EXTERNAL,
+     xact_flag    POSITION(21:21)    CHAR,
+     xact_date    POSITION(22:31)    DATE "DD-MM-YY" NULLIF xact_date=BLANKS)
+	 
+
+Здесь применяется та же загрузка по условию с данными переменной длинны, еще и в два захода! Для начала, мы пробуем произвести загрузку в раздел P1. Далее создадим файл с исходными данными для загрузки с именем xact.dat и следующим содержимым:
+
+0000459023       123D01-02-98
+0000459023      1233C01-03-99
+0000459023       987P01-13-98
+
+------------------------использование сиквенса и юзера------------------------------------------------------
+Вот еще примерчик использования последовательности Oracle и предиката USER.
+
+Создадим вот такую последовательность:
+
+CREATE SEQUENCE db_seq
+START WITH 1
+INCREMENT BY 1
+/
+Создадим такую табличку:
+
+CREATE TABLE load_db_seq
+(
+seq_number NUMBER,
+username CHAR(30),
+data1 NUMBER,
+data2 CHAR(15)
+)
+/
+И контрольный файл:
+
+LOAD DATA
+INFILE *
+INTO TABLE load_db_seq_delimited
+FIELDS TERMINATED BY "," TRAILING NULLCOLS
+( seq_number "db_seq.nextval", username "USER", data1, data2 )
+
+BEGINDATA
+11111,AAAAAAAAAA
+22222,BBBBBBBBBB
+33333,СССССССССС
+------------------------------загрузка в CLOB-----------------------------------------------------------
+LOAD DATA
+
+INFILE 'CLOB.DAT'
+
+INTO TABLE CLOBGET
+
+FIELDS TERMINATED BY ';' 
+
+	( id, f_name, text LOBFILE ( f_name ) TERMINATED BY EOF)
+Строка LOBFILE ( f_name ) TERMINATED BY EOF и определяет загрузку CLOB объекта, опираясь на поле с именем файла, который должен находиться рядом. Далее создадим файл данных для загрузки в таблицу с именем CLOB.DAT и запишем в него следующее:
+
+001;partone.txt
+002;partone.txt
+
+или 
+
+Далее вот так измените контролфайл используя загрузку вложенных данных, так будет удобнее:
+
+LOAD DATA
+
+INFILE *
+
+INTO TABLE CLOBGET
+
+FIELDS TERMINATED BY ';' 
+
+	( id, f_name, text LOBFILE (CONSTANT turtles.dat ) TERMINATED BY ';')
+
+BEGINDATA
+001;partone
+002;parttwo
+003;parttri
+Видите я в строке LOBFILE (CONSTANT turtles.dat ) TERMINATED BY ';' заменил EOF на ';' и вот почему, сейчас мы рассказ про черепах и рекурсию разделим на три части между тремя записями получив три части в полях TEXT, для этого создайте файл с именем turtles.dat и вот таким содержимым:
+
+Here's my favorite story on recursion: it happened that a famous Darwinist was
+telling a story about primitive ; creation myths. "Some peoples," he said, "believe the
+world rests on the back of a great turtle. Of course, that raises the question: on what
+does the turtle rest?"
+An elderly woman from the back ; of the room stood up and said, "Very clever,
+Sonny, but it's turtles, all the way down.";
+
+Видите знаки ";" после слов primitive, back и down - это определит части деления файла между строками таблицы, а параметр CONSTANT указывает на то, что мы получаем данные для CLOB из одного файла данных, все очень просто! Запустите загрузку и посмотрим содержимое log файла
+
+--------------------------загрузка картинки---------------------------------------------
+Все почти так же, только способ загрузки немного другой вот и все! Так можно загрузить вообще что угодно хоть видео клип, только для этого лучше использовать объект BFILE - но, о них позже. И на последок загрузим пару тройку красивых картинок в BLOB поле таблицы! Создадим табличку с именем IMGTBL:
+
+CREATE TABLE IMGTBL (
+	id NUMBER(5),
+	f_name VARCHAR2(30),
+	img BLOB
+)
+
+Создадим контрольный файл для загрузки изображений в BLOB поле таблички IMGTBL с именем BLOBS.ctl и вот таким содержимым:
+
+LOAD DATA
+
+INFILE *
+
+INTO TABLE imgtbl
+
+FIELDS TERMINATED BY ','
+( id, f_name, img LOBFILE ( f_name ) TERMINATED BY EOF )
+
+BEGINDATA
+001,su3712.bmp
+002,cu27.bmp
+003,cu27_2.bmp
+Файлы su3712.bmp, cu27.bmp, cu27_2.bmp это фотографии СУ-37 и СУ-27, вы можете взять свои файлы и свои имена, только впишите их без пробелов между 001,su3712.bmp! И последнее, файл bat для загрузки с именем BLOBS.bat и содержащим такие строки:
+
+@echo off
+set nls_lang=russian_cis.ru8pc866
+sqlldr.exe userid=miller/kolobok control=BLOBS.ctl errors=100 bad=BLOBS.bad discard=BLOBS.dis
+
+Что ж! Запускайте скорее файл и грузите ваши любимые картинки в базу! Смотрим log файл

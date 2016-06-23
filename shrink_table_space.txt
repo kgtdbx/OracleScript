@@ -1,0 +1,6 @@
+procedure p_shrink_table_space (ip_table_name  in varchar2)
+is
+begin
+ execute immediate 'alter table '|| ip_table_name ||' enable row movement';
+ execute immediate 'alter table '|| ip_table_name ||' shrink space cascade';
+end;

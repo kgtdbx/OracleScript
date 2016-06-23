@@ -1,0 +1,51 @@
+----назначение прав пользователю для создания/удаления внешней таблицы-----------
+GRANT CREATE ANY DIRECTORY TO SB_DWH_TEST;
+GRANT DROP ANY DIRECTORY TO SB_DWH_TEST;
+GRANT READ, WRITE ON DIRECTORY MY_DIR TO SB_DWH_TEST;
+
+----создание внешней таблицы------------
+CREATE DIRECTORY MY_DIR AS 
+'//DVH2/mycvs';
+--'C:/Users/mycvs';
+
+DROP directory MY_DIR;
+
+create table my_ext_table
+   (
+     SID NUMBER,
+     EVENT VARCHAR2(200),
+     SECONDS_IN_WAIT NUMBER
+   )
+   organization external
+   (
+     type ORACLE_LOADER
+     default directory MY_DIR
+     access parameters 
+     (
+       records delimited BY newline
+       fields terminated by ","
+     )
+     location ('export.csv')
+   )
+   reject limit unlimited;
+
+---перераспределение настройки расположения вн. таблицы--------   
+ALTER TABLE my_ext_table LOCATION ('export1.csv');
+--------
+DROP TABLE  my_ext_table
+
+desc my_ext_table
+select * from my_ext_table
+
+---------------##################################
+--временная таблица на время сессии, после disconnect данные удаляются-----------
+CREATE GLOBAL TEMPORARY TABLE TEST_SB
+(           
+DEPTNO NUMBER(2,0)           
+)     ON COMMIT PRESERVE ROWS;
+--временная таблица на время транзакции, после commit данные удаляются-----------
+CREATE GLOBAL TEMPORARY TABLE TEST_SB1
+(           
+DEPTNO NUMBER(2,0)
+)
+ON COMMIT DELETE ROWS;

@@ -1,0 +1,9 @@
+procedure save_filter(module varchar2, filt varchar2) is
+begin
+    merge into user_filter u
+    using (select user a, module m, filt b from dual) n
+    on ( u.user_name = n.a and u.module = n.m) 
+    when matched then update set u.filter = n.b
+    when not matched then insert (user_name, module, filter)
+    values(n.a,n.m,n.b);  
+end;

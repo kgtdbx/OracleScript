@@ -1,0 +1,204 @@
+select dbms_metadata.get_ddl(object_type => 'TABLE',name => 'CFG_HIST_LOGS') FROM DUAL
+----############################################------------
+/*Получение DDL скрипта объекта
+Иногда для каких-то целей может потребоваться скрипт создания объекта (например, CONSTRAINT, TABLE, INDEX и т.д). 
+Вот один из вариантов как это сделать:*/
+---
+declare  
+   v_text varchar2(32767);  
+   procedure print(p_msg in varchar2) is  
+      v_msg varchar2(32767);  
+   begin  
+      v_msg := p_msg;  
+      if length(v_msg) <= 255 then  
+         dbms_output.put_line(v_msg);  
+      else  
+         while length(v_msg) > 0 loop  
+            dbms_output.put_line(substr(v_msg, 1, 255));  
+            v_msg := substr(v_msg, 256);  
+         end loop;  
+      end if;  
+   end print;  
+begin  
+   v_text := dbms_lob.substr(lob_loc => DBMS_METADATA.GET_DDL('TABLE',  
+                                                              'EMPLOYEE',  
+                                                              'SCOTT'),  
+                             amount  => 32767,  
+                             offset  => 1);  
+   print(v_text);  
+end;
+----############################################------------
+
+declare  
+   v_text varchar2(32767);  
+   procedure print(p_msg in varchar2) is  
+      v_msg varchar2(32767);  
+   begin  
+      v_msg := p_msg;  
+      if length(v_msg) <= 255 then  
+         dbms_output.put_line(v_msg);  
+      else  
+         while length(v_msg) > 0 loop  
+            dbms_output.put_line(substr(v_msg, 1, 255));  
+            v_msg := substr(v_msg, 256);  
+         end loop;  
+      end if;  
+   end print;  
+begin
+  FOR obj_name IN (SELECT object_name FROM user_objects o
+        WHERE o.object_name IN (
+'SP_ALTERNATE_INDEX_XREF',
+'SP_ALT_IDS',
+'SP_ALT_IDS_ETF',
+'SP_BOND_MBS_FIC',
+'SP_CLNDR_GET_HOLIDAY_CALENDAR',
+'SP_CLNDR_GET_TIME_ZONE_CITY',
+'SP_CLNDR_GET_TIME_ZONE_COUNTRY',
+'SP_CLNDR_GET_TIME_ZONE_RUID',
+'SP_CLNDR_GET_TIME_ZONE_ZONE_NO',
+'SP_CLNDR_TRADING_HOURS',
+'SP_CLNDR_TRDING_HOURS_BASE',
+'SP_CLNDR_TRDING_HOURS_CC_CODE',
+'SP_CLNDR_TRDING_HOURS_CC_RUID',
+'SP_CLNDR_TRDING_HOURS_CEN_CODE',
+'SP_CLNDR_TRDING_HOURS_CT_CODE',
+'SP_CLNDR_TRDING_HOURS_DATE',
+'SP_CLNDR_TRDING_HOURS_EV_ALTID',
+'SP_CLNDR_TRDING_HOURS_EV_RUID',
+'SP_CLNDR_TRDING_HOURS_TSC_RUID',
+'SP_DYNAMIC_VALUES_TYPE346',
+'SP_EQUITY_ALTID_XREF',
+'SP_EQUITY_CTG_BY_INSTRUMENT',
+'SP_EQUITY_GET_EQUITY_XREF_ALT',
+'SP_EQUITY_GET_EQUITY_XREF_OLD',
+'SP_EQUITY_GET_EQUITY_XREF_RUID',
+'SP_EQUITY_GET_INSTR_BY_ALTID',
+'SP_EQUITY_GET_INSTR_LISTING_ID',
+'SP_EQUITY_ISSUE_DETAILS',
+'SP_EQUITY_ISSUE_DETAILS_ALTID',
+'SP_EQUITY_ISSUE_DETAILS_OLD',
+'SP_EQUITY_ISSUE_DETAILS_RUID',
+'SP_EQUITY_ISSUE_XREF_ALTIDS',
+'SP_EQUITY_ISSUE_XREF_RUIDS',
+'SP_EQUITY_LISTING_PARENTRUID',
+'SP_EQUITY_LISTING_XREF_ALTIDS',
+'SP_EQUITY_LISTING_XREF_RUIDS',
+'SP_EQUITY_LIST_ISS_XREF_RUIDS',
+'SP_EQUITY_MRKT_LCL_DATA_ALTIDS',
+'SP_EQUITY_MRKT_LCL_DATA_RUIDS',
+'SP_EQUITY_RUID_XREF',
+'SP_EQUITY_SYMBOLS_EXTRACT_ALT',
+'SP_EQUITY_SYMBOLS_EXTRACT_RUID',
+'SP_EQUITY_UNDERLIER_DET_ALTID',
+'SP_EQUITY_UNDERLIER_DET_RUID',
+'SP_ETF_ALTIDS',
+'SP_ETF_COMPOSITION',
+'SP_ETF_RUIDS',
+'SP_ETF_RUIDS_TEST',
+'SP_ETF_RUID_ALTIDS',
+'SP_ETP_ALTIDS',
+'SP_ETP_CONSTITUENT_XREF',
+'SP_ETP_CONST_ALTIDS',
+'SP_ETP_CONST_RUIDS',
+'SP_ETP_RUIDS',
+'SP_FI_BOND_ABS_DETAILS_ALTID',
+'SP_FI_BOND_ABS_DETAILS_RUID',
+'SP_FI_BOND_DETAILS_ALTID',
+'SP_FI_BOND_DETAILS_MBS_ALTID',
+'SP_FI_BOND_DETAILS_MBS_RUID',
+'SP_FI_BOND_DETAILS_RUID',
+'SP_FI_BOND_ISSUER_DETAILS_ALT',
+'SP_FI_BOND_ISSUER_DETAILS_ISS',
+'SP_FI_BOND_ISSUER_DETAILS_RUID',
+'SP_FI_BOND_MRKT_LCL_DATA_ALT',
+'SP_FI_BOND_MRKT_LCL_DATA_RUID',
+'SP_FI_BOND_PRODUCT_CLSFCN_ALT',
+'SP_FI_BOND_PRODUCT_CLSFCN_RUID',
+'SP_FI_BOND_RATING_DETAILS_ALT',
+'SP_FI_BOND_RATING_DETAILS_RUID',
+'SP_FI_BOND_XREF_ALTIDS',
+'SP_FI_BOND_XREF_MBS_ALTIDS',
+'SP_FI_BOND_XREF_MBS_RUIDS',
+'SP_FI_BOND_XREF_RUIDS',
+'SP_FI_GET_BOND_ISUER_ALTIDS',
+'SP_FI_RUID_XREF',
+'SP_FI_RUID_XREF_MBS',
+'SP_GET_BOND_ISUER_ALTIDS',
+'SP_GET_CONSTITUENCE_RIC',
+'SP_GET_DIVIDENDS_POINTS',
+'SP_GET_DIVIDEND_FORECAST',
+'SP_GET_ETP_ALT_IDS',
+'SP_GET_ETP_ALT_IDS_ALT',
+'SP_GET_ETP_ALT_IDS_RUIDS',
+'SP_GET_ETP_DETAILS_ALTID',
+'SP_GET_ETP_DETAILS_RUID',
+'SP_GET_ETP_XREF',
+'SP_GET_INDEX_DETAILS',
+'SP_GET_RESTRICTION_ALTIDS',
+'SP_GET_RESTRICTION_DETAILS',
+'SP_GET_UNDERLINER_RUID',
+'SP_INDEX_ALTIDS',
+'SP_INDEX_COMPOSITION',
+'SP_INDEX_CONSTITUENT_XREF',
+'SP_INDEX_CONST_ALTIDS',
+'SP_INDEX_CONST_FORECAST',
+'SP_INDEX_CONST_RUIDS',
+'SP_INDEX_RUIDS',
+'SP_INDEX_RUIDS_ALTIDS',
+'SP_LD_CNTR_FTRE_TRDLINE_ALTID',
+'SP_LD_CNTR_FTRE_TRDLINE_RUID',
+'SP_LD_CNTR_OPTN_TRADELN_ALTID',
+'SP_LD_CNTR_OPTN_TRADELN_RUID',
+'SP_LD_CONTRACT_DETAILS_ALT',
+'SP_LD_CONTRACT_DETAILS_RUID',
+'SP_LD_CONTRACT_PRICE_FCT_ALTID',
+'SP_LD_CONTRACT_PRICE_FCT_RUID',
+'SP_LD_ETD_CNTR_ALTID_IDTFCN',
+'SP_LD_ETD_FTR_CNTRT_ALT_IDTFCN',
+'SP_LD_ETD_OPTN_CNTR_ALT_IDTFCN',
+'SP_LD_FUTURE_LISTING_ALTID',
+'SP_LD_FUTURE_LISTING_RUID',
+'SP_LD_FUTURE_TRD_DET_ALT',
+'SP_LD_FUTURE_TRD_DET_RUID',
+'SP_LD_FUTURE_TRD_UNDRL_ALT',
+'SP_LD_FUTURE_TRD_UNDRL_RUID',
+'SP_LD_GET_CONTRACT_XREF_ALTID',
+'SP_LD_GET_CONTRACT_XREF_RUID',
+'SP_LD_OPTION_LISTING_ALTID',
+'SP_LD_OPTION_LISTING_RUID',
+'SP_LD_OPTION_TRD_DET_ALT',
+'SP_LD_OPTION_TRD_DET_RUID',
+'SP_LD_OPTION_TRD_UNDRL_ALTID',
+'SP_LD_OPTION_TRD_UNDRL_RUID',
+'SP_LD_TRADELINE_XREF_ALTID',
+'SP_LD_TRADELINE_XREF_RUID',
+'SP_RESTRICTION_ALTIDS',
+'SP_RUID_ALTIDS',
+'SP_VW_GET_BOND_ALTIDS',
+'SP_VW_GET_BOND_DETAILS',
+'SP_VW_GET_BOND_ISSUER_ALTIDS',
+'SP_VW_GET_BOND_ISSUER_DETAILS',
+'SP_VW_GET_BOND_PROD_CLASS',
+'SP_VW_GET_BOND_RATING_DETAILS',
+'SP_VW_GET_DIVIDEND_FORECAST',
+'SP_VW_GET_DIVIDEND_POINTS',
+'SP_VW_GET_ETF_COMPOSITION',
+'SP_VW_GET_ETP_ALT_IDS',
+'SP_VW_GET_ETP_DETAILS',
+'SP_VW_GET_INDEX_ALT_IDS',
+'SP_VW_GET_INDEX_COMPOSITION',
+'SP_VW_GET_INDEX_DETAILS',
+'SP_VW_GET_UPDATED_BONDS',
+'SP_VW_GET_UPDATED_BONDS_ALL',
+'SP_VW_GET_UPDATED_INSTRUMENTS',
+'SP_VW_GET_UPDATED_INSTR_ALL' 
+    )
+        AND o.object_type = 'VIEW')  
+LOOP  
+ v_text := dbms_lob.substr(lob_loc => dbms_metadata.get_ddl(object_type => 'VIEW',name => obj_name.object_name),  
+                             amount  => 32767,  
+                             offset  => 1);                             
+   print(v_text);  
+
+END LOOP;
+end; 

@@ -1,0 +1,260 @@
+/*Получение DDL скрипта объекта
+Иногда для каких-то целей может потребоваться скрипт создания объекта (например, CONSTRAINT, TABLE, INDEX и т.д). 
+Вот один из вариантов как это сделать:*/
+---
+declare  
+   v_text varchar2(32767);  
+   procedure print(p_msg in varchar2) is  
+      v_msg varchar2(32767);  
+   begin  
+      v_msg := p_msg;  
+      if length(v_msg) <= 255 then  
+         dbms_output.put_line(v_msg);  
+      else  
+         while length(v_msg) > 0 loop  
+            dbms_output.put_line(substr(v_msg, 1, 255));  
+            v_msg := substr(v_msg, 256);  
+         end loop;  
+      end if;  
+   end print;  
+begin  
+   v_text := dbms_lob.substr(lob_loc => DBMS_METADATA.GET_DDL('TABLE',  
+                                                              'EMPLOYEE',  
+                                                              'SCOTT'),  
+                             amount  => 32767,  
+                             offset  => 1);  
+   print(v_text);  
+end;  
+
+
+--Результат:
+/*
+CREATE TABLE "SCOTT"."EMPLOYEE"   
+   ( "EMPLOYEE_ID" NUMBER(4,0),   
+ "LAST_NAME" VARCHAR2(15),   
+ "FIRST_NAME" VARCHAR2(15),   
+ "MIDDLE_INITIAL" VARCHAR2(1),   
+ "JOB_ID" NUMBER(3,0),   
+ "MANAGER_ID" NUMBER(4,0),   
+ "HIRE_DATE" DATE,   
+ "SALARY" NUMBER(7,2),   
+   
+"COMMISSION" NUMBER(7,2),   
+ "DEPARTMENT_ID" NUMBER(2,0),   
+  PRIMARY KEY ("EMPLOYEE_ID")  
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255   
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645  
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1  
+ BUFFER_POOL DEFAULT)  
+  TABLESPACE "MAIN"  ENABLE,   
+  CHECK (EMPLOYEE_ID IS NOT NULL) ENABLE,   
+  CHECK (DEPARTMENT_ID IS NOT NULL) ENABLE,   
+  FOREIGN KEY ("JOB_ID")  
+   REFERENCES "SCOTT"."JOB" ("JOB_ID") ENABLE,   
+  FOREIGN KEY ("MANAGER_ID")  
+   REFERENCES  
+ "SCOTT"."EMPLOYEE" ("EMPLOYEE_ID") ENABLE,   
+  FOREIGN KEY ("DEPARTMENT_ID")  
+   REFERENCES "SCOTT"."DEPARTMENT" ("DEPARTMENT_ID") ENABLE  
+   ) PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING  
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS   
+1 MAXEXTENTS 2147483645  
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT)  
+  TABLESPACE "MAIN" */  
+
+
+---############################################################################################--------------
+
+SELECT DBMS_METADATA.GET_DDL('TABLE', 'CUBE_TEST', 'CUBE') FROM dual;
+
+select dbms_lob.substr((SELECT DBMS_METADATA.GET_DDL('TRIGGER','SMUSER_NOHINT') from dual),4000,1) from dual;
+
+--Каждый раз указывать тип объекта в первом параметре функции GET_DDL неудобно, поэтому предлагаю небольшую обёртку над ней.
+--Создадим файл get_ddl.sql с таким содержимым:
+
+SET LONG 9000
+SET pagesize 1000
+SET linesize 100
+SET serverout ON
+SET heading ON
+SET ver OFF
+SET scan ON
+ 
+ACCEPT schema_name PROMPT "Enter schema name: "
+ACCEPT object_name PROMPT "Enter object name: "
+ 
+DECLARE ddl_statement VARCHAR(4000);
+BEGIN
+	DBMS_OUTPUT.ENABLE(1000000);
+	FOR obj_type IN (SELECT REPLACE(o.object_type, ' ', '_') object_type_replaced 
+	 	 FROM dba_objects o
+			  WHERE o.owner = UPPER('&&schema_name')
+				AND o.object_name = UPPER('&&object_name')
+				AND o.object_type IN (
+					'AQ QUEUE',
+					'AQ QUEUE_TABLE',
+					'AQ TRANSFORM',
+					'ASSOCIATION',
+					'AUDIT',
+					'AUDIT OBJ',
+					'CLUSTER',
+					'COMMENT',
+					'CONSTRAINT',
+					'CONTEXT',
+					'DATABASE EXPORT',
+					'DB LINK',
+					'DEFAULT ROLE',
+					'DIMENSION',
+					'DIRECTORY',
+					'FGA POLICY',
+					'FUNCTION',
+					'INDEX STATISTICS',
+					'INDEX',
+					'INDEXTYPE',
+					'JAVA SOURCE',
+					'JOB',
+					'LIBRARY',
+					'MATERIALIZED VIEW',
+					'MATERIALIZED VIEW LOG',
+					'OBJECT GRANT',
+					'OPERATOR',
+					'OUTLINE',
+					'PACKAGE',
+					'PACKAGE SPEC',
+					'PACKAGE BODY',
+					'PROCEDURE',
+					'PROFILE',
+					'PROXY',
+					'REF CONSTRAINT',
+					'REFRESH GROUP',
+					'RESOURCE COST',
+					'RLS CONTEXT',
+					'RLS GROUP',
+					'RLS POLICY',
+					'RMGR CONSUMER GROUP',
+					'RMGR INTITIAL CONSUMER GROUP',
+					'RMGR PLAN',
+					'RMGR PLAN DIRECTIVE',
+					'ROLE',
+					'ROLE GRANT',
+					'ROLLBACK SEGMENT',
+					'SCHEMA EXPORT',
+					'SEQUENCE',
+					'SYNONYM',
+					'SYSTEM GRANT',
+					'TABLE',
+					'TABLE DATA',
+					'TABLE EXPORT',
+					'TABLE STATISTICS',
+					'TABLESPACE',
+					'TABLESPACE QUOTA',
+					'TRANSPORTABLE EXPORT',
+					'TRIGGER',
+					'TRUSTED DB LINK',
+					'TYPE',
+					'TYPE SPEC',
+					'TYPE BODY',
+					'USER',
+					'VIEW',
+					'XMLSCHEMA'))
+	LOOP
+		SELECT TO_CHAR(DBMS_METADATA.GET_DDL(
+			obj_type.object_type_replaced,
+			UPPER('&&object_name'),
+			UPPER('&&schema_name')
+			)) INTO ddl_statement FROM dual;
+		DBMS_OUTPUT.PUT_LINE(ddl_statement);
+	END LOOP;
+END;
+/
+
+---############################################################################################--------------
+Рисует каталогизированое хранилище исходников пользовательских объектов.
+мож кому пригадица...Думаю, доработать напильником не составит труда ;)
+
+Файлики помещаете в одну папку.
+Запускаете get_structure.sh
+
+
+get_structure.sh
+----------------------------
+#!/bin/bash
+
+export SQLPLUS=$ORACLE_HOME/bin/sqlplus
+$SQLPLUS  /as sysdba @main.sql
+rm direct.sql
+rm main_spool.sql
+exit
+----------------------------
+main.sql
+----------------------------
+set long 200000
+set lines 180
+set trimspool on
+set heading off
+set feedback off
+set pages 0
+set verify off
+set echo off
+set timing off
+SET LINESIZE 5000
+SET TERMOUT OFF
+column c format a500
+
+
+exec dbms_metadata.set_transform_param(dbms_metadata.session_transform,'PRETTY',TRUE);
+exec dbms_metadata.set_transform_param(dbms_metadata.session_transform,'SQLTERMINATOR',TRUE);
+exec dbms_metadata.set_transform_param(dbms_metadata.session_transform,'SEGMENT_ATTRIBUTES',TRUE);
+exec dbms_metadata.set_transform_param(dbms_metadata.session_transform,'STORAGE',FALSE);
+exec dbms_metadata.set_transform_param(dbms_metadata.session_transform,'TABLESPACE',TRUE);
+exec dbms_metadata.set_transform_param(dbms_metadata.session_transform,'REF_CONSTRAINTS',TRUE);
+exec dbms_metadata.set_transform_param(dbms_metadata.session_transform,'SPECIFICATION',TRUE);
+exec dbms_metadata.set_transform_param(dbms_metadata.session_transform,'BODY',TRUE);
+exec dbms_metadata.set_transform_param(dbms_metadata.session_transform,'CONSTRAINTS',TRUE);
+
+@directory_make.sql
+@get_spool.sql
+exit;
+----------------------------
+get_spool.sql
+----------------------------
+set serveroutput on;
+spool main_spool.sql;
+DECLARE
+CURSOR cur IS select 'spool /deep/'||x||'/'||y||'/'||z||'.sql' b,
+'select dbms_metadata.get_ddl('''||y||''','''||z||''','''||x||''') c from dual;' s
+'host touch  -t '||d||' /deep/'||x||'/'||y||'/'||z||'.sql' c
+             from (select owner x, replace(object_type,' ','_') y, object_name z, to_char(created, 'YYMMDDhhmm') d from dba_objects 
+                where owner not in ('DBSNMP', 'SYSMAN','SYS', 'SYSTEM', 'MGMT_VIEW', 'OUTLN', 'WMSYS', 'EXFSYS', 'XDB', 'DMSYS', 'ANONYMOUS','QUEST')
+and object_type not in ('LOB','SYNONYM','TABLE PARTITION', 'JAVA RESOURCE', 'INDEX PARTITION','JOB', 'LOB PARTITION', 'DATABASE LINK')
+                    and object_name not like 'BIN$%');
+BEGIN
+for cur_rec in cur
+    loop
+      dbms_output.PUT_LINE(cur_rec.b);
+      dbms_output.PUT_LINE(cur_rec.s);
+      dbms_output.PUT_LINE('SPOOL off;');
+       dbms_output.PUT_LINE(cur_rec.c);
+    end loop;
+end;
+/
+spool off;
+@main_spool.sql
+----------------------------
+directory_make.sql
+----------------------------
+spool direct.sql;
+select distinct('host mkdir /deep/'||x||'/'||z||'/') b
+            from 
+               (select owner x, replace(object_type,' ','_') z 
+                         from dba_objects where owner not in 
+('DBSNMP', 'SYSMAN','SYS', 'SYSTEM', 'MGMT_VIEW', 
+'OUTLN', 'WMSYS', 'EXFSYS', 'XDB', 'DMSYS', 'ANONYMOUS','QUEST')
+and object_type not in ('LOB','SYNONYM','TABLE PARTITION', 
+'JAVA RESOURCE', 'INDEX PARTITION','JOB', 'LOB PARTITION', 'DATABASE LINK'));
+spool off;
+@direct.sql
+
+
+
+  

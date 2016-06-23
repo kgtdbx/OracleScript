@@ -1,0 +1,22 @@
+create type descr_list is table of varchar2(100);
+
+create table meter_tst
+(
+meter_id number,
+descr    descr_list     
+)
+nested table descr STORE as descr_tab;
+
+
+insert into meter_tst(meter_id, descr)
+values (1,descr_list('RIC', 'QUISIP','ISIN'));
+
+select /*+ NESTED_TABLE_GET_REFS */  *
+from  descr_tab d where d.column_value like 'RIC%'
+
+select DES.* 
+from METER_TST DES, table(DES.descr) DES where d.descr like 'RIC%'
+
+select dbms_metadata.get_ddl(object_type => 'TABLE', name => 'METER_TST') from dual
+
+select * from user_tables u  where u.TABLE_NAME = 'DESCR_TAB'

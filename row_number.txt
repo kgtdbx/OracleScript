@@ -1,0 +1,27 @@
+--CREATE OR REPLACE VIEW SP_RUID_ALTIDS_ETP AS
+with
+ a as
+ (
+ select  1 as ruid , 'A' as alt_id, 'A' as status , trunc(sysdate-2) as effctv_dt from dual
+ union all
+ select  2 as ruid , 'A' as alt_id, 'I' as status , trunc(sysdate+2) as effctv_dt from dual
+  union all
+ select  2 as ruid , 'A' as alt_id, 'I' as status , null as effctv_dt from dual
+ union all
+ select 3 as ruid  , 'A' as alt_id, 'F' as status , trunc(sysdate-2) as effctv_dt from dual
+ union all
+ select 4 as ruid  , 'B' as alt_id, 'I' as status , trunc(sysdate-2) as effctv_dt from dual
+ union all
+ select  5 as ruid, 'B' as alt_id, 'I' as status , trunc(sysdate-4) as effctv_dt from dual
+ union all
+ select  5 as ruid, 'B' as alt_id, 'A' as status , null as effctv_dt from dual
+  union all
+ select  6 as ruid, 'C' as alt_id, 'I' as status , trunc(sysdate-4) as effctv_dt from dual
+ ),
+
+
+B AS(
+select a.* ,row_NUMBER() OVER( PARTITION BY A.ALT_ID ORDER BY DECODE(A.STATUS,'A',1,'F',1,'I',2) ,A.EFFCTV_DT DESC) AS FIRST  from a)
+
+
+SELECT * FROM B WHERE B.STATUS IN ('A','F') OR (B.STATUS ='I' AND FIRST=1)

@@ -1,0 +1,7 @@
+The Database Control URL is https://HP:1158/em
+
+Management Repository has been placed in secure mode wherein Enterprise Manager data will be encrypted.  
+The encryption key has been placed in the file: C:/app/product/11.2.0/dbhome_1/HP_ORA11EE/sysman/config/emkey.ora.   
+Please ensure this file is backed up as the encrypted data will become unusable if this file is lost. 
+
+C:\app\product\11.2.0\client_1;C:\app\product\11.2.0\dbhome_1\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;%SystemRoot%\system32;%SystemRoot%;%SystemRoot%\System32\Wbem;%SYSTEMROOT%\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Intel\OpenCL SDK\3.0\bin\x86;C:\Program Files (x86)\Intel\OpenCL SDK\3.0\bin\x64;C:\Program Files (x86)\Skype\Phone\

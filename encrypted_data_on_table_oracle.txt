@@ -1,0 +1,40 @@
+Test case[edit]
+
+Create a "wallet" directory in $ORACLE_BASE/admin/$ORACLE_SID where Oracle can store its encryption key. If not, you will get error: ORA-28368: cannot auto-create wallet. 
+$ mkdir /app/oracle/admin/orcl/wallet
+
+
+Create the wallet to hold the encryption key: 
+SQL> ALTER SYSTEM SET ENCRYPTION KEY AUTHENTICATED BY "secretpassword";
+
+
+The above created wallet must be reopened after an instance restart: 
+SQL> ALTER SYSTEM SET WALLET OPEN IDENTIFIED BY "secretpassword";
+
+
+Create a table with encrypted columns: 
+CREATE TABLE tde_test (
+  id   NUMBER,
+  data VARCHAR2(30) ENCRYPT
+);
+INSERT INTO tde_test (id, data) VALUES (1, 'This data in encrypted!');
+
+
+Select from the table to see the data (wallet is still open): 
+SQL>  SELECT data FROM tde_test;
+DATA
+------------------------------
+This data in encrypted!
+
+
+Closing the wallet to prevent access to encrypted columns: 
+SQL> ALTER SYSTEM SET WALLET CLOSE;
+
+
+Select from the table to see the data (wallet is closed): 
+SQL> SELECT data FROM tde_test;
+SELECT data FROM tde_test
+                 *
+ERROR at line 1:
+ORA-28365: wallet is not open
+

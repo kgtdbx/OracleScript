@@ -1,3 +1,13 @@
+rem Here is one way of doing it, with the help of an additional icon on your desktop. I guess you could move the script someone else if you wanted to only have a single icon on your desktop.
+rem 1.Create a shortcut to your Powershell script on your desktop
+rem 2.Right-click the shortcut and click Properties
+rem 3.Click the Shortcut tab
+rem 4.Click Advanced
+rem 5.Select Run as Administrator
+rem 
+rem You can now run the script elevated by simple double-clicking the new shortcut on your desktop.
+
+
 rem "C:\Progra~2\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe"
 rem sqlplus HR/Zvagas44@ORA11EE
 rem timeout /t 20 /nobreak

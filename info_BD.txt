@@ -382,6 +382,10 @@ select * from v$version where rownum = 1;
 SELECT * FROM PRODUCT_COMPONENT_VERSION;
 --service_name-------
 select value from v$parameter where name like '%service_name%';
+
+--ARCHIVELOG mode-------------------
+select name, log_mode from v$database;
+
 --------------------------------------------
 Временная зона сессии - параметр, влияющий на представление и преобразование данных типов TIMESTAMP WITH TIME ZONE и TIMESTAMP WITH LOCAL TIME ZONE 
 в конкретной сессии. Текущее значение данного параметра можно узнать простым запросом:

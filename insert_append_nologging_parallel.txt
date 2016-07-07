@@ -12,3 +12,15 @@ b) there is no RI regarding this table in effect
 c) you used "as select", not values 
 
 otherwise it was silently ignored.
+
+------------
+Insert statement and insert all statement are practically the same conventional insert statement. insert all, which has been introduced in 9i version simply allows you to do insertion into multiple tables using one statement. Another type of insert that you could use to speed up the process is direct-path insert - you use /*+ append*/ or /*+ append_values*/(Oracle 11g) hints
+
+insert /*+ append*/ into some_table(<<columns>>)
+  select <<columns or literals>>
+    from <<somwhere>> 
+or (Oracle 11g)
+
+insert /*+ append_values*/ into some_table(<<columns>>)
+   values(<<values>>)
+to tell Oracle that you want to perform direct-path insert. But, 100K rows it's not that many rows and conventional insert statement will do just fine. You wont get significant performance advantage using direct-path insert with that amount of data. Moreover direct-path insert wont reuse free space, it adds new data after HWM(high water mark), hence require more space. You wont be able to use select statement or other DML statement, if you has not issued commit.

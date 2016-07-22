@@ -1,0 +1,4 @@
+alter table TMP_REZ_OBESP23 enable row movement;
+
+FLASHBACK TABLE TMP_REZ_OBESP23
+  TO TIMESTAMP (SYSTIMESTAMP - INTERVAL '20' minute);

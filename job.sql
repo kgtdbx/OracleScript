@@ -1,21 +1,61 @@
 select * from user_jobs;
-SELECT * FROM user_scheduler_jobs;
+
+
+SELECT * FROM user_scheduler_jobs usj
+where usj.job_name in (select distinct tlt.job_name from TMS_LIST_TASKS tlt);
+
+
+SELECT *--owner, program_name, program_type, program_action
+FROM all_scheduler_programs sp where sp.program_name = 'PRG_ACCD_2604X';
+
+--PRG_ACCD_2604X  ACCD_2604
+
+
+select * from sec_audit sa where sa.rec_date >= sysdate-1/24
+order by sa.rec_id desc
+
+
 select TO_CHAR(d.LOG_DATE, 'dd.mm.yyyy hh24:mi:ss') LOG_DATE, d.* from user_scheduler_job_run_details d
 order by d.LOG_ID desc;
+
+
 select * from user_scheduler_job_log order by 1 desc;
+
+
 select * from dba_jobs; 
 select * from dba_jobs_running;
 select * from dba_scheduler_running_jobs;
+
 select * from DBA_SCHEDULER_JOBS d
-where d.owner = 'HIST_OWNER';
+where d.owner = 'BARS';
+
+
 select * from DBA_SCHEDULER_JOB_LOG d
-where d.owner = 'HIST_OWNER';
+where /*d.owner = 'BARS' and*/ d.job_name = 'TMS_JOB_NOTIFICATION';
+
+
+select * from ALL_SCHEDULER_NOTIFICATIONS
+
+
+select * from dba_scheduler_job_run_details d
+where d.JOB_NAME like '%TMS%'
+order by d.LOG_ID desc;
+
+
+
 select * from ALL_SCHEDULER_JOB_LOG l
 order by l.LOG_ID desc;
+
+
+
 select * from dict where table_name like '%SCHEDULER_%';
+
 SELECT * FROM user_SCHEDULER_CHAINS;
+
 select * from user_SCHEDULER_RUNNING_JOBS;
+
 SELECT * FROM user_SCHEDULER_RUNNING_CHAINS;
+
 SELECT * FROM SYS.SCHEDULER$_EVENT_QUEUE;
 ---
 SELECT owner, program_name, program_type, program_action

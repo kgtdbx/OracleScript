@@ -884,3 +884,61 @@ DROP FUNCTION raise_sal;
 References:
 
 Oracle9i Database Administrator's Guide Release 2 (9.2) Chapter 15: Managing Tables
+
+---------###########################################################################
+
+Online table redefinition (11g) 
+
+1. Check the status of the schema objects we can see that all of them are valid.
+
+COLUMN object_name FORMAT A40
+SELECT object_name, object_type, status FROM dba_objects where owner='TABLE_OWNER';
+
+ 2. Check to see that the table can be redefined online using either rowid or primary key. By default, DBMS_REDEFINITION.CONS_USE_PK is the default method if not specified.
+EXEC DBMS_REDEFINITION.can_redef_table ('OCS_ETL','OCS_BLNCG_RSLT_ALT',DBMS_REDEFINITION.CONS_USE_PK);  
+
+EXEC DBMS_REDEFINITION.can_redef_table ('OCS_ETL','OCS_BLNCG_RSLT_ALT',DBMS_REDEFINITION.CONS_USE_ROWID); 
+
+ 3. Create interim (new) table.
+CREATE TABLE OCS_ETL.TEMPORARY_OCS_RTE_CUST_REDEF AS SELECT * FROM OCS_ETL.TEMPORARY_OCS_RTE_CUST WHERE 1=2;                                                                                           
+
+ 4. Start Redefinition.
+EXEC DBMS_REDEFINITION.start_redef_table('OCS_ETL', 'TEMPORARY_OCS_RTE_CUST', 'TEMPORARY_OCS_RTE_CUST_REDEF');
+
+or using rowid
+EXEC DBMS_REDEFINITION.start_redef_table ('OCS_ETL','OCS_BLNCG_RSLT_ALT','OCS_BLNCG_RSLT_ALT2', NULL, DBMS_REDEFINITION.CONS_USE_ROWID);  
+
+ 5. Copy dependent objects. (Automatically create any triggers, indexes, materialized view logs, grants, and constraints on hr.int_admin_emp.)
+DECLARE
+num_errors PLS_INTEGER;
+BEGIN
+DBMS_REDEFINITION.COPY_TABLE_DEPENDENTS('OCS_ETL', 'TEMPORARY_OCS_RTE_CUST','TEMPORARY_OCS_RTE_CUST_REDEF',
+   DBMS_REDEFINITION.CONS_ORIG_PARAMS, TRUE, TRUE, TRUE, TRUE, num_errors);
+END;
+
+/* Note that the ignore_errors argument is set to TRUE for this call. The reason is that the interim table was created with a primary key constraint, and when COPY_TABLE_DEPENDENTS attempts to copy the primary key constraint and index from the original table, errors occurs. 
+You can ignore these errors, but you must run the query shown in the next step to see if there are other errors.
+*/
+
+ 6. Query the DBA_REDEFINITION_ERRORS view to check for errors.
+select object_name, base_table_name, ddl_txt 
+from DBA_REDEFINITION_ERRORS;
+
+ 7. Optionally synchronize new table with interim data before index creation.
+EXEC DBMS_REDEFINITION.sync_interim_table('OCS_ETL', 'TEMPORARY_OCS_RTE_CUST', 'TEMPORARY_OCS_RTE_CUST_REDEF');
+
+ 8. Complete redefinition.
+EXEC DBMS_REDEFINITION.finish_redef_table ('OCS_ETL', 'TEMPORARY_OCS_RTE_CUST', 'TEMPORARY_OCS_RTE_CUST_REDEF');
+
+ 9. The table is locked in the exclusive mode only for a small window toward the end of this step.  Wait for any long-running queries against the interim table to complete, and then drop the interim table.
+
+
+DROP TABLE OCS_ETL.TEMPORARY_OCS_RTE_CUST_REDEF;
+
+ 10. Check the status of the schema objects to ensure that all of them are still valid.
+COLUMN object_name FORMAT A40
+SELECT object_name, object_type, status FROM dba_objects where owner='TABLE_OWNER';
+
+
+ For reference to oracle documentation using online redefinition, see the link below:
+ http://download.oracle.com/docs/cd/B28359_01/server.111/b28310/tables007.htm#autoId8

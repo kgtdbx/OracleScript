@@ -72,6 +72,19 @@ ALTER TABLE supplier
  DROP COLUMN supplier_name;
 
 
+--You can also drop a table column by marking it unused and then dropping the column, thusly:
+
+alter table
+   table_name
+set unused column
+   column_name;
+ 
+alter table
+   table_name
+drop unused columns;
+ 
+ 
+ 
 --Переименование столбца(-ов) в таблице(НОВОЕ в Oracle 9i Release 2) Синтаксис #1
 
 --Синтаксис оператора ALTER TABLE для переименовывания одного столбца в существующей таблице:

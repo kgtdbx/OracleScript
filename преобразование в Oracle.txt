@@ -21,6 +21,71 @@ select length(trim(translate('20h03', '1234567890', ' ')))
 
 from dual
 ------
+regexp_like(value,'^[0-9]+$') --числа
+regexp_like(value,'^[0-9]+$') --положительные числа
+------
+Well, OP asked to проверить чтобы строка содержала только цифры. You decided to use regexp - fine. But your regexp checks if text is number. And as Elic pointed out, it checks for fractions only. Anyway, to check for number using regexp:
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+DECLARE
+   v_input VARCHAR2(4000) := '&1';
+BEGIN
+   IF regexp_like(v_input,
+                  '^( *)(\+|-)?((\d*[.]?\d+)|(\d+[.]?\d*)){1}(e(\+|-)?\d+)?(f|d)?$','i') THEN
+      dbms_output.put_line(v_input || ' is number');
+   ELSE
+      dbms_output.put_line(v_input || ' is not number');
+   END IF;
+END;
+SQL> /
+Enter value for 1:     -7.8E+12
+-7.8E+12 is number
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for 1:     -7.8E+12.5
+-7.8E+12.5 is not number
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for 1: -   5
+-   5 is not number
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for 1:    -5
+-5 is number
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for 1: -6.
+-6. is number
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for 1: +.45
++.45 is number
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for 1: 1+2
+1+2 is not number
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for 1: Abc
+Abc is not number
+
+PL/SQL procedure successfully completed.
+------
 
 функции Oracle
 

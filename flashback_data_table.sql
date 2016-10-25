@@ -3,7 +3,12 @@ alter table TMP_REZ_OBESP23 enable row movement;
 FLASHBACK TABLE TMP_REZ_OBESP23
   TO TIMESTAMP (SYSTIMESTAMP - INTERVAL '20' minute);
   
-  --###########################################################
+--###########################################################  
+select versions_starttime, versions_endtime, codeapp
+from app_rep
+versions between scn minvalue and maxvalue;
+  
+--###########################################################
 /*
   Flashback Table and Materialized View – not working together
 I must say that I like Flashback features very much. This is very useful option and should be used more often. But sometimes you might hit some obstacles. One of them is Materialized view. When You want to issue FLASHBACK TABLE statement on table that has materialized view it does not work. 

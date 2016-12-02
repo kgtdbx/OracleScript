@@ -1,0 +1,37 @@
+set nls_lang=russian_cis.ru8pc866
+exp.EXE USERID=sys/manager@proba FULL=Y FILE=c:\ORACLE\full.dat LOG=C:\ORACLE\full.LOG
+Для большей наглядности я бы сделал некоторые изменения в строке экспорта вот так: 
+..\.bat->
+
+set nls_lang=russian_cis.ru8pc866
+exp.EXE USERID=sys/manager@proba FULL=Y FEEDBACK=1000 FILE=c:\ORACLE\full.dat LOG=C:\ORACLE\full.LOG
+В этом случае после экспорта 1000 строк таблички будут появляться точки. Так более понятно, что происходит! А, вот так можно "слить" конкретного пользователя скажем нашего MILLER-а: 
+..\.bat->
+
+set nls_lang=russian_cis.ru8pc866
+exp.EXE USERID=miller/kolobok@proba  COMPRESS=Y FILE=c:\ORACLE\miller.dat LOG=C:\ORACLE\miller.LOG
+
+Все вроде прошло гладко! Или вот, например, слить таблички CUSTOMERS и SALESREPS из схемы MILLER: 
+..\.bat->
+
+set nls_lang=russian_cis.ru8pc866
+exp.EXE USERID=miller/kolobok@proba  TABLES=(CUSTOMERS, SALESREPS) FILE=c:\ORACLE\Tmiller.dat 
+LOG=C:\ORACLE\Tmiller.LOG
+
+--
+set nls_lang=russian_cis.ru8pc866
+imp.EXE USERID=MILLER/KOLOBOK@PROBA FILE=MILLER.DAT FROMUSER=MILLER TOUSER=MILLER
+Так вот, если вы производите импорт непосредственно на сервере, а как правило так и происходит, то имя сетевой службы можно вообще не писать - сервер вас поймет! Вот так: 
+set nls_lang=russian_cis.ru8pc866
+imp.EXE USERID=MILLER/KOLOBOK FILE=MILLER.DAT FROMUSER=MILLER TOUSER=MILLER
+Если вы проводите импорт с клиентской машины, то имя сетевой службы нужно записывать и именно, то которое у вас в системе!
+------------------------
+To export just 1 user you can type the following:
+exp system/<system_password>@<database> file=<user>.dmp owner=<user>
+------------------------
+REM imp system/_stepx2020. buffer=4096 file=R19-Prod-Export3.dmp grants=nein FROMUSER=SMARTEAM TOUSER=SMARTEAM IGNORE=Y
+imp smarteam/stepx2020 buffer=4096 file=exportR24-SMARTEAMPROD-03262016.dmp IGNORE=Y
+
+
+exp system/_stepx2020@smteam file=SMTEAM_SMARTEAMR21.dmp owner=SMARTEAMR21
+------------------------

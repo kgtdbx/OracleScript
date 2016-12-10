@@ -43,7 +43,7 @@ NAME                                 TYPE   �
 alter system set remote_login_passwordfile=exclusive scope=both;
  
 STEP 3.   Grant SYSDBA or SYSOPER to users.  
-When SYSDBA or SYSOPER privileges are granted to a user, that user's name and privilege information are added to the password file. 
+--When SYSDBA or SYSOPER privileges are granted to a user, that user's name and privilege information are added to the password file. 
 
 SQL> grant sysdba to scott;
  

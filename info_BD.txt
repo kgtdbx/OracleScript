@@ -680,6 +680,12 @@ select * from dba_obj_audit_opts;
 --dictionary (dict)	словарь таблиц и представлений	
 select * from dict where table_name like '%PUMP%';-- список всех таблиц и представлений, в имени которых встречаетс€ "PUMP"
 -----
+--информаци€ с пакета
+SELECT * FROM sys.source$ s, dba_objects o
+WHERE s.obj# = o.object_id
+AND o.object_type like 'PACKAGE%'
+AND s.source like '%@%'
+-----
 --v$instance	информаци€ об инстансе Ѕƒ	
 select instance_name from v$instance;--	им€ инстанса
 -----

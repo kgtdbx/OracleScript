@@ -1,0 +1,47 @@
+﻿/*
+ALTER TABLE BARS.OW_OIC_REF MOVE TABLESPACE  BRSBIGD; 
+ALTER INDEX BARS.PK_OWOICREF REBUILD TABLESPACE BRSBIGI;
+ALTER INDEX BARS.I_OWOICREF_REF REBUILD TABLESPACE BRSBIGI ONLINE;
+*/
+
+SELECT 'ALTER TABLE BARS.' || OBJECT_NAME ||' MOVE TABLESPACE '||' BRSBIGD; '
+FROM ALL_OBJECTS
+WHERE OWNER = 'BARS'
+AND OBJECT_TYPE = 'TABLE'
+AND OBJECT_NAME = 'OW_OIC_REF'
+
+
+Where <schema_name> is the name of the user. And <tablespace_name> is the destination tablespace.
+As a result you get lines like:
+ALTER TABLE SCOT.PARTS MOVE TABLESPACE USERS; 
+Paste the results in a script or in a oracle sql developer like application and run it.
+Moving indexes:
+First run:
+
+SELECT 'ALTER INDEX BARS.'||INDEX_NAME||' REBUILD TABLESPACE BRSBIGI ONLINE;' 
+FROM ALL_INDEXES
+WHERE OWNER = 'BARS'
+AND TABLE_NAME = 'OW_OIC_REF'
+AND TABLESPACE_NAME NOT LIKE 'BRSBIGI';
+
+select * from all_indexes i
+where i.TABLE_NAME = 'OW_OIC_REF'
+
+The last line in this code could save you a lot of time because it filters out the indexes which are already in the correct tablespace.
+As a result you should get something like:
+ALTER INDEX SCOT.PARTS_NO_PK REBUILD TABLESPACE USERS;
+Paste the results in a script or in a oracle sql developer like application and run it.
+Last but not least, moving LOBs:
+First run:
+SELECT 'ALTER TABLE <schema_name>.'||LOWER(TABLE_NAME)||' MOVE LOB('||LOWER(COLUMN_NAME)||') STORE AS (TABLESPACE <table_space>);'
+FROM DBA_TAB_COLS
+WHERE OWNER = '<schema_name>' AND DATA_TYPE like '%LOB%';
+This moves the LOB objects to the other tablespace.
+As a result you should get something like:
+ALTER TABLE SCOT.bin$6t926o3phqjgqkjabaetqg==$0 MOVE LOB(calendar) STORE AS (TABLESPACE USERS);
+Paste the results in a script or in a oracle sql developer like application and run it.
+O and there is one more thing:
+For some reason I wasn't able to move 'DOMAIN' type indexes. 
+As a work around I dropped the index. changed the default tablespace of the user into de desired tablespace. and then recreate the index again. 
+There is propably a better way but it worked for me.
+

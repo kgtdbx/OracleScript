@@ -1,0 +1,440 @@
+﻿ops$tkyte%ORA11GR2> create function test
+  2  return varchar2
+  3  as
+  4  v_string varchar2(32767 byte);
+  5  v_num number;
+  6  begin
+  7  v_string := 'somelongstring';
+  8  v_num := 1;
+  9  v_num := 2;
+ 10   v_num := 3;
+ 11   return v_string;
+ 12   end;
+ 13  /
+
+Function created.
+
+ops$tkyte%ORA11GR2> 
+ops$tkyte%ORA11GR2> select test() from dual;
+
+TEST()
+-------------------------------------------------------------------------------
+somelongstring
+
+-------
+
+
+CREATE OR REPLACE FUNCTION LIVE.getlong (v_table_name IN varchar2, v_col_name IN varchar2, v_rowid IN ROWID
+)
+   RETURN VARCHAR2
+AS
+   v_cursor     INTEGER DEFAULT DBMS_SQL.open_cursor ;
+   v_number          NUMBER;
+   v_long_val   VARCHAR2 (4000);
+   v_long_len   NUMBER;
+   v_buflen     NUMBER := 4000;
+   v_curpos     NUMBER := 0;
+BEGIN
+   DBMS_SQL.parse (v_cursor, 'select ' || v_col_name || ' from ' || v_table_name || ' where rowid = :x', DBMS_SQL.native );
+   DBMS_SQL.bind_variable (v_cursor, ':x', v_rowid);
+
+   DBMS_SQL.define_column_long (v_cursor, 1);
+   v_number   := DBMS_SQL.execute (v_cursor);
+
+   IF (DBMS_SQL.fetch_rows (v_cursor) > 0)
+   THEN
+      DBMS_SQL.column_value_long (v_cursor, 1, v_buflen, v_curpos, v_long_val, v_long_len
+      );
+   END IF;
+
+   DBMS_SQL.close_cursor (v_cursor);
+   RETURN v_long_val;
+END getlong;
+/
+
+
+
+-------
+
+
+where on this posting did it look like that would work? All through this posting we see how difficult it can be to deal with a long and that if you wanted to expose it that way - you would need to write a plsql function... 
+
+no where on this page do you see me "select substr( LONG_COLUMN, ... )", that doesn't work. 
+
+ops$tkyte%ORA11GR2> create or replace function get_col_default
+  2  (
+  3  p_owner in all_tab_cols.owner%type,
+  4  p_table_name in all_tab_cols.table_name%type,
+  5  p_column_name in all_tab_cols.column_name%type
+  6  )
+  7  return varchar2
+  8  as
+  9          l_data_default LONG;
+ 10  begin
+ 11          select data_default into l_data_default
+ 12            from all_tab_cols
+ 13           where owner = p_owner
+ 14             and table_name = p_table_name
+ 15             and column_name = p_column_name;
+ 16  
+ 17          return substr( l_data_default, 1, 4000 );
+ 18  end;
+ 19  /
+
+Function created.
+
+ops$tkyte%ORA11GR2> 
+ops$tkyte%ORA11GR2> column d format a20
+ops$tkyte%ORA11GR2> select owner, table_name, column_name, get_col_default( owner, table_name, column_name ) d
+  2    from all_tab_cols
+  3   where get_col_default( owner, table_name, column_name ) is not null
+  4     and rownum <= 5
+  5  /
+
+OWNER                          TABLE_NAME                     COLUMN_NAME                    D
+------------------------------ ------------------------------ ------------------------------ --------------------
+SYS                            HS$_PARALLEL_METADATA          PARALLEL                       'Y'
+SYS                            HS$_PARALLEL_METADATA          PARALLEL_DEGREE                4
+SYS                            HS$_PARALLEL_METADATA          RANGE_PARTITIONED              'N'
+SYS                            HS$_PARALLEL_METADATA          SAMPLED                        'N'
+SYS                            HS$_PARALLEL_METADATA          HISTOGRAM                      'N'
+
+------
+
+this will be hugely inefficient for hundreds or thousands of rows, but: 
+
+
+
+ops$tkyte%ORA9IR2> create table t ( x int, y long );
+
+Table created.
+
+ops$tkyte%ORA9IR2>
+ops$tkyte%ORA9IR2> declare
+  2          l_max number := 0;
+  3  begin
+  4          for c in (select rownum r, text from all_views)
+  5          loop
+  6                  insert into t values ( c.r, c.text );
+  7                  l_max := greatest( l_max, length(c.text) );
+  8          end loop;
+  9          dbms_output.put_line( 'max length = ' || l_max );
+ 10  end;
+ 11  /
+max length = 14981
+
+PL/SQL procedure successfully completed.
+
+ops$tkyte%ORA9IR2>
+ops$tkyte%ORA9IR2>
+ops$tkyte%ORA9IR2> create global temporary table gtt ( lob clob ) on commit delete rows;
+
+Table created.
+
+ops$tkyte%ORA9IR2>
+ops$tkyte%ORA9IR2> create or replace function get_and_search_long
+  2  ( p_tname in varchar2,
+  3    p_cname in varchar2,
+  4    p_rowid in rowid,
+  5    p_search_str in varchar2 default NULL ) return varchar2
+  6  as
+  7          pragma autonomous_transaction;
+  8          l_return varchar2(4000);
+  9  begin
+ 10          execute immediate '
+ 11          insert into gtt
+ 12          select to_lob(' || dbms_assert.simple_sql_name( p_cname ) || ')
+ 13            from ' || dbms_assert.sql_object_name( p_tname ) || '
+ 14           where rowid = :p_rowid' using p_rowid;
+ 15
+ 16          begin
+ 17                  select substr( lob, 1, 4000 )
+ 18                    into l_return
+ 19                from gtt
+ 20               where lob like p_search_str
+ 21                      or p_search_str is null;
+ 22          exception
+ 23          when no_data_found
+ 24          then
+ 25                  null;
+ 26          end;
+ 27          commit;
+ 28          return l_return;
+ 29  end;
+ 30  /
+
+Function created.
+
+ops$tkyte%ORA9IR2>
+ops$tkyte%ORA9IR2> select *
+  2    from (
+  3  select x, get_and_search_long( 't', 'y', t.rowid, '%ZZ%' ) str
+  4    from t
+  5         )
+  6   where str is not null
+  7  /
+
+         X
+----------
+STR
+-------------------------------------------------------------------------------
+      1118
+select "INST_ID","RECID","STAMP","NAME","TAG","FILE#","RFILE#","CREATION_CHANGE
+#","CREATION_TIME","RESETLOGS_CHANGE#","RESETLOGS_TIME","INCREMENTAL_LEVEL","CH
+ECKPOINT_CHANGE#","CHECKPOINT_TIME","ABSOLUTE_FUZZY_CHANGE#","RECOVERY_FUZZY_CH
+ANGE#","RECOVERY_FUZZY_TIME","ONLINE_FUZZY","BACKUP_FUZZY","MARKED_CORRUPT","ME
+DIA_CORRUPT","LOGICALLY_CORRUPT","BLOCKS","BLOCK_SIZE","OLDEST_OFFLINE_RANGE","
+DELETED","STATUS","COMPLETION_TIME","CONTROLFILE_TYPE","KEEP","KEEP_UNTIL","KEE
+P_OPTIONS","SCANNED" from gv$datafile_copy
+
+      1119
+select "INST_ID","FILE#","STATUS","ERROR","FORMAT","RECOVER","FUZZY","CREATION_
+CHANGE#","CREATION_TIME","TABLESPACE_NAME","TS#","RFILE#","RESETLOGS_CHANGE#","
+RESETLOGS_TIME","CHECKPOINT_CHANGE#","CHECKPOINT_TIME","CHECKPOINT_COUNT","BYTE
+S","BLOCKS","NAME" from gv$datafile_header
+
+      1234
+select "INST_ID","RECID","STAMP","DEVICE_TYPE","HANDLE","COMMENTS","MEDIA","MED
+IA_POOL","TAG","STATUS","DELETED","FILE#","CREATION_CHANGE#","CREATION_TIME","R
+ESETLOGS_CHANGE#","RESETLOGS_TIME","CHECKPOINT_CHANGE#","CHECKPOINT_TIME","ABSO
+LUTE_FUZZY_CHANGE#","RECOVERY_FUZZY_CHANGE#","RECOVERY_FUZZY_TIME","INCREMENTAL
+_LEVEL","ONLINE_FUZZY","BACKUP_FUZZY","BLOCKS","BLOCK_SIZE","OLDEST_OFFLINE_RAN
+GE","START_TIME","COMPLETION_TIME","ELAPSED_SECONDS","CONTROLFILE_TYPE","KEEP",
+"KEEP_UNTIL","KEEP_OPTIONS" from gv$proxy_datafile
+
+      1092
+select "INST_ID","RECID","STAMP","SET_STAMP","SET_COUNT","FILE#","CREATION_CHAN
+GE#","CREATION_TIME","RESETLOGS_CHANGE#","RESETLOGS_TIME","INCREMENTAL_LEVEL","
+INCREMENTAL_CHANGE#","CHECKPOINT_CHANGE#","CHECKPOINT_TIME","ABSOLUTE_FUZZY_CHA
+NGE#","MARKED_CORRUPT","MEDIA_CORRUPT","LOGICALLY_CORRUPT","DATAFILE_BLOCKS","B
+LOCKS","BLOCK_SIZE","OLDEST_OFFLINE_RANGE","COMPLETION_TIME","CONTROLFILE_TYPE"
+ from gv$backup_datafile
+
+      1827
+select "RECID","STAMP","SET_STAMP","SET_COUNT","FILE#","CREATION_CHANGE#","CREA
+TION_TIME","RESETLOGS_CHANGE#","RESETLOGS_TIME","INCREMENTAL_LEVEL","INCREMENTA
+L_CHANGE#","CHECKPOINT_CHANGE#","CHECKPOINT_TIME","ABSOLUTE_FUZZY_CHANGE#","MAR
+KED_CORRUPT","MEDIA_CORRUPT","LOGICALLY_CORRUPT","DATAFILE_BLOCKS","BLOCKS","BL
+OCK_SIZE","OLDEST_OFFLINE_RANGE","COMPLETION_TIME","CONTROLFILE_TYPE" from v$ba
+ckup_datafile
+
+      1853
+select "RECID","STAMP","NAME","TAG","FILE#","RFILE#","CREATION_CHANGE#","CREATI
+ON_TIME","RESETLOGS_CHANGE#","RESETLOGS_TIME","INCREMENTAL_LEVEL","CHECKPOINT_C
+HANGE#","CHECKPOINT_TIME","ABSOLUTE_FUZZY_CHANGE#","RECOVERY_FUZZY_CHANGE#","RE
+COVERY_FUZZY_TIME","ONLINE_FUZZY","BACKUP_FUZZY","MARKED_CORRUPT","MEDIA_CORRUP
+T","LOGICALLY_CORRUPT","BLOCKS","BLOCK_SIZE","OLDEST_OFFLINE_RANGE","DELETED","
+STATUS","COMPLETION_TIME","CONTROLFILE_TYPE","KEEP","KEEP_UNTIL","KEEP_OPTIONS"
+,"SCANNED" from v$datafile_copy
+
+      1854
+select "FILE#","STATUS","ERROR","FORMAT","RECOVER","FUZZY","CREATION_CHANGE#","
+CREATION_TIME","TABLESPACE_NAME","TS#","RFILE#","RESETLOGS_CHANGE#","RESETLOGS_
+TIME","CHECKPOINT_CHANGE#","CHECKPOINT_TIME","CHECKPOINT_COUNT","BYTES","BLOCKS
+","NAME" from v$datafile_header
+
+      1972
+select "RECID","STAMP","DEVICE_TYPE","HANDLE","COMMENTS","MEDIA","MEDIA_POOL","
+TAG","STATUS","DELETED","FILE#","CREATION_CHANGE#","CREATION_TIME","RESETLOGS_C
+HANGE#","RESETLOGS_TIME","CHECKPOINT_CHANGE#","CHECKPOINT_TIME","ABSOLUTE_FUZZY
+_CHANGE#","RECOVERY_FUZZY_CHANGE#","RECOVERY_FUZZY_TIME","INCREMENTAL_LEVEL","O
+NLINE_FUZZY","BACKUP_FUZZY","BLOCKS","BLOCK_SIZE","OLDEST_OFFLINE_RANGE","START
+_TIME","COMPLETION_TIME","ELAPSED_SECONDS","CONTROLFILE_TYPE","KEEP","KEEP_UNTI
+L","KEEP_OPTIONS" from v$proxy_datafile
+
+
+8 rows selected.
+
+ops$tkyte%ORA9IR2>
+ops$tkyte%ORA9IR2> select x, get_and_search_long( 't', 'y', t.rowid ) from t where rownum = 1;
+
+         X
+----------
+GET_AND_SEARCH_LONG('T','Y',T.ROWID)
+-------------------------------------------------------------------------------
+         1
+select OWNER, TABLE_NAME, TABLESPACE_NAME, CLUSTER_NAME, IOT_NAME,
+     PCT_FREE, PCT_USED,
+     INI_TRANS, MAX_TRANS,
+     INITIAL_EXTENT, NEXT_EXTENT,
+     MIN_EXTENTS, MAX_EXTENTS, PCT_INCREASE,
+     FREELISTS, FREELIST_GROUPS, LOGGING,
+     BACKED_UP, NUM_ROWS, BLOCKS, EMPTY_BLOCKS,
+     AVG_SPACE, CHAIN_CNT, AVG_ROW_LEN,
+     AVG_SPACE_FREELIST_BLOCKS, NUM_FREELIST_BLOCKS,
+     DEGREE, INSTANCES, CACHE, TABLE_LOCK,
+     SAMPLE_SIZE, LAST_ANALYZED, PARTITIONED,
+     IOT_TYPE, NULL, NULL, NULL, TEMPORARY, SECONDARY, NESTED,
+     BUFFER_POOL, ROW_MOVEMENT,
+     GLOBAL_STATS, USER_STATS, DURATION, SKIP_CORRUPT, MONITORING,
+     CLUSTER_OWNER, DEPENDENCIES, COMPRESSION
+from all_tables
+union all
+select OWNER, TABLE_NAME, TABLESPACE_NAME, CLUSTER_NAME, IOT_NAME,
+     PCT_FREE, PCT_USED,
+     INI_TRANS, MAX_TRANS,
+     INITIAL_EXTENT, NEXT_EXTENT,
+     MIN_EXTENTS, MAX_EXTENTS, PCT_INCREASE,
+     FREELISTS, FREELIST_GROUPS, LOGGING,
+     BACKED_UP, NUM_ROWS, BLOCKS, EMPTY_BLOCKS,
+     AVG_SPACE, CHAIN_CNT, AVG_ROW_LEN,
+     AVG_SPACE_FREELIST_BLOCKS, NUM_FREELIST_BLOCKS,
+     DEGREE, INSTANCES, CACHE, TABLE_LOCK,
+     SAMPLE_SIZE, LAST_ANALYZED, PARTITIONED,
+     IOT_TYPE, OBJECT_ID_TYPE,
+     TABLE_TYPE_OWNER, TABLE_TYPE, TEMPORARY, SECONDARY, NESTED,
+     BUFFER_POOL, ROW_MOVEMENT,
+     GLOBAL_STATS, USER_STATS, DURATION, SKIP_CORRUPT, MONITORING,
+     CLUSTER_OWNER, DEPENDENCIES, COMPRESSION
+from all_object_tables
+
+
+1 row selected.
+
+
+
+
+
+If you pass null for the search string, it just returns the data found. If you pass a search string, it'll return NULL if there is no match or the first bit of the string otherwise.
+------
+
+create or replace function f_column_expression
+( p_table_name IN VARCHAR2, p_index_name IN VARCHAR2 )
+return varchar2
+as
+  l_long LONG;
+begin
+   SELECT column_expression into l_long
+     FROM user_ind_expressions
+    WHERE table_name = p_table_name
+      AND index_name = p_index_name
+   ;
+   return substr( l_long, 1, 4000 );
+end;
+/
+select table_Name, index_name
+     , f_column_expression(table_name, index_name) exprsn
+from user_ind_expressions
+/
+------
+you have to take the "primary key" of user_tab_columns and pass that into the routine, that routine fetches a long (as long as it is 32k or less!!!) and can return the substr. 
+
+
+ops$tkyte%ORA10GR2> create or replace
+  2  function get_data_default
+  3  ( p_tname in user_tab_columns.table_name%type,
+  4    p_cname in user_tab_columns.column_name%type
+  5  ) return varchar2
+  6  is
+  7      l_long long;
+  8  begin
+  9      select data_default into l_long
+ 10        from user_tab_columns
+ 11       where table_name = p_tname
+ 12         and column_name = p_cname;
+ 13
+ 14          if ( l_long is not null )
+ 15          then
+ 16          return 'Default ' || substr( l_long, 1, 3000 );
+ 17          else
+ 18                  return null;
+ 19          end if;
+ 20  end;
+ 21  /
+
+Function created.
+
+ops$tkyte%ORA10GR2>
+ops$tkyte%ORA10GR2> create table t ( x int default 5, y varchar2(10), z date default sysdate );
+
+Table created.
+
+ops$tkyte%ORA10GR2> select table_name,
+  2         column_name,
+  3             get_data_default( table_name, column_name ) d_default
+  4    from user_tab_columns
+  5   where table_name = 'T'
+  6  /
+
+TABLE_NAME COLUMN_NAM D_DEFAULT
+---------- ---------- ---------------
+T          X          Default 5
+T          Y
+T          Z          Default sysdate
+
+---
+ops$tkyte@ORA920LAP> create or replace function get_search_condition( p_cons_name in varchar2 ) return varchar2
+  2  authid current_user
+  3  is
+  4      l_search_condition user_constraints.search_condition%type;
+  5  begin
+  6      select search_condition into l_search_condition
+  7        from user_constraints
+  8       where constraint_name = p_cons_name;
+  9
+ 10      return l_search_condition;
+ 11  end;
+ 12  /
+
+Function created.
+
+ops$tkyte@ORA920LAP>
+ops$tkyte@ORA920LAP> select constraint_name
+  2    from user_constraints
+  3   where get_search_condition(constraint_name) like '%NOT NULL%';
+
+CONSTRAINT_NAME
+------------------------------
+SYS_C004792
+
+---
+
+SYSTEM@ppc>   create or replace function get_long(p_tname in varchar2,p_cname in varchar2,
+  2                      p_rowid in rowid)
+  3    return varchar2
+  4    is
+  5      l_cursor integer default dbms_sql.open_cursor;
+  6      l_n number;
+  7      l_long_val varchar2(4000);
+  8      l_long_len number;
+  9      l_buflen number := 4000;
+ 10      l_curpos number := 0;
+ 11    begin
+ 12      dbms_sql.parse( l_cursor,
+ 13                     'select ' || p_cname || ' from ' || p_tname ||
+ 14                     ' where rowid = :x',
+ 15                      dbms_sql.native );
+ 16      dbms_sql.bind_variable(l_cursor,':x',p_rowid);
+ 17  
+ 18      dbms_sql.define_column_long(l_cursor,1);
+ 19      l_n := dbms_sql.execute(l_cursor);
+ 20  
+ 21      if (dbms_sql.fetch_rows(l_cursor) > 0)
+ 22      then
+ 23         dbms_sql.column_value_long(l_cursor,1,l_buflen,l_curpos ,
+ 24                                    l_long_val,l_long_len);
+ 25     end if;
+ 26  
+ 27     dbms_sql.close_cursor(l_cursor);
+ 28     return l_long_val;
+ 29    end;
+ 30  /
+
+Function created.
+
+SYSTEM@ppc> desc master.tt;
+ Name                                                  Null?    Type
+ ----------------------------------------------------- -------- ------------------------------------
+ X                                                              LONG
+
+SYSTEM@ppc> desc master.tt@orcl6;
+ Name                                                  Null?    Type
+ ----------------------------------------------------- -------- ------------------------------------
+ X                                                              LONG
+
+SYSTEM@ppc> select get_long('master.tt','x',rowid) from master.tt;
+
+GET_LONG('MASTER.TT','X',ROWID)
+----------------------------------------------------------------------------------------------------
+AAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaa
+

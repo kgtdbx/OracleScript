@@ -1,0 +1,70 @@
+﻿create materialized view mv_test
+  2  refresh fast on commit
+  3  as
+  4  select col1,
+  5  Sum(decode(col3, 'AA', 1, 0)) AA_Count,
+  6  Sum(decode(col3, 'CC', 1, 0)) CC_Count
+  7  from test
+  8  group by col1;
+
+Materialized view created.
+
+ops$tkyte%ORA11GR2> 
+ops$tkyte%ORA11GR2> create or replace function explain_mview( p_mv in varchar2 )
+  2  return sys.ExplainMVArrayType
+  3  PIPELINED
+  4  is
+  5      pragma autonomous_transaction;
+  6      l_data sys.explainMVArrayType;
+  7  begin
+  8      dbms_mview.explain_mview( mv => p_mv, msg_array => l_data );
+  9      commit;
+ 10      for i in 1 .. l_data.count
+ 11      loop
+ 12          pipe row( l_data(i) );
+ 13      end loop;
+ 14      return;
+ 15  end;
+ 16  /
+
+Function created.
+
+ops$tkyte%ORA11GR2> pause
+
+ops$tkyte%ORA11GR2> 
+ops$tkyte%ORA11GR2> select capability_name,
+  2         possible,
+  3         case when related_text is not null then '('||related_text||') ' end || msgtxt txt
+  4   from TABLE( explain_mview('MV_TEST') );
+
+CAPABILITY_NAME                P TXT
+------------------------------ - --------------------------------------------------
+PCT                            F
+REFRESH_COMPLETE               T
+REFRESH_FAST                   T
+REWRITE                        F
+PCT_TABLE                      F (TEST) relation is not a partitioned table
+REFRESH_FAST_AFTER_INSERT      T
+REFRESH_FAST_AFTER_ONETAB_DML  F (CC_COUNT) SUM(expr) without COUNT(expr)
+REFRESH_FAST_AFTER_ONETAB_DML  F (AA_COUNT) SUM(expr) without COUNT(expr)
+REFRESH_FAST_AFTER_ONETAB_DML  F COUNT(*) is not present in the select list
+REFRESH_FAST_AFTER_ANY_DML     F see the reason why REFRESH_FAST_AFTER_ONETAB_DML i
+                                 s disabled
+
+REFRESH_FAST_PCT               F PCT is not possible on any of the detail tables in
+                                  the materialized view
+
+REWRITE_FULL_TEXT_MATCH        F query rewrite is disabled on the materialized view
+REWRITE_PARTIAL_TEXT_MATCH     F query rewrite is disabled on the materialized view
+REWRITE_GENERAL                F query rewrite is disabled on the materialized view
+REWRITE_PCT                    F general rewrite is not possible or PCT is not poss
+                                 ible on any of the detail tables
+
+PCT_TABLE_REWRITE              F (TEST) relation is not a partitioned table
+
+16 rows selected.
+
+
+
+
+dbms_view.explain_mview is very useful here. You are missing some count's in there that would be necessary to maintain the refresh fast capability.

@@ -1,0 +1,30 @@
+﻿TRACE FILES
+It is possible to trace every database session by setting init.ora parameter sql_trace=TRUE, but the volume of trace files generated will probably be too big to search.
+Oracle recommend that you set parameter trace_enabled=TRUE so that system errors are logged to trace files.
+If you know the SID, or PID you can enable tracing to record what a session is running. You can also automate this via a trigger.
+
+In 10g trace files will be written to user_dump_dest. In 11g trace files will be written to $ORACLE_BASE/diag/rdbms/DB_NAME/$ORACLE_SID/trace. Because so much information is logged, tracing is usually only enabled for a specific session for a short period of time, and DBAs need to decide what level of information to trace (e.g waits, bind variables etc)
+Enable it.
+Session tracing can be enabled via multiple methods including ALTER SESSION, ALTER SYSTEM, DBMS_SESSION, DBMS_SUPPORT, DBMS_SYSTEM, DBMS_MONITOR.
+
+-- ALTER SESSION
+alter session set tracefile_identifier = 'robert_trace'; # so that the trace files from this session are easily identified
+alter session set events '10046 trace name context forever, level 8';
+-- ALTER SYSTEM
+alter system set sql_trace=true;
+-- DBMS_SESSION
+exec dbms_session.set_sql_trace(sql_trace => TRUE);
+-- DBMS_SUPPORT
+exec dbms_support.start_trace(waits=>TRUE, binds=>FALSE);
+-- DBMS_SYSTEM
+exec sys.dbms_system.set_ev(72,21237,10046,12,'');
+-- ORADEBUG
+select username, spid from v$process;
+ORADEBUG SETOSPID 21237
+ORADEBUG EVENT 10046 TRACE NAME CONTEXT FOREVER, LEVEL 12
+-- DBMS_MONITOR
+exec dbms_monitor.session_trace_enable(session_id=>75, serial_num=>21237);
+What does it give me ?
+Any DDL, DCL, DML, Select transaction run after session tracing is enabled will be logged to the trace file.
+
+More information can be found here :- http://download.oracle.com/docs/cd/B19306_01/appdev.102/b14258/d_monitor.htm#i1003993

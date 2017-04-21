@@ -16,16 +16,17 @@ end;
 */
 
 -- Рекомендуется собрать статистику оптимизатора для этой таблицы.
-execute dbms_stats.gather_table_stats(ownname => 'OFSAA1', tabname =>
-'STG_LEDGER_STAT', estimate_percent =>
-DBMS_STATS.AUTO_SAMPLE_SIZE, method_opt => 'FOR ALL COLUMNS SIZE
-AUTO');
+execute dbms_stats.gather_table_stats(ownname => 'OFSAA1', 
+                                      tabname => 'STG_LEDGER_STAT', 
+                                      estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, 
+                                      method_opt => 'FOR ALL COLUMNS SIZE AUTO');
 ----------------------------
 --Сбор статистики для секционированных объектов
 CALL DBMS_STATS.GATHER_TABLE_STATS(
-ownname => 'DEMO', tabname => 'SALES',
-partname => 'SALES_99Q1',
-granularity => 'PARTITION');
+                                    ownname => 'DEMO', 
+                                    tabname => 'SALES',
+                                    partname => 'SALES_99Q1',
+                                    granularity => 'PARTITION');
 CALL DBMS_STATS.GATHER_INDEX_STATS(
 ownname => 'DEMO', indname => 'SALES_IDX',
 partname => 'SALES_99Q1_IDX');
@@ -68,3 +69,92 @@ SELECT TABLE_NAME, ROUND((NUM_ROWS * AVG_ROW_LEN / 1024 / 1024), 0) "SIZE, Mb"
   FROM USER_TABLES  
  WHERE TABLE_NAME = 'ST_FT_ECP_PAF_CARR_SC_CDMA';
 
+--*********************************************************--
+--############################################################
+-- not use degree=> for small table, degree=>4 for table size 200 Mb - 4 Gb, degree=>32 for big table
+--
+--Concurrent statistics gathering
+--set parametr job_que_process = 32
+--grant create job, manage scheduler, manage any queue to bars
+--
+alter system set parallel_adaptive_multi_user=false;
+
+begin
+dbms_stats.set_global_prefs('CONCURRENT', 'TRUE');
+end;
+/
+BEGIN
+  SYS.DBMS_STATS.GATHER_SCHEMA_STATS (
+     OwnName           => 'BARS'
+    ,Granularity       => 'DEFAULT'
+    ,Options           => 'GATHER'
+    ,Gather_Temp       => FALSE
+    ,Estimate_Percent  => NULL
+    ,Method_Opt        => 'FOR ALL INDEXED COLUMNS'
+    ,Degree            => 20
+    ,Cascade           => TRUE
+    ,No_Invalidate     => FALSE);
+END;
+/
+---от Кикотя--
+BEGIN
+  SYS.DBMS_STATS.GATHER_SCHEMA_STATS (
+     OwnName           => 'BARS'
+    ,Granularity       => 'DEFAULT'
+    ,Options           => 'GATHER'
+    ,Gather_Temp       => FALSE
+    ,Estimate_Percent  => NULL
+    ,Method_Opt        => 'FOR ALL INDEXED COLUMNS'
+    ,Degree            => 16
+    ,Cascade           => TRUE
+    ,No_Invalidate  => FALSE);
+END;
+
+exec dbms_stats.set_global_prefs('concurrent','true');
+
+select dbms_stats.get_prefs('concurrent') from dual
+----
+begin
+ dbms_stats.gather_schema_stats(ownname =>'BARS', 
+                                method_opt=> 'FOR ALL INDEXED COLUMNS', 
+                                degree=>32, 
+                                cascade=>dbms_stats.auto_cascade, 
+                                estimate_percent=>10);
+end;
+
+begin
+ dbms_stats.gather_table_stats(ownname =>'BARS', 
+                               tabname => 'OPER', 
+                               method_opt=> 'FOR ALL INDEXED COLUMNS', 
+                               degree=>32, 
+                               cascade=>dbms_stats.auto_cascade, 
+                               estimate_percent=>10);
+end;
+
+call dbms_stats.gather_table_stats(ownname => 'BARS', 
+                                   tabname =>'BPK_ACC_UPDATE', 
+                                   estimate_percent =>10, 
+                                   method_opt => 'FOR ALL COLUMNS SIZE AUTO');
+
+SELECT A.TABLE_NAME,
+A.LAST_ANALYZED,
+A.NUM_ROWS, 
+A.* 
+FROM ALL_TABLES A
+WHERE A.OWNER = 'BARS'
+AND A.TABLE_NAME = 'CUSTOMERW_UPDATE';
+-----*********************************************************-------
+--от ОС Консалтинг, без сбора гисторамм(типа это зло)
+BEGIN   
+SYS.DBMS_STATS.GATHER_SCHEMA_STATS ( OwnName            => 'BARS',
+                                     Granularity        => 'DEFAULT',
+                                     Options            => 'GATHER',
+                                     Gather_Temp        => FALSE,
+                                     Estimate_Percent   => NULL,
+                                     Method_Opt         => 'FOR ALL COLUMNS SIZE SKEWONLY',
+                                     Degree             => 8,
+                                     Cascade            => TRUE,
+                                     No_Invalidate      => FALSE
+                                    ); 
+END;
+-----*********************************************************-------

@@ -1,0 +1,64 @@
+Using Online Redefinition for Migrating Tables with BasicFiles LOBs
+You can also migrate a table using Online Redefinition. Online Redefinition has the
+advantage of not requiring the table to be off line, but it requires additional free space
+equal to or even slightly greater than the space used by the table. Example 4–27
+demonstrates how to migrate a table using Online Redefinition.
+Migrating Columns from BasicFiles LOBs to SecureFiles LOBs
+4-24 Oracle Database SecureFiles and Large Objects Developer's Guide
+Example 4–27 Example of Online Redefinition
+REM Grant privileges required for online redefinition.
+GRANT EXECUTE ON DBMS_REDEFINITION TO pm;
+GRANT ALTER ANY TABLE TO pm;
+GRANT DROP ANY TABLE TO pm;
+GRANT LOCK ANY TABLE TO pm;
+GRANT CREATE ANY TABLE TO pm;
+GRANT SELECT ANY TABLE TO pm;
+REM Privileges required to perform cloning of dependent objects.
+GRANT CREATE ANY TRIGGER TO pm;
+GRANT CREATE ANY INDEX TO pm;
+CONNECT pm
+// ALTER SESSION FORCE parallel dml;
+DROP TABLE cust;
+CREATE TABLE cust(c_id NUMBER PRIMARY KEY,
+c_zip NUMBER,
+c_name VARCHAR(30) DEFAULT NULL,
+c_lob CLOB
+);
+INSERT INTO cust VALUES(1, 94065, 'hhh', 'ttt');
+-- Creating Interim Table
+-- There is no requirement to specify constraints because they are
+-- copied over from the original table.
+CREATE TABLE cust_int(c_id NUMBER NOT NULL,
+c_zip NUMBER,
+c_name VARCHAR(30) DEFAULT NULL,
+c_lob CLOB
+) LOB(c_lob) STORE AS SECUREFILE (NOCACHE FILESYSTEM_LIKE_LOGGING);
+DECLARE
+col_mapping VARCHAR2(1000);
+BEGIN
+-- map all the columns in the interim table to the original table
+col_mapping :=
+'c_id c_id , '||
+'c_zip c_zip , '||
+'c_name c_name, '||
+'c_lob c_lob';
+DBMS_REDEFINITION.START_REDEF_TABLE('pm', 'cust', 'cust_int', col_mapping);
+END;
+/
+DECLARE
+error_count pls_integer := 0;
+BEGIN
+DBMS_REDEFINITION.COPY_TABLE_DEPENDENTS('pm', 'cust', 'cust_int',
+1, TRUE,TRUE,TRUE,FALSE, error_count);
+DBMS_OUTPUT.PUT_LINE('errors := ' || TO_CHAR(error_count));
+END;
+/
+EXEC DBMS_REDEFINITION.FINISH_REDEF_TABLE('pm', 'cust', 'cust_int');
+-- Drop the interim table
+DROP TABLE cust_int;
+DESC cust;
+-- The following insert statement fails. This illustrates
+-- that the primary key constraint on the c_id column is
+-- preserved after migration.
+INSERT INTO cust VALUES(1, 94065, 'hhh', 'ttt');
+SELECT * FROM cust;

@@ -215,3 +215,5 @@ There are cases where the optimizer will automatically decide to use 11, for exa
 
 •The query will run in parallel.
 •The query was executed before and its history is available (from the cursor cache, Automatic Workload Repository, or the SQL Management Base).
+
+--test

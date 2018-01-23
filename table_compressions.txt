@@ -1,0 +1,83 @@
+Basic compression, advanced compression, HCC - an overview
+
+Basic Compression:
+
+Basic compression was released in Oracle 9iR2.It is part of the Enterprise Edition and comes at no extra licencing cost.
+
+If you specify only the keyword COMPRESS, it is equivalent to specifying ROW STORE COMPRESS BASIC and enables basic table compression. 
+
+Basic Compression
+
+CREATE TABLE SCOTT.test
+(
+id NUMBER,
+fname VARCHAR2(32),
+ename VARCHAR2(32),
+added_date DATE
+)
+TABLESPACE USERS
+COMPRESS;
+
+The keyword COMPRESS is kept for backward compability, but the current preferred syntax is 
+ROW STORE COMPRESS
+or 
+ROW STORE COMPRESS BASIC
+Basic compression does not apply compression to DML operations after the initial load.
+With basic compression, Oracle will attempt to compress data during direct-path INSERT operations, but not during conventional-path INSERT operations. Make sure you fullfil the requirements for direct path inserts.
+
+Advanced Compression:
+
+Avanced compression was released in Oracle 11gR1 in 2007, and was called "OLTP Table Compression" at the time. You need to purchace the Advanced Compression Option from Oracle to use it.
+
+When you enable table compression by specifying ROW STORE COMPRESS ADVANCED, you enable Advanced Row Compression. Oracle Database compresses data during all DML operations on the table. This form of compression is recommended for OLTP environments.
+
+Advanced Compression
+
+CREATE TABLE SCOTT.test
+(
+  id          NUMBER,
+  fname       VARCHAR2(32),
+  ename       VARCHAR2(32),
+  added_date  DATE
+)
+TABLESPACE USERS
+ROW STORE COMPRESS ADVANCED;
+
+In earlier releases, Advanced Row Compression was called OLTP table compression and was enabled using COMPRESS FOR OLTP. This syntax is still supported for backward compatibility.
+
+
+Hybrid Columnar Compression
+
+For certain storage systems, Oracle has introduced Hybrid Columnar Compression, or HCC.
+
+
+COLUMN STORE COMPRESS FOR QUERY is useful in data warehousing environments. Valid values are LOW and HIGH, with HIGH providing a higher compression ratio. The default is HIGH:
+
+HCC Compression - non-dormant data
+
+CREATE TABLE SCOTT.test
+(
+  id          NUMBER,
+  fname       VARCHAR2(32),
+  ename       VARCHAR2(32),
+  added_date  DATE
+)
+TABLESPACE USERS
+COLUMN STORE COMPRESS FOR QUERY HIGH | LOW;
+
+COLUMN STORE COMPRESS FOR ARCHIVE uses higher compression ratios than COLUMN STORE COMPRESS FOR QUERY, and is useful for compressing data that will be stored for long periods of time. Valid values are LOW and HIGH, with HIGH providing the highest possible compression ratio. The default is LOW:
+
+HCC Compression - dormant data
+
+CREATE TABLE SCOTT.test
+(
+  id          NUMBER,
+  fname       VARCHAR2(32),
+  ename       VARCHAR2(32),
+  added_date  DATE
+)
+TABLESPACE USERS
+COLUMN STORE COMPRESS FOR ARCHIVE HIGH | LOW;
+
+If you attempt to create a table With HCC on a non-supported Storage system, you will receive the following error Message:
+ORA-64307:  Exadata Hybrid Columnar Compression is not supported for tablespaces on this storage type

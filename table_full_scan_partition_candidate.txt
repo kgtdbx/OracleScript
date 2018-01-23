@@ -1,0 +1,21 @@
+How to find the number of full table scans
+
+
+From the Oracle Documentation:
+
+The view DBA_HIST_SEG_STAT view displays historical information about segment-level statistics. This view captures the top segments based on a set of criteria and captures information from V$SEGSTAT. The total value is the value of the statistics since instance startup. The delta value is the value of the statistics from the BEGIN_INTERVAL_TIME to the END_INTERVAL_TIME in the DBA_HIST_SNAPSHOT view.
+
+ SELECT O.OBJECT_NAME,O.OWNER, SUM(S.TABLE_SCANS_TOTAL) "# of FTS",(SELECT NUM_ROWS FROM DBA_TABLES T WHERE T.TABLE_NAME = O.OBJECT_NAME/*and rownum <2*/) "num rows total"
+ FROM DBA_HIST_SEG_STAT S JOIN DBA_OBJECTS O ON (S.OBJ# = O.DATA_OBJECT_ID)
+ WHERE O.OWNER NOT IN ( 'SYS','DBSNMP','XDB')
+ AND O.OBJECT_TYPE = 'TABLE'
+ GROUP BY S.OBJ#,O.OBJECT_NAME,O.OWNER
+ ORDER BY 4 DESC;
+
+
+OBJECT_NAME	OWNER	# of FTS	num rows total
+TABLE1	    USER1	5702        1583895743
+TABLE2	    USER1   11          588921781
+TABLE3	    USER1   6195        241550246
+
+As can be seen from above, the extreme number of rows in TABLE1, coupled with 5702 full table scans, should bring it to your attention as a candidate for partitioning!

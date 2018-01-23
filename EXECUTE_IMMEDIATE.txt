@@ -25,3 +25,15 @@ begin
         using ip_curr_operation_cd, ip_curr_row_num;
     end if;
   end;				
+  
+  
+
+ CREATE OR REPLACE FUNCTION quote( 
+in_v1 IN varchar2 
+) 
+RETURN varchar2 IS 
+BEGIN 
+return chr(39) || in_v1 || chr(39); 
+--return replace(dbms_assert.enquote_name(in_v1),'"',chr(39)); 
+END; 
+/ 

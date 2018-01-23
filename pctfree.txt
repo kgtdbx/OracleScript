@@ -1,0 +1,17 @@
+pctused is *less* relevant nowadays with ASSM tablespaces (which is the default). 
+
+But pctfree is still very relevant. 
+
+By default, we reserve 10% of space for subsequent updates to rows in a table, ie, room for them to grow. 
+
+A *lot* of tables *never* have updates to rows - they only insert, or they only insert/delete. So that 10% is never used...so your table is 10% larger than it needs to be be. 
+
+If your table if 1TB, then that's an extra 100G of dead space - that you could use elsewhere, or also means 10% slower to scan that table for large scanning queries. 
+
+So if you have tables that are never/rarely updated, or the updates will never make the rows larger (eg, you are changing a status column from one value to another of the same size), then you could look at (say) pctfree of 2 or 1. 
+
+If the data is purely for archival, then perhaps pctfree 0 (plus compression). You'll see that when you compress data (using basic compression), we use pctfree 0 anyway because we assume that's your intent. 
+
+
+For an index, pctfree is applied at build/rebuild time, not generally normal operations. Similarly guidelines apply in terms of reduced pctfree when the data is ready for archival (ie, is now read only).
+

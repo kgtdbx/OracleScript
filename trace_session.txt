@@ -28,3 +28,39 @@ What does it give me ?
 Any DDL, DCL, DML, Select transaction run after session tracing is enabled will be logged to the trace file.
 
 More information can be found here :- http://download.oracle.com/docs/cd/B19306_01/appdev.102/b14258/d_monitor.htm#i1003993
+
+
+
+----------------
+Check the trace file for the session.
+
+SELECT value FROM v$diag_info WHERE  name = 'Default Trace File';
+
+VALUE
+----------------------------------------------------------------
+/u01/app/oracle/diag/rdbms/cdb1/cdb1/trace/cdb1_ora_15539.trc
+
+1 row selected.
+
+SQL>
+Perform a 10053 trace of the statement.
+
+ALTER SESSION SET EVENTS '10053 trace name context forever';
+
+SELECT val
+FROM   rownum_order_test
+ORDER BY val DESC
+FETCH FIRST 5 ROWS ONLY;
+
+ALTER SESSION SET EVENTS '10053 trace name context off';
+The section beginning with "Final query after transformations" shows the statement that was actually processed, after the query transformation.
+
+Final query after transformations:******* UNPARSED QUERY IS *******
+SELECT "from$_subquery$_002"."VAL" "VAL"
+FROM  (SELECT "ROWNUM_ORDER_TEST"."VAL" "VAL",
+              "ROWNUM_ORDER_TEST"."VAL" "rowlimit_$_0",
+              ROW_NUMBER() OVER ( ORDER BY "ROWNUM_ORDER_TEST"."VAL" DESC ) "rowlimit_$$_rownumber"
+       FROM "TEST"."ROWNUM_ORDER_TEST" "ROWNUM_ORDER_TEST") "from$_subquery$_002"
+WHERE  "from$_subquery$_002"."rowlimit_$$_rownumber"<=5
+ORDER BY "from$_subquery$_002"."rowlimit_$_0" DESC
+As you can see, the statement has been rewritten to a form we might have used prior to 12c.

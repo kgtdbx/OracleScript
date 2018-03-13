@@ -1,0 +1,190 @@
+01. Evaluate the following ALTER TABLE statement:
+ALTER TABLE orders SET UNUSED order_date;
+Which statement is true?
+ 
+a) The DESCRIBE command would still display the ORDER_DATE column.
+b) ROLLBACK can be used to get back the ORDER_DATE column in the ORDERS table.
+c) The ORDER_DATE column should be empty for the ALTER TABLE command to execute successfully.
+d) After executing the ALTER TABLE command, you can add a new column called ORDER_DATE to the ORDERS table. 
+ 
+02. Examine the business rule: Each student can take up multiple projects and each project can have multiple students. You need to design an Entity Relationship Model (ERD) for optimal data storage and allow for generating reports in this format:
+STUDENT_ID FIRST_NAME LAST_NAME PROJECT_ID PROJECT_NAME PROJECT_TASK
+Which two statements are true in this scenario?
+ 
+a) The ERD must have a1:M relationship between the students and projects entitles.
+b) The ERD must have a M:M relationship between the students and projects entities that must be resolved into 1:M relationships.
+c) STUDENT_ID must be the primary key in the STUDENTS entity and foreign key in the projects entity.
+d) PROJECT_ID must be the primary key in the projects entity and foreign key in the STUDENTS entity.
+e) An associative table must be created with a composite key of STUDENT_ID andPROJECT_ID; which is the foreign key linked to theSTUDENTSandPROJECTSentities.
+ 
+03. The first DROP operation is performed on PRODUCTS table using the following command:
+DROP TABLE products PURGE;
+Then you performed the FLASHBACK operation by using the following command:
+FLASHBACK TABLE products TO BEFORE DROP;
+Which statement describes the outcome of the FLASHBACK command?
+ 
+a) It recovers only the table structure.
+b) It recovers the table structure, data, and the indexes.
+c) It recovers the table structure and data but not the related indexes.
+d) It is not possible to recover the table structure, data, or the related indexes.
+ 
+04. The following are the steps for a correlated subquery, listed in random order:
+ 
+1) The WHERE clause of the outer query is evaluated.
+2) The candidate row is fetched from the table specified in the outer query.
+3) The procedure is repeated for the subsequent rows of the table, till all the rows are processed.
+4) Rows are returned by the inner query, after being evaluated with the value from the candidate row in the outer query.
+ 
+Identify the option that contains the steps in the correct sequence in which the Oracle server evaluates a correlated subquery.
+ 
+a) 4,2,1,3
+b) 4,1,2,3
+c) 2,4,1,3
+d) 2,1,4,3
+ 
+05. The user SCOTT who is the owner of ORDERS and ORDER_ITEMS tables issues the following GRANT command:
+GRANT ALL ON orders, order_items TO PUBLIC;
+What correction needs to be done to the above statement?
+ 
+a) PUBLIC should be replaced with specific usernames.
+b) ALL should be replaced with a list of specific privileges.
+c) WITH GRANT OPTION should be added to the statement.
+d) Separate GRANT statements are required for ORDERS and ORDER_ITEMS tables.
+ 
+06. Which statement correctly grants a system privilege?
+ 
+a) GRANT EXECUTE ON prod TO PUBLIC;
+b) GRANT CREATE VIEW ON tablel TO used;
+c) GRANT CREATE TABLE TO used ,user2;
+d) GRANT CREATE SESSION TO ALL;
+ 
+07. Which statement is true regarding external tables?
+ 
+a) The default REJECT LIMIT for external tables is UNLIMITED.
+b) The data and metadata for an external table are stored outside the database.
+c) ORACLE_LOADER and ORACLE_DATAPUMP have exactly the same functionality when used with an external table.
+d) The CREATE TABLE AS SELECT statement can be used to unload data into regular table in the database from an external table.
+ 
+08. Which three statements are true regarding the data types?
+ 
+a) Only one LONG column can be used per table.
+b) ATIMESTAMP data type column stores only time values with fractional seconds.
+c) The BLOB data type column is used to store binary data in an operating system file.
+d) The minimum column width that can be specified for a varchar2 data type column is one.
+e) The value for a CHAR data type column is blank-padded to the maximum defined column width.
+ 
+09. You issue the following command to drop the PRODUCTS table: SQL>DROP TABLE products; What is the implication of this command? (Choose all that apply.)
+ 
+a) All data in the table are deleted but the table structure will remain
+b) All data along with the table structure is deleted
+c) All viewsand synonyms will remain but they are invalidated
+d) The pending transaction in the session is committed
+e) All indexes on the table will remain but they are invalidated
+ 
+10. You want to display 5 percent of the rows from the sales table for products with the lowestAMOUNT_SOLD and also want to include the rows that have the sameAMOUNT_SOLDeven if this causes the output to exceed 5 percent of the rows.
+Which query willprovide the required result?
+ 
+a) SELECT prod_id, cust_id, amount_sold FROM sales
+ORDER BY amount_sold
+FETCH FIRST 5 PERCENT ROWS WITH TIES;
+b) SELECT prod_id, cust_id, amount_sold FROM sales
+ORDER BY amount_sold
+FETCH FIRST 5 PERCENT ROWS ONLY WITH TIES;
+c) SELECT prod_ id, cust_id, amount_sold FROM sales
+ORDER BY araount_sold
+FETCH FIRST 5 PERCENT ROWS WITH TIES ONLY;
+d) SELECT prod_id, cust_id, amount_sold FROM sales
+ORDER BY amount sold
+FETCH FIRST 5 PERCENT ROWS ONLY;
+Solutions:
+QUESTION: 01
+
+Answer: d
+
+QUESTION: 02
+
+Answer: d, e
+
+QUESTION: 03
+
+Answer: d
+
+QUESTION: 04
+
+Answer: c
+
+QUESTION: 05
+
+Answer: d
+
+QUESTION: 06
+
+Answer: c
+
+QUESTION: 07
+
+Answer: d
+
+QUESTION: 08
+
+Answer: a, d, e
+
+QUESTION: 09
+
+Answer: b, c, d
+
+QUESTION: 10
+
+Answer: b
+
+ 
+
+ My questions:
+
+
+
+1. grant all to ora1, ora2 on table;
+a) we need to separate users
+b) we need point which permission we are granted
+...
+
+2. What is characterized the transaction.
+
+3. Can we use group by in subquery 
+
+4. Can we use alias of table in HAVING clause
+
+5. What will be performed in SQL build     
+a) performing create user oracle
+b) nondefined data
+
+6.alter table set unused column what will happen with column and constraints
+
+7. natural join. can we use tables aliases
+
+8. ER Diagram how to create many to many relation (students, curses )
+a) create student_id, course_id  constraint as primary key (student_id, course_id) 
+
+
+
+9. What is the data type you should use for un-alphabetical column with maximum 16 character 
+a) ROWID 
+b) VARCHAR2
+C)CHAR
+
+10. ABOUT TO_DATE('01.01.2018', 'DD.MM.RRRR')
+
+If the specified two-digit year is 00 to 49, then
+If the last two digits of the current year are 00 to 49, then the returned year has the same first two digits as the current year.
+If the last two digits of the current year are 50 to 99, then the first 2 digits of the returned year are 1 greater than the first 2 digits of the current year.
+If the specified two-digit year is 50 to 99, then
+If the last two digits of the current year are 00 to 49, then the first 2 digits of the returned year are 1 less than the first 2 digits of the current year.
+If the last two digits of the current year are 50 to 99, then the returned year has the same first two digits as the current year.
+
+SELECT TO_DATE ('010199', 'MMDDYYYY') AS date_a,
+       TO_DATE ('010199', 'MMDDYY') AS date_b,
+       TO_DATE ('010199', 'MMDDRR') AS date_c,
+       TO_DATE ('010199', 'MMDDRRRR') AS date_d
+  FROM DUAL;
+  
+11. 

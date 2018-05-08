@@ -188,3 +188,164 @@ SELECT TO_DATE ('010199', 'MMDDYYYY') AS date_a,
   FROM DUAL;
   
 11. 
+
+
+
+
+
+-------------------------------
+with t1 as
+(select 1 as id, 'A' as name, 33 as phone from dual
+union all
+select 2 as id, 'B' as name, null as phone from dual)
+, t2 as 
+(select 1 as id, 'A' as name, 33 as phone from dual
+union all
+select 3 as id, 'C' as name, 55 as phone from dual
+union all
+select 4 as id, 'D' as name, 66 as phone from dual)
+select * from t1 left join t2 on(t1.id=t2.id)
+where t2.id is null;
+
+
+with t1 as
+(select 1 as id, 'A' as ssn, TO_DATE('01.02.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 2 as id, 'A' as ssn, TO_DATE('01.02.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 3 as id, 'A' as ssn, TO_DATE('01.01.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 4 as id, 'B' as ssn, TO_DATE('01.12.2017', 'DD.MM.YYYY') as ref_date from dual)
+
+select id from t1
+where t1.ref_date = (select max(ref_date) from t1);
+
+
+with t1 as
+(select 1 as id, 'A' as ssn, TO_DATE('01.02.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 2 as id, 'A' as ssn, TO_DATE('01.02.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 3 as id, 'A' as ssn, TO_DATE('01.01.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 4 as id, 'B' as ssn, TO_DATE('01.12.2017', 'DD.MM.YYYY') as ref_date from dual)
+
+select ssn, ref_date from (
+select dense_rank() over(partition by ssn order by ref_date desc) rn, ssn,ref_date
+from t1
+where 1=1)a
+where a.rn=1 ;
+
+with t1 as
+(select 1 as id, 'A' as ssn, TO_DATE('01.02.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 2 as id, 'A' as ssn, TO_DATE('01.02.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 3 as id, 'A' as ssn, TO_DATE('01.01.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 4 as id, 'B' as ssn, TO_DATE('01.12.2017', 'DD.MM.YYYY') as ref_date from dual)
+
+select max(ssn) keep (dense_rank first order by ref_date desc),
+       max(id) keep (dense_rank first order by ref_date desc)
+from t1
+where 1=1;
+
+select trunc(99.56, -2) from dual;
+
+
+select trunc(round(156.00,-2), -2) from dual;
+
+create table test_1
+(id number(38,-2), cl_rowid rowid);
+
+alter table test_1 set unused column cl_rowid;
+
+alter table test_1 drop column cl_rowid;
+
+alter table test_1 drop unused column;
+
+alter table test_1 add cl_rowid rowid;
+
+insert into test_1(id, cl_rowid)
+values (156,(select rowid from dept d where D.DEPTNO = 20));
+
+select length('AAN/znAAbAAAF0hAAB') from dual;
+
+
+SELECT TO_DATE ('010199', 'MMDDYYYY') AS date_a,
+       TO_DATE ('010199', 'MMDDYY') AS date_b,
+       TO_DATE ('010199', 'MMDDRR') AS date_c,
+       TO_DATE ('010199', 'MMDDRRRR') AS date_d
+  FROM DUAL;
+  
+  
+  
+with t1 as
+(select 1 as id, 'A' as ssn, TO_DATE('01.02.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 2 as id, 'A' as ssn, TO_DATE('01.03.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 3 as id, 'A' as ssn, TO_DATE('01.01.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 4 as id, 'B' as ssn, TO_DATE('01.12.2017', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 5 as id, 'C' as ssn, TO_DATE('01.04.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 6 as id, 'D' as ssn, TO_DATE('01.05.2018', 'DD.MM.YYYY') as ref_date from dual)
+
+select * from t1 order by 2;  
+
+
+-----
+select to_char(next_day(last_day(sysdate), 'MON'), 'dd "is the first Monday for "fmmonth rrrr') from dual;
+
+---
+create table tttt (id number);
+
+alter table tttt drop column id;
+
+show recyclebin;
+
+select original_name from dba_recyclebin;
+
+drop table tttt purge;
+
+
+----------------------
+select c.address, ' ', c.city, ' ', c.name as "Last name" from customer c
+------------------------
+  
+with t1 as
+(select 1 as id, 'A' as ssn, TO_DATE('01.02.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 2 as id, 'A' as ssn, TO_DATE('01.03.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 3 as id, 'A' as ssn, TO_DATE('01.01.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 4 as id, 'B' as ssn, TO_DATE('01.12.2017', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 5 as id, 'C' as ssn, TO_DATE('01.04.2018', 'DD.MM.YYYY') as ref_date from dual
+union all
+select 6 as id, 'D' as ssn, TO_DATE('01.05.2018', 'DD.MM.YYYY') as ref_date from dual)
+
+select tt.ssn as ss from t1 tt group by (ss); 
+
+----------------------
+create table tttt (id number primary key, name varchar(2));
+
+alter table tttt drop column id;
+
+drop table tttt purge;
+
+create table tttt (id number, name varchar(2), prod_id number);
+
+alter table tttt add constraint pk primary key (id, prod_id);
+
+alter table tttt drop column id;
+alter table tttt drop column name;
+alter table tttt drop column prod_id;
+
+alter table tttt drop column id cascade constraints;
+
+
+

@@ -1,13 +1,44 @@
-alter table TMP_REZ_OBESP23 enable row movement;
-
-FLASHBACK TABLE TMP_REZ_OBESP23
-  TO TIMESTAMP (SYSTIMESTAMP - INTERVAL '20' minute);
-  
 --###########################################################  
 select versions_starttime, versions_endtime, codeapp
 from app_rep
 versions between scn minvalue and maxvalue;
+--
+select versions_xid,versions_starttime,versions_endtime,
+   versions_operation,empno,name,sal from emp versions between
+   timestamp to_timestamp('2007-06-19 20:30:00','yyyy-mm-dd hh:mi:ss') 
+    and to_timestamp('2007-06-19 21:00:00','yyyy-mm-dd hh:mi:ss');
+ 
+ select operation,logon_user,undo_sql 
+      from flashback_transaction_query 
+           where xid=HEXTORAW(versions_xid);
+           
+--
+select * from emp as of timestamp sysdate-1/24;
+Or
+SELECT * FROM emp AS OF TIMESTAMP 
+      TO_TIMESTAMP('2007-06-07 10:00:00', 'YYYY-MM-DD HH:MI:SS')
+--
+alter table TMP_REZ_OBESP23 enable row movement;
+--
+FLASHBACK TABLE TMP_REZ_OBESP23
+  TO TIMESTAMP (SYSTIMESTAMP - INTERVAL '20' minute);
+
+  By default, the database disables triggers on the affected table before performing a FLASHBACK TABLE operation. 
+After the operation, the database returns the triggers to the state they were in before the operation (enabled or disabled). 
+To keep triggers enabled during the flashback of the table, add an ENABLE TRIGGERS clause to the FLASHBACK TABLE
   
+FLASHBACK TABLE emp TO TIMESTAMP 
+   TO_TIMESTAMP('2007-06-19 09:30:00', 'YYYY-MM-DD HH24:MI:SS')
+   ENABLE TRIGGERS;
+
+You have to give ENABLE TRIGGERS option otherwise, by default all database triggers on the table will be disabled.        
+----------
+If you have backup and Oracle 12c you could use Table Point In Time Recovery (PITR):
+
+RECOVER TABLE 'SCHEMA'.'TAB_NAME'
+  UNTIL TIME xxxxyyy
+  AUXILIARY DESTINATION '/u01/aux'  
+  REMAP TABLE 'SCHEMA'.'TAB_NAME':'TAB_NAME_PREV';           
 --###########################################################
 /*
   Flashback Table and Materialized View – not working together

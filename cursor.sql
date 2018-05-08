@@ -159,8 +159,9 @@ EXCEPTION
 END;
   
   
-  
-  
+
+  Best practices for knowing your LIMIT and kicking %NOTFOUND  
+http://www.oracle.com/technetwork/issue-archive/2008/08-mar/o28plsql-095155.html  
   
   
   
@@ -279,4 +280,115 @@ function GetBindings(InHostProductId in number )
            close cBinding;
     return v2ReturnValue; 
     end;
-  ------------------------------------ 
+  ------------------How to test------------------ 
+  
+/*
+sete serveroutput on
+variable rc refcursor;
+exec products_pak.GetProductsForAccountsCreaInd( :rc );
+print rc;
+*/
+
+set sqlblanklines on
+set serveroutput on
+--variable ret number;
+DECLARE
+TYPE tFacilitiesBaseLoansNew IS TABLE OF FACILITIES_LOANS.cFacilitiesBaseLoansNew%ROWTYPE
+        INDEX BY PLS_INTEGER;
+l_FacilitiesBaseLoansNew tFacilitiesBaseLoansNew;	 
+v_Return NUMBER;
+BEGIN
+OPEN FACILITIES_LOANS.cFacilitiesBaseLoansNew(inTheDate => date'2018-01-31', 
+							    inDate =>date'2018-01-31', 
+							    inFonixDate =>date'2018-01-31',
+							    inCollateralDate =>date'2018-01-31', 
+							    inMortgageDimTime =>35586,
+							    inId => 321406);
+LOOP
+      FETCH FACILITIES_LOANS.cFacilitiesBaseLoansNew
+         BULK COLLECT INTO l_FacilitiesBaseLoansNew LIMIT 1;
+
+         EXIT WHEN FACILITIES_LOANS.cFacilitiesBaseLoansNew%NOTFOUND;     /* cause of missing rows */
+
+      FOR indx IN 1 .. l_FacilitiesBaseLoansNew.COUNT 
+      LOOP
+         v_Return:=FACILITIES_LOANS.PAYMENTSLEFTNEW( INFACILITIES => l_FacilitiesBaseLoansNew(indx));
+      END LOOP;
+   END LOOP;
+   DBMS_OUTPUT.PUT_LINE('v_Return = ' || v_Return);   
+   CLOSE FACILITIES_LOANS.cFacilitiesBaseLoansNew;
+--  :ret := v_Return;
+--DBMS_OUTPUT.PUT_LINE('v_Return = ' || v_Return);
+END;
+/
+--print ret;
+--/
+
+
+--second variant
+set serveroutput on
+DECLARE
+l_FacilitiesBaseLoansNew FACILITIES_LOANS.cFacilitiesBaseLoansNew%ROWTYPE;
+v_Return NUMBER;
+BEGIN
+open FACILITIES_LOANS.cFacilitiesBaseLoansNew(inTheDate => date'2018-03-31', 
+							    inDate =>date'2018-03-31', 
+							    inFonixDate =>date'2018-03-31',
+							    inCollateralDate =>date'2018-03-31', 
+							    inMortgageDimTime =>35586,
+							    inId => 321406);
+   loop
+      fetch FACILITIES_LOANS.cFacilitiesBaseLoansNew into l_FacilitiesBaseLoansNew;
+      EXIT WHEN FACILITIES_LOANS.cFacilitiesBaseLoansNew%NOTFOUND;
+    -- select FACILITIES_LOANS.PAYMENTSLEFTNEW( INFACILITIES => l_FacilitiesBaseLoansNew) into v_Return from dual;  --error
+    v_Return:= l_FacilitiesBaseLoansNew.payments_left;
+    --v_Return:=FACILITIES_LOANS.PAYMENTSLEFTNEW( INFACILITIES => l_FacilitiesBaseLoansNew);
+   end loop;
+   close FACILITIES_LOANS.cFacilitiesBaseLoansNew;
+  DBMS_OUTPUT.PUT_LINE('v_Return = ' || v_Return);
+END;
+/
+
+--------------------------------
+DECLARE
+  CURSOR c (location NUMBER DEFAULT 1700) IS
+    SELECT d.department_name,
+           e.last_name manager,
+           l.city
+    FROM departments d, employees e, locations l
+    WHERE l.location_id = location
+      AND l.location_id = d.location_id
+      AND d.department_id = e.department_id
+    ORDER BY d.department_id;
+ 
+  PROCEDURE print_depts IS
+    dept_name  departments.department_name%TYPE;
+    mgr_name   employees.last_name%TYPE;
+    city_name  locations.city%TYPE;
+  BEGIN
+    LOOP
+      FETCH c INTO dept_name, mgr_name, city_name;
+      EXIT WHEN c%NOTFOUND;
+      DBMS_OUTPUT.PUT_LINE(dept_name || ' (Manager: ' || mgr_name || ')');
+    END LOOP;
+  END print_depts;
+ 
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('DEPARTMENTS AT HEADQUARTERS:');
+  DBMS_OUTPUT.PUT_LINE('--------------------------------');
+  OPEN c;
+  print_depts; 
+  DBMS_OUTPUT.PUT_LINE('--------------------------------');
+  CLOSE c;
+ 
+  DBMS_OUTPUT.PUT_LINE('DEPARTMENTS IN CANADA:');
+  DBMS_OUTPUT.PUT_LINE('--------------------------------');
+  OPEN c(1800); -- Toronto
+  print_depts; 
+  CLOSE c;
+  OPEN c(1900); -- Whitehorse
+  print_depts; 
+  CLOSE c;
+END;
+/
+------------------------------------------

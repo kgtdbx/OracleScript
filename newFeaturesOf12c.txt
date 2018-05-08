@@ -175,7 +175,7 @@ LOCAL_OLD  Q4			   22
 GLOBAL_OLD			   24
 Cool 12c New Feature, isn’t it? ??
 
-
+--###############################--
 Some important tuning parameters in Oracle 12c
 
 Here are some parameters that you will have to deal with when tuning an Oracle 12c database. Execute the following SQL to view their current setting:
@@ -216,4 +216,34 @@ There are cases where the optimizer will automatically decide to use 11, for exa
 •The query will run in parallel.
 •The query was executed before and its history is available (from the cursor cache, Automatic Workload Repository, or the SQL Management Base).
 
---test
+--###############################--
+
+-Converting a Non-Partitioned Table to a Partitioned Table oracle 12c
+
+create table employees_convert
+(employee_id number,
+employee_name varchar2(100));
+
+insert into employees_convert values(101,'abc');
+insert into employees_convert values(302,'c');
+
+alter table employees_convert
+add constraint pk_employee_id primary key (employee_id)
+using index;
+
+create index ix_employee_name on employees_convert(employee_name);
+
+ALTER TABLE employees_convert MODIFY
+PARTITION BY RANGE(employee_id) INTERVAL (100)
+( PARTITION P1 VALUES LESS THAN (100),
+PARTITION P2 VALUES LESS THAN (200),
+PARTITION P3 VALUES LESS THAN (300),
+PARTITION P4 VALUES LESS THAN (400)
+)
+update indexes
+(pk_employee_id local,
+ ix_employee_name global partition by range(employee_name)
+(partition ip1 values less than (MAXVALUE))
+);
+
+--###############################--

@@ -158,3 +158,64 @@ Peeked Binds (identified by position):
 1 - :SYS_B_0 (VARCHAR2(30), CSID=873): '%$%'
  
 ...
+
+--#########################--
+
+--or
+select plan_table_output from
+table(dbms_xplan.display('plan_table',null,'typical -cost -bytes'));
+
+--or
+
+--Displaying the execution plan for any other statement requires the SQL ID to be provided, either directly or indirectly:
+
+--Directly:
+
+select plan_table_output from
+table(dbms_xplan.display_cursor('fnrtqw9c233tt',null,'basic'));
+
+--Indirectly:
+
+select plan_table_output
+from v$sql s,
+table(dbms_xplan.display_cursor(s.sql_id,
+                               s.child_number, 'basic')) t
+where upper(s.sql_text) like 'SELECT A.ID%';
+
+--#########################--
+Displaying an execution plan corresponding to a SQL Plan Baseline.
+
+SQL> alter session set optimizer_capture_sql_plan_baselines=true;
+
+Session altered.
+
+SQL> select prod_category, avg(amount_sold)
+ 2   from sales s, products p
+ 3   where p.prod_id = s.prod_id
+ 4   group by prod_category;
+
+no rows selected
+If the above statement has been executed more than once, a SQL Plan Baseline will be created for it and you can verified this using the follows query:
+
+SQL> select SQL_HANDLE, PLAN_NAME, ACCEPTED
+ 2   from dba_sql_plan_baselines
+ 3   where sql_text like 'select prod_category%';
+
+SQL_HANDLE                     PLAN_NAME                      ACC
+------------------------------ ------------------------------ ---
+SYS_SQL_1899bb9331ed7772       SYS_SQL_PLAN_31ed7772f2c7a4c2  YES
+The execution plan for the SQL Plan Baseline created above can be displayed either directly or indirectly:
+
+Directly
+
+select t.* from
+table(dbms_xplan.display_sql_plan_baseline('SYS_SQL_1899bb9331ed7772',
+                                           format => 'basic')) t
+Indirectly
+
+select t.*
+    from (select distinct sql_handle
+          from dba_sql_plan_baselines
+          where sql_text like 'select prod_category%') pb,
+         table(dbms_xplan.display_sql_plan_baseline(pb.sql_handle,
+                                                    null,'basic')) t;

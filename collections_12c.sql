@@ -279,3 +279,111 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('Values in record are ' || v2.f1 || ' and ' || v2.f2);
 END;
 /
+
+ ------------------How to test------------------ 
+Assume we have global cursor in package bodi as
+
+--create or replace PACKAGE FACILITIES_LOANS is
+
+  cursor cFacilitiesBaseLoans(inTheDate in date, inDate in date, inFonixDate in date,
+                              inCollateralDate in date, inMortgageDimTime in number,inId in varchar2) is
+            select
+            inTheDate the_date,
+            inFonixDate fonix_date,
+            inCollateralDate collateral_date,
+            dc.cust_ssn,
+            nvl(bal.loan_balance,0) dw_loan_balance ,
+            nvl(bal.loan_balance_isk,0) dw_loan_balance_isk,
+            nvl(bal.indexation,0) indexation,
+            nvl(bal.in_arrears,0) in_arrears,
+            nvl(bal.accrued_interest,0) accrued_interest,
+            nvl(bal.penalty_interest,0) penalty_interest,
+            nvl(bal.payment_adjustment_amount,0) payment_adjustment_amount,
+            nvl(bal.interest_in_arrears,0) interest_in_arrears,
+            ...
+            from valholl.fct_loan_balance bal
+            left join valholl.dim_time dt on dt.dimension_key=bal.dim_time
+            left join valholl.dim_loan dl on dl.dimension_key=bal.dim_loan
+            left join valholl.dim_loan_type dlt on dlt.dimension_key=bal.dim_loan_type
+            left join valholl.dim_product p on p.dimension_key = bal.dim_product
+            left join valholl.dim_gl_account gl on gl.dimension_key=bal.dim_gl_account
+            left join valholl.dim_currency cur on cur.dimension_key=case when dl.currency='RFÍ' then 92807 else bal.dim_currency end   -- fiff á meðan ekki er búið að laga í gegnum dim lyklunina alla leið í DW
+            left join valholl.dim_currency_rate curr on curr.dim_currency=cur.dimension_key and curr.dim_time=bal.dim_time
+            left join valholl.dim_customer dc on dc.dimension_key=bal.dim_customer
+      ...
+      where
+      ( bal.asset_liability = 'a'  or overdraft_limit > 0
+         or dl.id in ( select n.branch||'-'||n.ledger||'-'||n.account from utgardur.md_nostro_ln_corr n
+                      where the_date=inDate)
+      )
+      and bal.active='Y';
+ 
+-----------run-----------------
+ 
+/*
+sete serveroutput on
+variable rc refcursor;
+exec products_pak.GetProductsForAccountsCreaInd( :rc );
+print rc;
+*/
+
+set sqlblanklines on
+set serveroutput on
+--variable ret number;
+
+DECLARE
+TYPE tFacilitiesBaseLoansNew IS TABLE OF FACILITIES_LOANS.cFacilitiesBaseLoansNew%ROWTYPE
+        INDEX BY PLS_INTEGER;
+l_FacilitiesBaseLoansNew tFacilitiesBaseLoansNew;	 
+v_Return NUMBER;
+BEGIN
+OPEN FACILITIES_LOANS.cFacilitiesBaseLoansNew(inTheDate => date'2018-01-31', 
+							    inDate =>date'2018-01-31', 
+							    inFonixDate =>date'2018-01-31',
+							    inCollateralDate =>date'2018-01-31', 
+							    inMortgageDimTime =>35586,
+							    inId => 321406);
+LOOP
+      FETCH FACILITIES_LOANS.cFacilitiesBaseLoansNew
+         BULK COLLECT INTO l_FacilitiesBaseLoansNew LIMIT 1;
+
+         EXIT WHEN FACILITIES_LOANS.cFacilitiesBaseLoansNew%NOTFOUND;     /* cause of missing rows */
+
+      FOR indx IN 1 .. l_FacilitiesBaseLoansNew.COUNT 
+      LOOP
+         v_Return:=FACILITIES_LOANS.PAYMENTSLEFTNEW( INFACILITIES => l_FacilitiesBaseLoansNew(indx));
+      END LOOP;
+   END LOOP;
+   DBMS_OUTPUT.PUT_LINE('v_Return = ' || v_Return);   
+   CLOSE FACILITIES_LOANS.cFacilitiesBaseLoansNew;
+
+--DBMS_OUTPUT.PUT_LINE('v_Return = ' || v_Return);
+END;
+/
+--print ret;
+--/
+
+
+--second variant
+set serveroutput on
+DECLARE
+l_FacilitiesBaseLoansNew FACILITIES_LOANS.cFacilitiesBaseLoansNew%ROWTYPE;
+v_Return NUMBER;
+BEGIN
+open FACILITIES_LOANS.cFacilitiesBaseLoansNew(inTheDate => date'2018-03-31', 
+							    inDate =>date'2018-03-31', 
+							    inFonixDate =>date'2018-03-31',
+							    inCollateralDate =>date'2018-03-31', 
+							    inMortgageDimTime =>35586,
+							    inId => 321406);
+   loop
+      fetch FACILITIES_LOANS.cFacilitiesBaseLoansNew into l_FacilitiesBaseLoansNew;
+      EXIT WHEN FACILITIES_LOANS.cFacilitiesBaseLoansNew%NOTFOUND;
+    -- select FACILITIES_LOANS.PAYMENTSLEFTNEW( INFACILITIES => l_FacilitiesBaseLoansNew) into v_Return from dual;  --error
+    v_Return:= l_FacilitiesBaseLoansNew.payments_left;
+    --v_Return:=FACILITIES_LOANS.PAYMENTSLEFTNEW( INFACILITIES => l_FacilitiesBaseLoansNew);
+   end loop;
+   close FACILITIES_LOANS.cFacilitiesBaseLoansNew;
+  DBMS_OUTPUT.PUT_LINE('v_Return = ' || v_Return);
+END;
+/  

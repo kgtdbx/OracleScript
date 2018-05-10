@@ -1,0 +1,46 @@
+
+3
+down vote
+Regarding this comment:
+
+But there can be scenarios where it is difficult to identify where the ROLLBACK statement are executed in a complex PL SQL program (if you have to do only a modification to the existing code).
+
+If you are running an Oracle Database 12c Release 2 instance (available now for download from OTN, Github and Docker, or multiple cloud services), you can take advantage of PL/Scope to find all the places in your code where commits and rollbacks are executed (PL/Scope was first added in 11.1, but analysis of SQL statements was added in 12.2):
+
+You must first enable gathering of scope data:
+
+ALTER SESSION SET plscope_settings='identifiers:all, statements:all'
+Then when you compile program units, information is put into ALL_IDENTIFIERS (PL/SQL statements) and ALL_STATEMENTS (SQL statements, new to 12.2).
+
+Once you have done that, the following queries will locate all commits and rollbacks:
+
+SELECT st.owner,
+       st.object_name,
+       st.object_type,
+       st.line,
+       src.text
+  FROM all_statements st, all_source src
+ WHERE     st.TYPE = 'COMMIT'
+       AND st.object_name = src.name
+       AND st.owner = src.owner
+       AND st.line = src.line
+ORDER BY st.owner,
+         st.object_name,
+         st.object_type   
+/
+
+SELECT st.owner,
+       st.object_name,
+       st.object_type,
+       st.line,
+       src.text
+  FROM all_statements st, all_source src
+ WHERE     st.TYPE = 'ROLLBACK'
+       AND st.object_name = src.name
+       AND st.owner = src.owner
+       AND st.line = src.line
+ORDER BY st.owner,
+         st.object_name,
+         st.object_type    
+/
+You can find lots more information about and examples for PL/Scope here(http://stevenfeuersteinonplsql.blogspot.com/search?q=pl%2Fscope).

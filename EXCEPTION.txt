@@ -122,4 +122,80 @@ EXCEPTION
   THEN dbms_output.put_line('Y' || ' - ' || SQLCODE);
   --RAISE v_error_constraint;
   --RAISE_APPLICATION_ERROR(-20001, 'ERROR');
+---------------------------------------------------------------------------------
+  CREATE OR REPLACE PROCEDURE add_new_order
+   (order_id_in IN NUMBER, sales_in IN NUMBER)
+IS
+   no_sales EXCEPTION;
+
+BEGIN
+   IF sales_in = 0 THEN
+      RAISE no_sales;
+
+   ELSE
+      INSERT INTO orders (order_id, total_sales )
+      VALUES ( order_id_in, sales_in );
+   END IF;
+
+EXCEPTION
+   WHEN DUP_VAL_ON_INDEX THEN
+      raise_application_error (-20001,'You have tried to insert a duplicate order_id.');
+
+   WHEN no_sales THEN
+      raise_application_error (-20001,'You must have sales in order to submit the order.');
+
+   WHEN OTHERS THEN
+      raise_application_error (-20002,'An error has occurred inserting an order.');
+
 END;
+END;
+---------------------------------------------------------------------------------
+
+create or replace trigger TRG_SERVERERROR 
+   after servererror on database
+declare
+   <some_variable_for_logging_the_call_stack>
+begin
+   ERR.Log;
+end;
+
+create or replace package ERR
+
+   ci_NoDataFound constant int := -20100;
+   NoDataFound exception;
+   pragma exception_init(NoDataFound, -20100);
+
+   procedure Raise;
+   procedure Log;
+
+end ERR;
+--In your parent procedure, you will handle the excpetion of the current particular procedure, and no other ones.
+
+BEGIN    
+   SELECT *something* INTO *some variable*
+   FROM *some table*
+   WHERE *some field* = *user id*
+   Call_Another_Procedure(*user id*, *some variable*)
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+      ERR.Raise(-20100, 'unknown user id');         
+END;
+---------------------------------------------------------------------------------
+declare
+   d date;
+begin 
+   d := to_date('2010-09-30', 'YYYY-MM-DD'); -- works
+   dbms_output.put_line(d);
+   d := to_date('12345-09-30', 'YYYY-MM-DD'); -- fails
+   dbms_output.put_line(d);
+exception
+   when others
+   then
+      case sqlcode
+         when -1861
+         then
+            dbms_output.put_line('literal does not match exception caught');
+         else
+            raise;
+      end case;
+end;

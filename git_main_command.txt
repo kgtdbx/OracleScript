@@ -1,0 +1,91 @@
+--to download new Git version for Win64
+https://git-scm.com/download/win
+
+--###########--
+I've got a project checked locally from github, that remote repo has since had changes made to it. What's the correct command to update my local copy with the latest changes?
+--
+his should work for every default repo:
+git pull origin master
+
+If your default branch is different than master, you will need to specify the branch name:
+git pull origin my_default_branch_name
+
+--
+This question is very general and there are a couple of assumptions I'll make to simplify it a bit. We'll assume that you want to update your master branch.
+
+If you haven't made any changes locally, you can use git pull to bring down any new commits and add them to your master.
+
+git pull origin master
+If you have made changes, and you want to avoid adding a new merge commit, use git pull --rebase.
+
+git pull --rebase origin master
+git pull --rebase will work even if you haven't made changes and is probably your best call.
+
+
+--####
+--Git force pull to overwrite local files
+git fetch --all
+git reset --hard origin/master
+git pull origin master
+--####
+
+/*
+$ git push origin master fatal: 'origin' does not appear to be a git repository fatal: Could not read from remote repository.
+Please make sure you have the correct access rights and the repository exists.
+*/
+
+--first of all we need to check "origin" was setting up
+git remote -v
+
+-- it shows us all "push/fetch remotes" at our project
+/* e.g.
+$git remote -v
+myOrigin ssh://git@example.com:1234/myRepo.git (fetch)
+myOrigin ssh://git@example.com:1234/myRepo.git (push)
+
+*/
+--and if "origin" don't present there we could get the error when we entered
+git push origin master
+
+--in that case we just can use
+$git push myOrigin master
+
+--if you want change or delete URL, we need to delete old and then create new 
+$git remote remove myOrigin
+
+--the process of adding "remote"
+$git remote add origin ssh://git@example.com:1234/myRepo.git
+
+--then it works as expect
+$git push origin master
+
+------------------------------my solution--
+--first of all we need to check "origin" was setting up
+git remote -v
+
+/*
+OracleScript    https://github.com/sbovkush/OracleScript (fetch)
+OracleScript    https://github.com/sbovkush/OracleScript (push)
+*/
+--if empty then
+git remote add OracleScript https://github.com/sbovkush/OracleScript
+
+--Git force pull to overwrite local files
+git fetch --all
+git reset --hard origin/master
+git pull OracleScript master
+git merge FETCH_HEAD
+
+--or just use GitHub Desktop
+/*
+In GitHub Desktop, switch to the local branch you want to update by clicking "Current Branch" and selecting the branch from the list.
+The Fetch origin button Click "Fetch origin" to update your branch.
+The Pull origin button If there are commits on the remote branch, you can pull these by clicking "Pull origin".
+*/
+Remote ->Fetch from ->OracleScript
+Merge->Local Merge->Merge
+
+--to push new files from local to remote repo
+git push OracleScript master
+
+

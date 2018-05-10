@@ -438,3 +438,345 @@ GET_LONG('MASTER.TT','X',ROWID)
 ----------------------------------------------------------------------------------------------------
 AAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaa
 
+
+
+--####################################################################--
+Here is an excerpt from the book I'm working on now that deals with this question:
+
+<quote>
+
+A question that arises frequently however is - what about the data dictionary in Oracle?  It is littered with LONG columns and this makes using them (the dictionary columns) problematic.  For example, to find all VIEWS that contain the text 'HELLO' is not possible:
+
+ops$tkyte@ORA10G> select *
+  2  from all_views
+  3  where text like '%HELLO%';
+where text like '%HELLO%'
+      *
+ERROR at line 3:
+ORA-00932: inconsistent datatypes: expected NUMBER got LONG
+
+This is not limited to just the ALL_VIEWS view, there are many views:
+
+ops$tkyte@ORA10G> select table_name, column_name
+  2  from dba_tab_columns
+  3  where data_type in ( 'LONG', 'LONG RAW' )
+  4  and owner = 'SYS'
+  5  and table_name like 'DBA%';
+ 
+TABLE_NAME                     COLUMN_NAME
+------------------------------ ------------------------------
+DBA_VIEWS                      TEXT
+DBA_TRIGGERS                   TRIGGER_BODY
+DBA_TAB_SUBPARTITIONS          HIGH_VALUE
+DBA_TAB_PARTITIONS             HIGH_VALUE
+DBA_TAB_COLUMNS                DATA_DEFAULT
+DBA_TAB_COLS                   DATA_DEFAULT
+DBA_SUMMARY_AGGREGATES         MEASURE
+DBA_SUMMARIES                  QUERY
+DBA_SUBPARTITION_TEMPLATES     HIGH_BOUND
+DBA_SQLTUNE_PLANS              OTHER
+DBA_SNAPSHOTS                  QUERY
+DBA_REGISTERED_SNAPSHOTS       QUERY_TXT
+DBA_REGISTERED_MVIEWS          QUERY_TXT
+DBA_OUTLINES                   SQL_TEXT
+DBA_NESTED_TABLE_COLS          DATA_DEFAULT
+DBA_MVIEW_ANALYSIS             QUERY
+DBA_MVIEW_AGGREGATES           MEASURE
+DBA_MVIEWS                     QUERY
+DBA_IND_SUBPARTITIONS          HIGH_VALUE
+DBA_IND_PARTITIONS             HIGH_VALUE
+DBA_IND_EXPRESSIONS            COLUMN_EXPRESSION
+DBA_CONSTRAINTS                SEARCH_CONDITION
+DBA_CLUSTER_HASH_EXPRESSIONS   HASH_EXPRESSION
+ 
+23 rows selected.
+
+that are affected by this.  So, what is the solution?  If you want to make use of these columns in SQL - we'll need to convert them to a SQL friendly type.  
+We can use a user defined function for doing so.  This demonstrates how to accomplish a "long substr" function that will allow you to effectively convert any 4000 bytes of a LONG type into a varchar2, for use with SQL.  
+When we are done, we'll be able to query:
+
+ops$tkyte@ORA10G> select *
+  2    from (
+  3  select owner, view_name,
+  4         long_help.substr_of( 'select text
+  5                                 from dba_views
+  6                                where owner = :owner
+  7                                  and view_name = :view_name',
+  8                               1, 4000,
+  9                               'owner', owner,
+ 10                               'view_name', view_name ) substr_of_view_text
+ 11    from dba_views
+ 12   where owner = user
+ 13         )
+ 14   where upper(substr_of_view_text) like '%INNER%'
+ 15  /
+
+Meaning, we converted the first 4000 bytes of the VIEW_TEXT column from LONG to a VARCHAR2 and can now use a predicate on it.  Using the same technique, you would be able to implement your own instr, like and such for LONG types as well.  In this book, I'll only be demonstrating how to get the substring of a LONG type.
+
+The package we will implement has the following specification:
+
+ops$tkyte@ORA10G> create or replace package long_help
+  2  authid current_user
+  3  as
+  4      function substr_of
+  5      ( p_query in varchar2,
+  6        p_from  in number,
+  7        p_for   in number,
+  8        p_name1 in varchar2 default NULL,
+  9        p_bind1 in varchar2 default NULL,
+ 10        p_name2 in varchar2 default NULL,
+ 11        p_bind2 in varchar2 default NULL,
+ 12        p_name3 in varchar2 default NULL,
+ 13        p_bind3 in varchar2 default NULL,
+ 14        p_name4 in varchar2 default NULL,
+ 15        p_bind4 in varchar2 default NULL )
+ 16      return varchar2;
+ 17  end;
+ 18  /
+Package created.
+
+Note that one line 2, we've specified AUTHID CURRENT_USER.  This makes the package run as the invoker, with all roles and grants in place.  This is important for two reasons.  Firstly, we'd like the database security to no be subverted - this package will only return substrings of columns you (the invoker) is allowed to see.  Secondly, we'd like to install this package once in the database and have its functionality available for all to use - using invokers rights allows us to do that.  If we used the default security model of PLSQL, definer rights, the package would run with the privileges of the owner of the package.  Meaning it would only be able to see data the owner of the package could see - which does not include the set of data the invoker is allowed to see.
+
+The concept behind the function SUBSTR_OF is to take a query that selects at most one row and one column - the LONG value we are interested in.  SUBSTR_OF will parse that query if needed, bind any inputs to it and fetch the results programmatically, returning the necessary piece of the LONG value.
+The package body, the implementation, begins with two global variables.  The G_CURSOR variable holds a persistent cursor open for the duration of our session.  This is to avoid having to repeatedly open and close the cursor and to avoid parsing SQL more than we need to.  The second global variable, G_QUERY, is used to remember the text of the last SQL query we've parsed in this package.  As long as the query remains constant, we'll just parse it once.  So, even if we query 5,000 rows in a query - as long as the SQL query we pass to this function doesn't change, we'll only have one parse call:
+
+ops$tkyte@ORA10G> create or replace package body long_help
+  2  as
+  3
+  4      g_cursor number := dbms_sql.open_cursor;
+  5      g_query  varchar2(32765);
+  6
+
+Next in this package is a private  function, BIND_VARIABLE, that we'll use to bind inputs passed to us by the caller.  We implemented this as a separate private procedure only to make life easier - we want to bind only when the input name is NOT NULL.  Rather than perform that check 4 times in the code for each input parameter - we do it once in this procedure:
+
+  7  procedure bind_variable( p_name in varchar2, p_value in varchar2 )
+  8  is
+  9  begin
+ 10      if ( p_name is not null )
+ 11      then
+ 12          dbms_sql.bind_variable( g_cursor, p_name, p_value );
+ 13      end if;
+ 14  end;
+ 15
+
+Next is the actual implementation of SUBSTR_OF in the package body, it begins with function declaration from the package specification and the declaration for some local variables.  L_BUFFER will be used to return the value and L_BUFFER_LEN will be used to hold the length returned by an Oracle supplied function:
+
+ 16
+ 17  function substr_of
+ 18  ( p_query in varchar2,
+ 19    p_from  in number,
+ 20    p_for   in number,
+ 21    p_name1 in varchar2 default NULL,
+ 22    p_bind1 in varchar2 default NULL,
+ 23    p_name2 in varchar2 default NULL,
+ 24    p_bind2 in varchar2 default NULL,
+ 25    p_name3 in varchar2 default NULL,
+ 26    p_bind3 in varchar2 default NULL,
+ 27    p_name4 in varchar2 default NULL,
+ 28    p_bind4 in varchar2 default NULL )
+ 29  return varchar2
+ 30  as
+ 31      l_buffer       varchar2(4000);
+ 32      l_buffer_len   number;
+ 33  begin
+
+Now, the first thing our code does is a sanity check on the P_FROM and P_FOR inputs.  P_FROM must be a number greater than or equal to 1 and P_FOR must be between 1 and 4000 - just like the built-in function SUBSTR:
+
+ 34      if ( nvl(p_from,0) <= 0 )
+ 35      then
+ 36          raise_application_error
+ 37          (-20002, 'From must be >= 1 (positive numbers)' );
+ 38      end if;
+ 39      if ( nvl(p_for,0) not between 1 and 4000 )
+ 40      then
+ 41          raise_application_error
+ 42          (-20003, 'For must be between 1 and 4000' );
+ 43      end if;
+ 44
+
+Next, we'll check to see if we are getting a new query that needs to be parsed.  If the last query we parsed is the same as the current query - we can skip this step.  It is very important to note that on line 47 we are verifying that the P_QUERY passed to us is just a SELECT - we will use this package only to execute SQL SELECT statements, this check validates that for us:
+
+ 45      if ( p_query <> g_query or g_query is NULL )
+ 46      then
+ 47          if ( upper(trim(nvl(p_query,'x'))) not like 'SELECT%')
+ 48          then
+ 49              raise_application_error
+ 50              (-20001, 'This must be a select only' );
+ 51          end if;
+ 52          dbms_sql.parse( g_cursor, p_query, dbms_sql.native );
+ 53          g_query := p_query;
+ 54      end if;
+
+Now we are ready to bind the inputs to this query.  Any non-NULL names that were passed to us will be "bound" to the query so when we execute it, it finds the right row:
+
+ 55      bind_variable( p_name1, p_bind1 );
+ 56      bind_variable( p_name2, p_bind2 );
+ 57      bind_variable( p_name3, p_bind3 );
+ 58      bind_variable( p_name4, p_bind4 );
+ 59
+
+And now we are ready to execute the query and fetch the row.  Then using DBMS_SQL.COLUMN_VALUE_LONG, we extract the necessary substring of the long and return it:
+
+ 60      dbms_sql.define_column_long(g_cursor, 1);
+ 61      if (dbms_sql.execute_and_fetch(g_cursor)>0)
+ 62      then
+ 63          dbms_sql.column_value_long
+ 64          (g_cursor, 1, p_for, p_from-1,
+ 65           l_buffer, l_buffer_len );
+ 66      end if;
+ 67      return l_buffer;
+ 68  end substr_of;
+ 69
+ 70  end;
+ 71  / 
+Package body created.
+
+And that is it, you should be able to use that package against any legacy LONG column in your database, allowing you to perform many "where clause" operations that were not possible before, for example, to find all partitions in your schema such that the HIGH_VALUE has the year 2003 in it:
+
+ops$tkyte@ORA10G> select *
+  2    from (
+  3  select table_owner, table_name, partition_name,
+  4         long_help.substr_of
+  5         ( 'select high_value
+  6              from all_tab_partitions
+  7             where table_owner = :o
+  8               and table_name = :n
+  9               and partition_name = :p',
+ 10            1, 4000,
+ 11            'o', table_owner,
+ 12            'n', table_name,
+ 13            'p', partition_name ) high_value
+ 14    from all_tab_partitions
+ 15   where table_name = 'T'
+ 16     and table_owner = user
+ 17         )
+ 18   where high_value like '%2003%'
+ 19  /
+ 
+TABLE_OWN TABLE PARTIT HIGH_VALUE
+--------- ----- ------ ------------------------------
+OPS$TKYTE T     PART1  TO_DATE(' 2003-03-13 00:00:00'
+                       , 'SYYYY-MM-DD HH24:MI:SS', 'N
+                       LS_CALENDAR=GREGORIAN')
+ 
+OPS$TKYTE T     PART2  TO_DATE(' 2003-03-14 00:00:00'
+                       , 'SYYYY-MM-DD HH24:MI:SS', 'N
+                       LS_CALENDAR=GREGORIAN')
+
+Using this same technique - that of processing the result of a query that returns a single row with a single LONG column in a function - you can implement your own INSTR, LIKE and so on as needed.  
+
+This implementation works well on the LONG type but will not work on LONG RAW types.  LONG RAWs are not piecewise accessible (there is no COLUMN_VALUE_LONG_RAW function in DBMS_SQL).  Fortunately, this is not too serious of a restriction since LONG RAWs are not used in the dictionary and the need to "substring" so you can search on it is rare.  If you do have a need to do so however, you will not be using PLSQL unless the LONG RAW is 32k or less, there is simply no method for dealing with LONG RAWS over 32k in PLSQL itself.  Java, C, C++, Visual Basic or some other language would have to be used.
+Another approach would be to temporarily convert the LONG or LONG RAW into a CLOB or BLOB using the TO_LOB built in function and a global temporary table.  Your PLSQL procedure could:
+
+Insert into global_temp_table ( blob_column ) 
+select to_lob(long_raw_column) from t where
+
+This would work well in an application that occasionally needed to work with a single LONG RAW value - you would not want to be continuously doing that however due to the amount of work involved.  If you find yourself needing to resort to this technique frequently, you would definitely convert the LONG RAW to a BLOB once and be done with it.
+</quote> 
+
+
+-----------------------------------------------------------------------------------------------------------
+create or replace package long_help
+authid current_user
+as
+    function substr_of
+    ( p_query in varchar2,
+      p_from  in number,
+      p_for   in number,
+      p_name1 in varchar2 default NULL,
+      p_bind1 in varchar2 default NULL,
+      p_name2 in varchar2 default NULL,
+      p_bind2 in varchar2 default NULL,
+      p_name3 in varchar2 default NULL,
+      p_bind3 in varchar2 default NULL,
+      p_name4 in varchar2 default NULL,
+      p_bind4 in varchar2 default NULL )
+    return varchar2;
+end;
+/
+
+
+create or replace package body long_help
+ as
+
+     g_cursor number := dbms_sql.open_cursor;
+     g_query  varchar2(32765);
+
+procedure bind_variable( p_name in varchar2, p_value in varchar2 )
+ is
+ begin
+     if ( p_name is not null )
+     then
+         dbms_sql.bind_variable( g_cursor, p_name, p_value );
+     end if;
+ end;
+
+function substr_of
+ ( p_query in varchar2,
+   p_from  in number,
+   p_for   in number,
+   p_name1 in varchar2 default NULL,
+   p_bind1 in varchar2 default NULL,
+   p_name2 in varchar2 default NULL,
+   p_bind2 in varchar2 default NULL,
+   p_name3 in varchar2 default NULL,
+   p_bind3 in varchar2 default NULL,
+   p_name4 in varchar2 default NULL,
+   p_bind4 in varchar2 default NULL )
+ return varchar2
+ as
+     l_buffer       varchar2(4000);
+     l_buffer_len   number;
+ begin
+     if ( nvl(p_from,0) <= 0 )
+     then
+         raise_application_error
+         (-20002, 'From must be >= 1 (positive numbers)' );
+     end if;
+     if ( nvl(p_for,0) not between 1 and 4000 )
+     then
+         raise_application_error
+         (-20003, 'For must be between 1 and 4000' );
+     end if;
+    if ( p_query <> g_query or g_query is NULL )
+     then
+         if ( upper(trim(nvl(p_query,'x'))) not like 'SELECT%')
+         then
+             raise_application_error
+             (-20001, 'This must be a select only' );
+         end if;
+         dbms_sql.parse( g_cursor, p_query, dbms_sql.native );
+         g_query := p_query;
+     end if;
+     bind_variable( p_name1, p_bind1 );
+     bind_variable( p_name2, p_bind2 );
+     bind_variable( p_name3, p_bind3 );
+     bind_variable( p_name4, p_bind4 );
+     dbms_sql.define_column_long(g_cursor, 1);
+     if (dbms_sql.execute_and_fetch(g_cursor)>0)
+     then
+         dbms_sql.column_value_long
+         (g_cursor, 1, p_for, p_from-1,
+          l_buffer, l_buffer_len );
+     end if;
+     return l_buffer;
+ end substr_of;
+
+ end;
+ / 
+-------------------
+select *
+  from (
+select owner, view_name,
+       long_help.substr_of( 'select text
+                               from dba_views
+                              where owner = :owner
+                                and view_name = :view_name',
+                             1, 4000,
+                             'owner', owner,
+                             'view_name', view_name ) substr_of_view_text
+  from dba_views
+ where owner = 'KVASIR'
+       )
+ where upper(substr_of_view_text) like '%STRUTUR%'
+/

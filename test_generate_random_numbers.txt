@@ -1,0 +1,117 @@
+How to generate random numbers in PL/SQL...
+
+Frequently, the question is asked "can i generate random numbers in PL/SQL".  The answer is yes.  In versions 7.x and before you can use the package supplied below (works just like the C runtime library function "rand()" does -- in fact, I ported the C function directly from the C runtime into PL/SQL).  In versions 8.0, there is a package shipped with (but not installed by default) the database. 
+ 
+
+Installing the DBMS_RANDOM package
+
+To install the dbms_random package, you need to run 4 scripts when connected as the user SYS or INTERNAL.  You will: 
+ 
+
+SVRMGR connect internal 
+Connected.
+SVRMGR @utlraw
+Statement processed. 
+SVRMGR @prvtrawb.plb
+Statement processed. 
+
+SVRMGR @dbmsoctk 
+Statement processed. 
+Statement processed. 
+Statement processed. 
+Statement processed. 
+Statement processed. 
+Statement processed.
+SVRMGR @prvtoctk.plb 
+Statement processed. 
+Statement processed. 
+Statement processed.
+SVRMGR @dbmsrand 
+Statement processed. 
+Statement processed. 
+Statement processed. 
+Statement processed. 
+Statement processed. 
+SVRMGR
+
+That installs the necessary packages to get DBMS_RANDOM going.  To get a quick start, just: 
+ 
+
+SVRMGR select text from all_source 
+     2 where name = 'DBMS_RANDOM' 
+     3 and type = 'PACKAGE' 
+     4 order by line; 
+TEXT 
+-------------------------------------------------------------------------------- 
+PACKAGE dbms_random AS 
+  
+    ----------- 
+    --  OVERVIEW 
+    --  This package provides a built-in random number generator. It is 
+    --  faster than generators written in PL/SQL because it calls Oracle's 
+    --  internal random number generator. 
+    ..........
+Note: this package, dbms_random, works in 8.0 and up only -- you cannot install it into a 7.x database and expect it to work.  If you install this pacakge into an 8.x database and get a message at runtime to the effect "missing ICD vector" that means you did not install this as SYS or INTERNAL.  Drop it from the schema you mistakenly installled in and reinstall it in SYS.
+
+I'm in version 7.x and don't have DBMS_RANDOM...
+
+Then, you can use the following package (right mouse click HERE to save as a .sql file locally if you like)
+
+create or replace package random 
+is 
+    pragma restrict_references( random, WNDS, RNPS );
+    procedure srand( new_seed in number );
+    function rand return number; 
+    pragma restrict_references( rand, WNDS  );
+    procedure get_rand( r OUT number );
+    function rand_max( n IN number ) return number; 
+    pragma restrict_references( rand_max, WNDS);
+    procedure get_rand_max( r OUT number, n IN number );
+end random; 
+/
+create or replace package body random 
+is 
+    multiplier  constant number         := 22695477; 
+    increment   constant number         := 1; 
+    "2^32"      constant number         := 2 ** 32; 
+    "2^16"      constant number         := 2 ** 16; 
+    "0x7fff"    constant number         := 32767; 
+    Seed        number := 1; 
+-- 
+    procedure srand( new_seed in number ) 
+    is 
+    begin 
+        Seed := new_seed; 
+    end srand; 
+-- 
+    function rand return number 
+    is 
+    begin 
+        seed := mod( multiplier * seed + increment, "2^32" ); 
+        return bitand( seed/"2^16", "0x7fff" ); 
+    end rand; 
+-- 
+    procedure get_rand( r OUT number ) 
+    is 
+    begin 
+        r := rand; 
+    end get_rand; 
+-- 
+    function rand_max( n IN number ) return number 
+    is 
+    begin 
+        return mod( rand, n ) + 1; 
+    end rand_max; 
+-- 
+    procedure get_rand_max( r OUT number, n IN number ) 
+    is 
+    begin 
+        r := rand_max( n ); 
+    end get_rand_max; 
+-- 
+begin 
+    select userenv( 'SESSIONID' ) into seed from dual; 
+end random; 
+/
+
+All information and materials provided here are provided "as-is"; Oracle disclaims all express and implied warranties, including, the implied warranties of merchantability or fitness for a particular use. Oracle shall not be liable for any damages, including, direct, indirect, incidental, special or consequential damages for loss of profits, revenue, data or data use, incurred by you or any third party in connection with the use of this information or these materials.

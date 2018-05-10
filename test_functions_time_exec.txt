@@ -1,0 +1,167 @@
+/*
+Optimizing Function Execution in SQL
+
+Oracle now offers two ways of improving PL/SQL function performance in SQL statements: you can actually define the function itself inside the SQL statement using the WITH clause, 
+and you can add the UDF pragma to the program unit, which tells the compiler that the function will be used primarily in SQL statements.
+*/
+Test setup
+
+The exercise uses a test table with 1 million rows, loaded with random data.
+
+/*Create a table for performance test study*/
+CREATE TABLE t_fun_plsql
+(id number,
+str varchar2(30))
+/
+/*Generate and load random data in the table*/
+INSERT /*+APPEND*/ INTO t_fun_plsql
+SELECT ROWNUM, DBMS_RANDOM.STRING('X', 20)
+FROM dual
+CONNECT BY LEVEL <= 1000000
+/
+COMMIT
+/
+Case 1: Create a PL/SQL standalone function as it used to be until Oracle Database 12c. The function counts the numbers in the str column of the table.
+/*Create a standalone function without Oracle 12c enhancements*/
+CREATE OR REPLACE FUNCTION f_count_num (p_str VARCHAR2)
+RETURN PLS_INTEGER IS
+BEGIN
+   RETURN (REGEXP_COUNT(p_str,'\d'));
+END;
+/
+ The PL/SQL block measures the elapsed and CPU time when working with a pre-Oracle 12c standalone function. These numbers will serve as the baseline for our case study.
+
+/*Set server output on to display messages*/
+SET SERVEROUTPUT ON
+/*Anonymous block to measure performance of a standalone function*/
+DECLARE
+l_el_time PLS_INTEGER;
+l_cpu_time PLS_INTEGER;
+CURSOR C1 IS
+   SELECT f_count_num (str) FROM t_fun_plsql;
+TYPE t_tab_rec IS TABLE OF PLS_INTEGER;
+l_tab t_tab_rec;
+BEGIN
+l_el_time := DBMS_UTILITY.GET_TIME ();
+l_cpu_time := DBMS_UTILITY.GET_CPU_TIME ();
+OPEN c1;
+FETCH c1 BULK COLLECT INTO l_tab;
+CLOSE c1;
+DBMS_OUTPUT.PUT_LINE ('Case 1: Performance of a standalone function');
+DBMS_OUTPUT.PUT_LINE ('Total elapsed time:'||to_char(DBMS_UTILITY.GET_TIME () - l_el_time));
+DBMS_OUTPUT.PUT_LINE ('Total CPU time:'||to_char(DBMS_UTILITY.GET_CPU_TIME () - l_cpu_time));
+END;
+/
+Performance of a standalone function:
+
+Total elapsed time:1559
+Total CPU time:1366
+PL/SQL procedure successfully completed.
+Case 2: Create a PL/SQL function using PRAGMA UDF to count the numbers in the str column.
+/*Create the function with PRAGMA UDF*/
+CREATE OR REPLACE FUNCTION f_count_num_pragma (p_str VARCHAR2)
+RETURN PLS_INTEGER IS
+   PRAGMA UDF;
+BEGIN
+   RETURN (REGEXP_COUNT(p_str,'\d'));
+END;
+/
+Let us now check the performance of the PRAGMA UDF function using the following PL/SQL block.
+
+/*Set server output on to display messages*/
+SET SERVEROUTPUT ON
+/*Anonymous block to measure performance of a PRAGMA UDF function*/
+DECLARE
+l_el_time PLS_INTEGER;
+l_cpu_time PLS_INTEGER;
+CURSOR C1 IS
+   SELECT f_count_num_pragma (str) FROM t_fun_plsql;
+TYPE t_tab_rec IS TABLE OF PLS_INTEGER;
+l_tab t_tab_rec;
+BEGIN
+l_el_time := DBMS_UTILITY.GET_TIME ();
+l_cpu_time := DBMS_UTILITY.GET_CPU_TIME ();
+OPEN c1;
+FETCH c1 BULK COLLECT INTO l_tab;
+CLOSE c1;
+DBMS_OUTPUT.PUT_LINE ('Case 2: Performance of a PRAGMA UDF function');
+DBMS_OUTPUT.PUT_LINE ('Total elapsed time:'||to_char(DBMS_UTILITY.GET_TIME () - l_el_time));
+DBMS_OUTPUT.PUT_LINE ('Total CPU time:'||to_char(DBMS_UTILITY.GET_CPU_TIME () - l_cpu_time));
+END;
+/
+Performance of a PRAGMA UDF function:
+
+Total elapsed time:664
+Total CPU time:582
+PL/SQL procedure successfully completed.
+Case 3: The following PL/SQL block dynamically executes the function in the WITH clause subquery. Note that, unlike other SELECT statements, a SELECT query with a WITH clause declaration cannot be executed statically in the body of a PL/SQL block.
+/*Set server output on to display messages*/
+SET SERVEROUTPUT ON
+/*Anonymous block to measure performance of inline function*/
+DECLARE
+l_el_time PLS_INTEGER;
+l_cpu_time PLS_INTEGER;
+l_sql VARCHAR2(32767);
+c1 sys_refcursor;
+TYPE t_tab_rec IS TABLE OF PLS_INTEGER;
+l_tab t_tab_rec;
+BEGIN
+l_el_time := DBMS_UTILITY.get_time;
+l_cpu_time := DBMS_UTILITY.get_cpu_time;
+l_sql := 'WITH FUNCTION f_count_num_with (p_str VARCHAR2)
+           RETURN NUMBER IS
+           BEGIN
+               RETURN (REGEXP_COUNT(p_str,'''||'\'||'d'||'''));
+           END;
+           SELECT f_count_num_with(str) FROM t_fun_plsql';
+OPEN c1 FOR l_sql;
+FETCH c1 bulk collect INTO l_tab;
+CLOSE c1;
+DBMS_OUTPUT.PUT_LINE ('Case 3: Performance of an inline function');
+DBMS_OUTPUT.PUT_LINE ('Total elapsed time:'||to_char(DBMS_UTILITY.GET_TIME () - l_el_time));
+DBMS_OUTPUT.PUT_LINE ('Total CPU time:'||to_char(DBMS_UTILITY.GET_CPU_TIME () - l_cpu_time));
+END;
+/
+Performance of an inline function:
+
+Total elapsed time:830
+Total CPU time:718
+
+PL/SQL procedure successfully completed.
+Comparative analysis
+
+Comparing the results from the preceding three cases, it's clear that the Oracle 12c flavor of PL/SQL functions out-performs the pre-12c standalone function by a high margin. From the following matrix, it is apparent that the usage of the PRAGMA UDF or WITH clause declaration enhances the code performance by (roughly) a factor of 2.
+
+Case Description
+
+Elapsed Time
+
+CPU time
+
+Performance gain factor by CPU time
+
+Standalone PL/SQL function in pre-Oracle 12c database
+
+1559
+
+1336
+
+1x
+
+Standalone PL/SQL PRAGMA UDF function in Oracle 12c
+
+664
+
+582
+
+2.3x
+
+Function created in WITH clause declaration in Oracle 12c
+
+830
+
+718
+
+1.9x
+
+Note that the numbers may slightly differ in the reader's testing environment but you should be able to draw the same conclusion by comparing them.

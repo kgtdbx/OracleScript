@@ -134,7 +134,33 @@ Because you have a template, adding partitions is transparent to subpartitions:
 alter table your_table add partition mon_mar_2012 values less than (3000);
 (This will automaticaly creates subpartitions for the new partition).
 
-EDIT: if you wouldn't have had template, you should have create subpartitions manualy:
+--EDIT: if you wouldn't have had template, you should have create subpartitions manualy:
 
 ALTER TABLE your_table MODIFY PARTITION partition
       ADD SUBPARTITION subpartition_name ...
+--------------SQL script to display partitions and their size for a given table-----------
+
+--Using an inline view with a correlated subquery:
+SELECT P.PARTITION_NAME, (  SELECT SUM(BYTES)/1024/1024/1024
+                            FROM DBA_SEGMENTS S
+                            WHERE S.PARTITION_NAME = P.PARTITION_NAME
+                            AND SEGMENT_NAME='&&TABLE_NAME') "size GB"
+FROM DBA_TAB_PARTITIONS P
+WHERE P.TABLE_NAME = '&&TABLE_NAME'
+ORDER BY P.PARTITION_POSITION ASC;
+
+
+Example output:
+sqlplus / as sysdba @get_size.sql
+Enter value for table_name: ARCHIVED_DOCUMENTS
+
+
+PARTITION_NAME                      size GB
+------------------------------   ----------
+DOKARCHIVE1                           2.875
+DOKARCHIVE2                               3
+DOKARCHIVE3                               3
+DOKARCHIVE4                               3
+DOKARCHIVE5                               3
+DOKARCHIVE6                          2.8125
+DOKARCHIVE7                            2.75      

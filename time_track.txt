@@ -1,0 +1,36 @@
+Try this, add the following at the beginning and it remembers the current time:
+
+set serveroutput on
+variable n number
+exec :n := dbms_utility.get_time
+Add this at the end and it calculates the time elapsed:
+
+exec :n := (dbms_utility.get_time - :n)/100
+exec dbms_output.put_line(:n)
+
+
+--or
+It old question but i have found easy way to measure time of running a script in sqlplus. You just have to add this on the beginning
+
+timing start timing_name
+And this on the end of a script
+
+timing stop
+More information about this command can be found at Oracle's SQL*Plus® User's Guide and Reference: Collecting Timing Statistics
+
+
+--or
+
+ot sure why everybody is making it so complex. Simple as:
+
+SQL> set timing on
+SQL> select 1 from dual;
+
+         1
+----------
+         1
+
+1 row selected.
+
+Elapsed: 00:00:00.00
+SQL> 

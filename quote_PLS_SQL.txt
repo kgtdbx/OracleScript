@@ -1,0 +1,14 @@
+declare
+v_sql varchar2(15);
+
+FUNCTION quote(in_v1 IN varchar2) 
+RETURN varchar2 IS 
+BEGIN 
+return chr(39) || in_v1 || chr(39); 
+--return replace(dbms_assert.enquote_name(in_v1),'"',chr(39)); 
+END quote;
+
+begin
+v_sql:=quote('Hello'); 
+dbms_output.put_line(v_sql);
+end;

@@ -1,0 +1,249 @@
+More PL/SQL-Only Data Types Cross PL/SQL-to-SQL Interface
+
+Prior to 12.1, you could not bind PL/SQL-specific datatypes (for example, an associative array) in a dynamic SQL statement.
+Now it is possible to bind values with PL/SQL-only data types in anonymous blocks, PL/SQL function calls in SQL queries, CALL statements, and the TABLE operator in SQL queries.
+
+ACCESSIBLE_BY Clause
+
+You can now include an ACCESSIBLE_BY clause to your package specification, specifying which program units may invoke subprograms in the package. 
+This feature allows you to “expose” subprograms in helper packages that are intended to be consumed only by specific program units. 
+This feature offers a kind of “whitelisting” for packages.
+
+Implicit Statement Results
+
+Before Oracle Database 12c, a PL/SQL stored subprogram returned result sets from SQL queries explicitly, through an OUT REF CURSOR parameter or RETURN clause. 
+The client program would then have to bind to those parameters explicitly to receive the result sets. 
+Now, a PL/SQL stored subprogram can return query results to its client implicitly, using the PL/SQL package DBMS_SQL instead of OUT REF CURSOR parameters. 
+This functionality will make it easy to migrate applications that rely on the implicit return of query results from stored subprograms (supported by languages like Transact SQL) from third-party databases to Oracle Database.
+
+BEQUEATH CURRENT_USER Views
+
+Before Oracle Database 12c, a view always behaved like a definer rights unit (AUTHID DEFINER), even if it was referenced inside an invoker rights unit (AUTHID CURRENT_USER). 
+Now, a view can be either BEQUEATH DEFINER (the default), which behaves like a definer rights unit, or BEQUEATH CURRENT_USER, which behaves somewhat like an invoker’s rights unit.
+
+Grant Roles to Program Units, plus INHERIT PRIVILEGES and INHERIT ANY PRIVILEGES Privileges
+
+Prior to Oracle Database 12c, an invoker rights unit always ran with the privileges of its invoker. 
+If its invoker had higher privileges than its owner, then the invoker rights unit might perform operations unintended by, or forbidden to, its owner.
+
+As of 12.1, you can grant roles to individual PL/SQL packages and standalone subprograms. Instead of a definer rights unit, you can create an invoker rights unit and then grant roles to it. 
+The invoker rights unit then runs with the privileges of both the invoker and the roles, but without any additional privileges possessed by the definer’s schema.
+
+An invoker rights unit can now run with the privileges of its invoker only if its owner has either the INHERIT PRIVILEGES privilege on the invoker or the INHERIT ANY PRIVILEGES privilege. 
+Note: the INHERIT PRIVILEGES is granted to all schemas on install/upgrade.
+
+New Conditional Compilation Directives
+
+In 12.1, Oracle has added two new predefined inquiry directives, $$PLSQL_UNIT_OWNER and $$PLSQL_UNIT_TYPE, which return the owner and type of the current PL/SQL program unit.
+
+Optimizing Function Execution in SQL
+
+Oracle now offers two ways of improving PL/SQL function performance in SQL statements: you can actually define the function itself inside the SQL statement using the WITH clause, 
+and you can add the UDF pragma to the program unit, which tells the compiler that the function will be used primarily in SQL statements.
+
+Using %ROWTYPE with Invisible Columns
+
+Oracle Database 12c makes it possible to define invisible columns. From within PL/SQL, the %ROWTYPE attribute is aware of these types of columns and how to work with them.
+
+FETCH FIRST Clause and BULK COLLECT
+
+In 12.1, use the optional FETCH FIRST clause to limit the number of rows that a query returns, significantly reducing the SQL complexity of common “Top-N” queries. 
+FETCH FIRST will be of most benefit in the simplification of migration from third-party databases to Oracle Database. 
+This clause can also, however, improve the performance of some SELECT BULK COLLECT INTO statements.
+
+The UTL_CALLSTACK Package
+
+Prior to 12.1, the DBMS_UTILITY package offered three functions (FORMAT_CALL_STACK, FORMAT_ERROR_STACK, and FORMAT_ERROR_BACKTRACE) to provide information about the execution call stack, 
+error stack and error backtrace, respectively. Now in 12.1, a single package, UTL_CALLSTACK, provides that same information, plus much more “fine-grained” access to the contents of these formatted strings.
+
+
+--###################################--
+How Partial Indexing helps you save space in #Oracle 12c
+
+partial
+
+Over time certain partitions may become less popular. In 12c, you don’t have to index these partitions anymore! This can save huge amounts of space and is one of the best 12c New Features in my opinion. Really a big deal if you are working with range partitioned tables where the phenomenon of old ranges becoming unpopular is very common. Let’s have a look, first at the problem:
+
+SQL> select segment_name,partition_name ,bytes/1024/1024 from user_segments 
+     where segment_name like '%OLD';   
+
+SEGMENT_NA PARTITION_ BYTES/1024/1024
+---------- ---------- ---------------
+GLOBAL_OLD			   96
+LOCAL_OLD  Q4			   22
+LOCAL_OLD  Q3			   22
+LOCAL_OLD  Q2			   22
+LOCAL_OLD  Q1			   22
+Without the New Feature, every part of the table is being indexed like shown on the below picture:
+
+Ordinary Indexes on a partitioned table
+Ordinary Indexes on a partitioned table
+
+Say partitions Q1, Q2 and Q3 are not popular any more, only Q4 is accessed frequently. In 12c I can do this:
+
+SQL> alter table sales_range modify partition q1 indexing off;
+
+Table altered.
+
+SQL> alter table sales_range modify partition q2 indexing off;
+
+Table altered.
+
+SQL> alter table sales_range modify partition q3 indexing off;
+
+Table altered.
+This alone doesn’t affect indexes, though. They must be created with the new INDEXING PARTIAL clause now:
+
+SQL> drop index local_old;
+
+Index dropped.
+
+SQL> drop index global_old;
+
+Index dropped.
+
+SQL> create index local_new on sales_range(time_id) indexing partial local nologging;
+
+Index created.
+
+SQL> create index global_new on sales_range(name) global indexing partial nologging;
+
+Index created.
+You may notice that these commands execute much faster now because less I/O needs to be done. And there is way less space consumed:
+
+SQL> select segment_name,partition_name ,bytes/1024/1024 from user_segments
+     where segment_name like '%NEW';
+SEGMENT_NA PARTITION_ BYTES/1024/1024
+---------- ---------- ---------------
+LOCAL_NEW Q4 22
+GLOBAL_NEW 24
+That’s because the indexes look like this now:
+
+Partial Indexes
+Partial Indexes
+
+Instead of dropping the old index you can also change it into using the New Feature:
+
+SQL> select segment_name,partition_name ,bytes/1024/1024 from user_segments 
+     where segment_name like '%OLD%';
+
+SEGMENT_NA PARTITION_ BYTES/1024/1024
+---------- ---------- ---------------
+GLOBAL_OLD			   96
+LOCAL_OLD  Q4			   22
+LOCAL_OLD  Q3			   22
+LOCAL_OLD  Q2			   22
+LOCAL_OLD  Q1			   22
+
+SQL> alter index LOCAL_OLD indexing partial;
+
+Index altered.
+For a LOCAL index, that frees the space from the unpopular partitions immediately:
+
+SQL> select segment_name,partition_name ,bytes/1024/1024 from user_segments 
+     where segment_name like '%OLD%';
+
+SEGMENT_NA PARTITION_ BYTES/1024/1024
+---------- ---------- ---------------
+GLOBAL_OLD			   96
+LOCAL_OLD  Q4			   22
+That is different with a GLOBAL index:
+
+SQL> alter index GLOBAL_OLD indexing partial;
+
+Index altered.
+
+SQL> select segment_name,partition_name ,bytes/1024/1024 from user_segments 
+     where segment_name like '%OLD%';
+
+SEGMENT_NA PARTITION_ BYTES/1024/1024
+---------- ---------- ---------------
+GLOBAL_OLD			   96
+LOCAL_OLD  Q4			   22
+Still uses as much space as before, but now this releases space from unpopular parts of the index:
+
+SQL> alter index global_old rebuild indexing partial;
+
+Index altered.
+
+SQL> select segment_name,partition_name ,bytes/1024/1024 from user_segments 
+     where segment_name like '%OLD%';
+
+SEGMENT_NA PARTITION_ BYTES/1024/1024
+---------- ---------- ---------------
+LOCAL_OLD  Q4			   22
+GLOBAL_OLD			   24
+Cool 12c New Feature, isn’t it? ??
+
+--###############################--
+Some important tuning parameters in Oracle 12c
+
+Here are some parameters that you will have to deal with when tuning an Oracle 12c database. Execute the following SQL to view their current setting:
+
+col name format a40
+col value format a20
+col description format a80
+set lines 200
+
+SELECT NAME,VALUE,DESCRIPTION 
+FROM   V$SYSTEM_PARAMETER
+WHERE NAME IN ( 'optimizer_adaptive_features',
+                'optimizer_adaptive_reporting_only',
+                'optimizer_features_enable',
+                'optimizer_use_sql_plan_baselines',
+                'optimizer_capture_sql_plan_baselines',
+                'optimizer_dynamic_sampling');
+
+OPTIMIZER_ADAPTIVE_FEATURES enables or disables all of the adaptive optimizer features, including 
+
+* adaptive plan (adaptive join methods and bitmap pruning)
+* automatic re-optimization
+* SQL plan directives
+* adaptive distribution Methods
+
+OPTIMIZER_DYNAMIC_SAMPLING controls both when the database gathers dynamic statistics, and the size of the sample that the optimizer uses to gather the statistics.
+
+Dynamic statistics were called dynamic sampling in versions prior to 12c.
+
+Range of values: 0 to 11. Default is 2. At this Level, dynamic statistics are used "if at least one table in the statement has no statistics". 
+
+When this parameter is set to 11, the optimizer will use dynamic statistics to verify cardinality estimates for all SQL operators, and it will determine an internal time limit to spend verifying the estimates.
+
+Notice that Oracle says the following about level 11:
+
+There are cases where the optimizer will automatically decide to use 11, for example:
+
+•The query will run in parallel.
+•The query was executed before and its history is available (from the cursor cache, Automatic Workload Repository, or the SQL Management Base).
+
+--###############################--
+
+-Converting a Non-Partitioned Table to a Partitioned Table oracle 12c
+
+create table employees_convert
+(employee_id number,
+employee_name varchar2(100));
+
+insert into employees_convert values(101,'abc');
+insert into employees_convert values(302,'c');
+
+alter table employees_convert
+add constraint pk_employee_id primary key (employee_id)
+using index;
+
+create index ix_employee_name on employees_convert(employee_name);
+
+ALTER TABLE employees_convert MODIFY
+PARTITION BY RANGE(employee_id) INTERVAL (100)
+( PARTITION P1 VALUES LESS THAN (100),
+PARTITION P2 VALUES LESS THAN (200),
+PARTITION P3 VALUES LESS THAN (300),
+PARTITION P4 VALUES LESS THAN (400)
+)
+update indexes
+(pk_employee_id local,
+ ix_employee_name global partition by range(employee_name)
+(partition ip1 values less than (MAXVALUE))
+);
+
+--###############################--

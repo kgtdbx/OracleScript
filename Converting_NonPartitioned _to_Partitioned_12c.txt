@@ -1,0 +1,290 @@
+--Converting a Non-Partitioned Table to a Partitioned Table oracle 12c
+
+create table employees_convert
+(employee_id number,
+employee_name varchar2(100));
+
+insert into employees_convert values(101,'abc');
+insert into employees_convert values(302,'c');
+
+alter table employees_convert
+add constraint pk_employee_id primary key (employee_id)
+using index;
+
+create index ix_employee_name on employees_convert(employee_name);
+
+ALTER TABLE employees_convert MODIFY
+PARTITION BY RANGE(employee_id) INTERVAL (100)
+( PARTITION P1 VALUES LESS THAN (100),
+PARTITION P2 VALUES LESS THAN (200),
+PARTITION P3 VALUES LESS THAN (300),
+PARTITION P4 VALUES LESS THAN (400)
+)
+update indexes
+(pk_employee_id local,
+ ix_employee_name global partition by range(employee_name)
+(partition ip1 values less than (MAXVALUE))
+);
+
+
+And all of that works only in 12.2. If you are on 12.1, you need to use DBMS_REDEFINITION. See here for an example 
+
+https://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:869096700346654484 
+
+
+
+----
+more variants https://oracle-base.com/articles/12c/online-conversion-of-a-non-partitioned-table-to-a-partitioned-table-12cr2
+https://blog.dbi-services.com/oracle-12cr2-partitioning-improvements-online-conversion-of-a-non-partitioned-table-to-a-partitioned-table/
+
+----
+
+Convert non partitioned table to partitioned online Oracle 12.2
+/ORACLE 12C / ORACLE 12CR2 / Convert non partitioned table to partitioned online Oracle 12.2
+ July 19, 2017  Skant Gupta  ORACLE 12CR2
+This is one of the new feature of oracle 12.2 release .
+
+Non-partitioned tables can be converted to partitioned table online without any downtime to the application , i.e no impact to the DML activities.
+
+Till now for this activity, we were using dbms_redef methods. But in Oracle 12.2 release this has been simplified much.
+
+See the below example:
+
+1. Identify the non partitioned table.
+
+
+SQL> desc BSSTDBA.ORDER_TAB
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ROW_ID                                    NOT NULL VARCHAR2(15 CHAR)
+ CREATED                                   NOT NULL DATE
+ CREATED_BY                                NOT NULL VARCHAR2(15 CHAR)
+ LAST_UPD                                  NOT NULL DATE
+ MODIFICATION_NUM                          NOT NULL NUMBER(10)
+ CONFLICT_ID                               NOT NULL VARCHAR2(15 CHAR)
+ ALW_PART_SHIP_FLG                         NOT NULL CHAR(1 CHAR)
+ 
+SQL> col owner for a13
+SQL> col table_name for a14
+SQL>  set lines 299
+SQL> select owner,table_name,partitioned from dba_tables where table_name='ORDER_TAB';
+ 
+OWNER         TABLE_NAME     PAR
+------------- -------------- ---
+BSSTDBA       ORDER_TAB      NO
+ 
+SQL> select count(*) from BSSTDBA.ORDER_TAB;
+ 
+  COUNT(*)
+----------
+    954598
+ 
+SQL> SQL> create index BSSTDBA.ORDER_TAB_IND1 on BSSTDBA.ORDER_TAB(row_id);
+ 
+Index created.
+ 
+SQL> SQL> create index BSSTDBA.ORDER_TAB_IND2 on BSSTDBA.ORDER_TAB(created);
+
+SQL> desc BSSTDBA.ORDER_TAB
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ROW_ID                                    NOT NULL VARCHAR2(15 CHAR)
+ CREATED                                   NOT NULL DATE
+ CREATED_BY                                NOT NULL VARCHAR2(15 CHAR)
+ LAST_UPD                                  NOT NULL DATE
+ MODIFICATION_NUM                          NOT NULL NUMBER(10)
+ CONFLICT_ID                               NOT NULL VARCHAR2(15 CHAR)
+ ALW_PART_SHIP_FLG                         NOT NULL CHAR(1 CHAR)
+ 
+SQL> col owner for a13
+SQL> col table_name for a14
+SQL>  set lines 299
+SQL> select owner,table_name,partitioned from dba_tables where table_name='ORDER_TAB';
+ 
+OWNER         TABLE_NAME     PAR
+------------- -------------- ---
+BSSTDBA       ORDER_TAB      NO
+ 
+SQL> select count(*) from BSSTDBA.ORDER_TAB;
+ 
+  COUNT(*)
+----------
+    954598
+ 
+SQL> SQL> create index BSSTDBA.ORDER_TAB_IND1 on BSSTDBA.ORDER_TAB(row_id);
+ 
+ 
+Index created.
+ 
+SQL> SQL> create index BSSTDBA.ORDER_TAB_IND2 on BSSTDBA.ORDER_TAB(created);
+2. Alter table modify to partition the table.( partition key is column CREATED )
+
+alter table BSSTDBA.ORDER_TAB modify
+PARTITION BY RANGE (CREATED)
+(partition created_2105_p8 VALUES LESS THAN (TO_DATE('01/09/2015', 'DD/MM/YYYY')),
+partition created_2105_p9 VALUES LESS THAN (TO_DATE('01/10/2015', 'DD/MM/YYYY')),
+partition created_2105_p10 VALUES LESS THAN (TO_DATE('01/11/2015', 'DD/MM/YYYY')),
+partition created_2105_p11 VALUES LESS THAN (TO_DATE('01/12/2015', 'DD/MM/YYYY')),
+partition created_2105_p12 VALUES LESS THAN (TO_DATE('01/01/2016', 'DD/MM/YYYY')),
+PARTITION Created_MX VALUES LESS THAN (MAXVALUE)) ONLINE;
+This activity will take some time depending upon amount of data table has.
+
+While this alter statement is running, I have started running DML activities on the same table, To check whether it is impacting the DML activities.
+
+SESSION 2:
+
+insert into BSSTDBA.ORDER_TAB select * from BSSTDBA.ORDER_TAB;
+
+Lets check for blocking session:
+
+
+       SID USERNAME             MODULE                         STATUS   EVENT                          BLOCKING_SESSION
+---------- -------------------- ------------------------------ -------- ------------------------------ ----------------
+       490 SYS                  sqlplus@bttstdev64 (TNS V1-V3) ACTIVE   enq: TX - row lock contention                 7
+ 
+ 
+SID      > 490    
+SQL_TEXT > alter table BSSTDBA.ORDER_TAB modify PARTITION BY RANGE (CREATE
+        D) (partition created_2105_p8 VALUES LESS THAN (TO_DATE('01/09/2
+        015', 'DD/MM/YYYY')), partition created_2105_p9 VALUES LESS THAN
+        (TO_DATE('01/10/2015', 'DD/MM/YYYY')), partition created_2105_p
+        10 VALUES LESS THAN (TO_DATE('01/11/2015', 'DD/MM/YYYY')), parti
+        tion created_2105_p11 VALUES LESS THAN (TO_DATE('01/12/2015', 'D
+        D/MM/YYYY')), partition created_2105_p12 VALUES LESS THAN (TO_DA
+        TE('01/01/2016', 'DD/MM/YYYY')), partition created_2016_p1 VALUE
+        THAN (MAXVALUE)) ONLINE
+ 
+ 
+SID    >  7 
+SQL_TEXT> insert into BSSTDBA.ORDER_TAB select * from BSSTDBA.ORDER_TAB;
+
+       SID USERNAME             MODULE                         STATUS   EVENT                          BLOCKING_SESSION
+---------- -------------------- ------------------------------ -------- ------------------------------ ----------------
+       490 SYS                  sqlplus@bttstdev64 (TNS V1-V3) ACTIVE   enq: TX - row lock contention                 7
+ 
+ 
+SID      > 490    
+SQL_TEXT > alter table BSSTDBA.ORDER_TAB modify PARTITION BY RANGE (CREATE
+        D) (partition created_2105_p8 VALUES LESS THAN (TO_DATE('01/09/2
+        015', 'DD/MM/YYYY')), partition created_2105_p9 VALUES LESS THAN
+        (TO_DATE('01/10/2015', 'DD/MM/YYYY')), partition created_2105_p
+        10 VALUES LESS THAN (TO_DATE('01/11/2015', 'DD/MM/YYYY')), parti
+        tion created_2105_p11 VALUES LESS THAN (TO_DATE('01/12/2015', 'D
+        D/MM/YYYY')), partition created_2105_p12 VALUES LESS THAN (TO_DA
+        TE('01/01/2016', 'DD/MM/YYYY')), partition created_2016_p1 VALUE
+        THAN (MAXVALUE)) ONLINE
+ 
+ 
+SID    >  7 
+SQL_TEXT> insert into BSSTDBA.ORDER_TAB select * from BSSTDBA.ORDER_TAB;
+We can see that the insert statement(SID 7), is blocking the alter table command(SID 490), not the other way around. It means during this partition conversion activity, if any DML requests are coming, then it will allow them to complete their request. This may slow down the partition conversion time, But it won’t impact the application. Once ALTER TABLE MODIFY is completed. Check the whether table was partitioned properly or not.
+
+
+SQL> select partition_name,high_value from dba_tab_partitions where table_name='ORDER_TAB';
+ 
+ 
+PARTITION_NAME          HIGH_VALUE
+----------------------- --------------------------------------------------------------------------------
+CREATED_2105_P10        TO_DATE(' 2015-11-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_2105_P11        TO_DATE(' 2015-12-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_2105_P12        TO_DATE(' 2016-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_2105_P8         TO_DATE(' 2015-09-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_2105_P9         TO_DATE(' 2015-10-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_MX              MAXVALUE
+ 
+20 rows selected.
+
+SQL> select partition_name,high_value from dba_tab_partitions where table_name='ORDER_TAB';
+ 
+ 
+PARTITION_NAME          HIGH_VALUE
+----------------------- --------------------------------------------------------------------------------
+CREATED_2105_P10        TO_DATE(' 2015-11-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_2105_P11        TO_DATE(' 2015-12-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_2105_P12        TO_DATE(' 2016-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_2105_P8         TO_DATE(' 2015-09-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_2105_P9         TO_DATE(' 2015-10-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+CREATED_MX              MAXVALUE
+ 
+20 rows selected.
+But what happened to the INDEXES:
+
+
+select  index_name,PARTITIONED from dba_indexes where table_name='ORDER_TAB';
+ 
+INDEX_NAME          PARTITIONED     
+------------------- ------------ 
+ORDER_TAB_IND1      NO         
+ORDER_TAB_IND2      YES
+
+select  index_name,PARTITIONED from dba_indexes where table_name='ORDER_TAB';
+ 
+INDEX_NAME          PARTITIONED     
+------------------- ------------ 
+ORDER_TAB_IND1      NO         
+ORDER_TAB_IND2      YES
+We can see ORDER_TAB_IND1 was NON partitioned, But ORDER_TAB_IND2 was partitioned.
+
+Oracle document Says:
+
+If no index clause is mentioned in the alter table statement, then
+nonprefixed indexes(i.e index column is not a partitioned key) will be become global non-partitioned Index.
+prefixed indexes(i.e index column is a partitioned key) will become local partitioned Index.
+
+
+ORDER_TAB_IND1 - 
+-------------------
+ 
+INDEX_SQL - >  create index BSSTDBA.ORDER_TAB_IND1 on BSSTDBA.ORDER_TAB(row_id);
+It is an nonprefixed Index i.e index column is not a partitioned key. So it became global non partitioned Index
+ 
+ORDER_TAB_IND2  -
+--------------------
+ 
+create index BSSTDBA.ORDER_TAB_IND2 on BSSTDBA.ORDER_TAB(created);
+It is an prefixed Index.  i.e index column in a partitione key .
+So this indexes became local partitioned Index.
+
+ORDER_TAB_IND1 - 
+-------------------
+ 
+INDEX_SQL - >  create index BSSTDBA.ORDER_TAB_IND1 on BSSTDBA.ORDER_TAB(row_id);
+It is an nonprefixed Index i.e index column is not a partitioned key. So it became global non partitioned Index
+ 
+ORDER_TAB_IND2  -
+--------------------
+ 
+create index BSSTDBA.ORDER_TAB_IND2 on BSSTDBA.ORDER_TAB(created);
+It is an prefixed Index.  i.e index column in a partitione key .
+So this indexes became local partitioned Index.
+
+SQL> select index_name,PARTITION_NAME,HIGH_VALUE from dba_ind_partitions where index_name='ORDER_TAB_IND2';
+ 
+ 
+INDEX_NAME          PARTITION_NAME          HIGH_VALUE
+------------------- ----------------------- --------------------------------------------------------------------------------
+ORDER_TAB_IND2      CREATED_2016_P9         TO_DATE(' 2016-10-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P10        TO_DATE(' 2015-11-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P11        TO_DATE(' 2015-12-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P12        TO_DATE(' 2016-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P8         TO_DATE(' 2015-09-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P9         TO_DATE(' 2015-10-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_MX              MAXVALUE
+ 
+20 rows selected.
+
+SQL> select index_name,PARTITION_NAME,HIGH_VALUE from dba_ind_partitions where index_name='ORDER_TAB_IND2';
+ 
+ 
+INDEX_NAME          PARTITION_NAME          HIGH_VALUE
+------------------- ----------------------- --------------------------------------------------------------------------------
+ORDER_TAB_IND2      CREATED_2016_P9         TO_DATE(' 2016-10-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P10        TO_DATE(' 2015-11-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P11        TO_DATE(' 2015-12-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P12        TO_DATE(' 2016-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P8         TO_DATE(' 2015-09-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_2105_P9         TO_DATE(' 2015-10-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIA
+ORDER_TAB_IND2      CREATED_MX              MAXVALUE
+ 
+20 rows selected.
+There are lot of 12.2 New features like moving a table online, Spliting a partitioned table online etc. which we will discuss very soon.

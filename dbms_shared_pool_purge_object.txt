@@ -1,0 +1,13 @@
+How to purge a cursor from the shared pool using dbms_shared_pool
+Find the address and hash value for the particular SQL you're looking for:
+select address, hash_value from v$sqlarea where sql_id like 'bjkd7pcyfns86';
+
+
+ADDRESS	            HASH_VALUE
+0000000085CD2838    1021993222
+
+Execute the purge procedure:
+SQL> exec dbms_shared_pool.purge('0000000085CD2838, 1021993222','C');
+
+Note that the name of the object is the combined values of address and hash value from v$sqlarea.
+The value C is what you want to use for cursors.

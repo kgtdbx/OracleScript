@@ -551,6 +551,13 @@ SELECT /*+ rule */
    AND hk.sid=bs.sid(+)
    AND wk.sid=ws.sid(+)
 
+   
+--------locked object--------------
+select * 
+from v$locked_object v, 
+     user_objects u 
+where v.object_id = u.object_id; 
+   
 --сесси с БД-----------
  SELECT S.SID, 
         S.USERNAME, 
@@ -846,6 +853,14 @@ select *
 from v$nls_valid_values
 where parameter='CHARACTERSET'
 and VALUE like '%WIN%';	--отобрать все значения CHARACTERSET, содержащие в своём названии "WIN"
+
+--some settings of session NLS_NUMERIC_CHARACTERS = "decimal_character group_separator"
+ALTER SESSION SET NLS_NUMERIC_CHARACTERS = ', ' -- or alter session set nls_territory=Poland or Iceland;
+ALTER SESSION SET NLS_NUMERIC_CHARACTERS = '.,' -- or alter session set nls_territory=America;
+alter session set NLS_NUMERIC_CHARACTERS=',.'
+
+--date format
+alter session set nls_date_format = 'dd.mm.yyyy'; 
 ----------
 --dba_errors	просмотр ошибок	
 select * from dba_errors;

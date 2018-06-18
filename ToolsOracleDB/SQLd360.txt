@@ -1,0 +1,46 @@
+MAURO PAGANO'S BLOG
+SQLd360, SQL diagnostics collection made faster
+February 16, 2015 by Mauro Pagano	52 Comments
+
+Another tool to help with SQL Tuning? Yes! Hopefully with some advantage over what you used until today 🙂
+
+Collecting diagnostics around a SQL is not fun, if you’ve been there you know that. It requires to extract info from several different places, the amount is high and it’s time-sensitive aka you should do it as quick as possible so that things around the SQL don’t change!
+
+SQLd360 is a free tool that provides a 360-degree overview around a SQL statement. The output is a single zip file that allows offline analysis, trend analysis and detailed root-cause investigations. The content of the zip is a set of small reports, each specific to an area of interest, easy to navigate through an index file.
+
+SQLd360 doesn’t require any installation and can be executed by any user that has access to dictionary views. The tool can be used by DBAs, Developers, SysAdmin, etc to investigate several aspects of the SQL, not only in terms of isolated execution but also in the context of the overall database impact, it can also help with trend analysis.
+The list of contents is going to grow (fast) with time so make sure you use the latest version.
+
+SQLd360 works successfully in 10g, 11g and 12c, specifically on Linux/Unix platforms, it has not been tested on Windows.
+
+If what described so far sounds familiar then you are probably right. SQLd360 has been created to complement eDB360 tool created by Carlos Sierra. The design is similar but at the same time different having to deal with different challenges.
+SQLd360 is also included in eDB360 starting version v1504.
+
+Download
+
+SQLd360 is free, you can download it from either GitHub or from the link under the Download section on the sidebar of this blog.
+
+Instructions
+
+Download SQLd360 and review the README.txt file included.
+Unzip sqld360-master.zip on the database server and navigate to the master directory.
+Connect to the database as any other user with access to dictionary views (SYS not recommended) and start sqld360.sql
+
+SQLd360 has two input parameters
+
+SQL ID – SQL ID for which SQLd360 will collect diagnostics.
+License – SQLd360 extracts information from both AWR (licensed by Oracle under the Diagnostics Pack) and SQL Monitoring repository (part of the Oracle Tuning Pack). This parameter accepts one of 3 values: “T”, “D” or “N”. If your database is licensed under the Oracle Tuning Pack, enter then the value of “T”. If your database is not licensed to use the Oracle Tuning Pack but it is licensed to use the Oracle Diagnostics Pack, enter “D” then. If your site is not licensed on any of these two Oracle Packs, enter “N” then. Be aware that a value of “N” reduces substantially the content and value of the output. Thus the preferred parameter value is “T” (Oracle Tuning Pack).
+Sample
+
+1
+2
+3
+4
+# unzip sqld360-master.zip
+# cd sqld360-master
+# sqlplus / as sysdba
+SQL> @sqld360.sql 0vy6pt4krb3gm T
+SQLd360 usually completes within a few minutes but it can take longer in case the amount of data to analyze in AWR/ASH is significant. The output file can reach up to 100Mb so make sure the directory where the tool is executed from has enough free space.
+
+Feedback
+For any feedback please post on this blog or just email me directly.

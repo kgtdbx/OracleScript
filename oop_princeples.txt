@@ -1,0 +1,100 @@
+4 major principles that make a
+language object-oriented: Encapsulation, Data Abstraction, Polymorphism and Inheritence. 
+
+Encapsulation
+
+What is encapsulation? Well, in a nutshell, encapsulation is the
+hiding of data implementation by restricting access to accessors and
+mutators. First, lets define accessors and mutators:
+
+Accessor
+An accessor is a method that is used to ask an object about itself. In
+OOP, these are usually in the form of properties, which have, under
+normal conditions, a get method, which is an accessor method.
+However, accessor methods are not restricted to properties and can be
+any public method that gives information about the state of the object.
+
+Mutator Mutators are public methods that are used to modify
+the state of an object, while hiding the implementation of exactly how
+the data gets modified. Mutators are commonly another portion of the
+property discussed above, except this time its the set method that lets the caller modify the member data behind the scenes.
+
+So, the use of mutators and accessors provides many advantages. By
+hiding the implementation of our Person class, we can make changes to
+the Person class without the worry that we are going to break other
+code that is using and calling the Person class for information. If we
+wanted, we could change the fullName from a String to an array of
+single characters (FYI, this is what a string object actually is behind
+the scenes) but they callers would never have to know because we would
+still return them a single FullName string, but behind the scenes we
+are dealing with a character array instead of a string object. Its
+transparent to the rest of the program. This type of data protection
+and implementation protection is called Encapsulation. Think of accessors and mutators as the pieces that surround the data that forms the class.
+
+
+
+Abstraction
+
+Data abstraction is the simplest of principles to understand. Data
+abstraction and encapuslation are closely tied together, because a
+simple definition of data abstraction is the development of classes,
+objects, types in terms of their interfaces and functionality, instead
+of their implementation details. Abstraction denotes a model, a view,
+or some other focused representation for an actual item. Its the
+development of a software object to represent an object we can find in
+the real world. Encapsulation hides the details of that implementation.
+
+Abstraction is used to manage complexity. Software developers use abstraction to
+decompose complex systems into smaller components. As development
+progresss, programmers know the functionality they can expect from as
+yet undeveloped subsystems. Thus, programmers are not burdened by
+considering the waysin which the implementation of later subsystesm
+will affect the design of earlier development.
+
+The best
+definition of abstraction I’ve ever read is: “An abstraction denotes
+the essential characteristics of an object that distinguish it from all
+other kinds of object and thus provide crisply defined conceptual
+boundaries, relative to the perspective of the viewer.” — G. Booch,
+Object-Oriented Design With Applications, Benjamin/Cummings, Menlo
+Park, California, 1991.
+
+
+
+Inheritance
+
+Now lets discuss inheritance.  Objects can relate to eachother
+with either a “has a”, “uses a” or an “is a” relationship.  “Is a”
+is the inheritance way of object relationship.  The example of
+this that has always stuck with me over the years is a library (I think
+I may have read it in something Grady Booch wrote).  So, take a
+library, for example.  A library lends more than just books, it
+also lends magazines, audiocassettes and microfilm.  On some
+level, all of these items can be treated the same: All four types
+represent assets of the library that can be loaned out to people. 
+However, even though the 4 types can be viewed as the same, they are
+not identical.  A book has an ISBN and a magazine does not. 
+And audiocassette has a play length and microfilm cannot be checked out
+overnight.
+Each of these library’s assets should be represented by its own
+class definition.  Without inheritance though, each class must
+independently implement the characteristics that are common to all
+loanable assets.  All assets are either checked out or available
+for checkout.  All assets have a title, a date of acquisition and
+a replacement cost.  Rather than duplicate functionality,
+inheritance allows you to inherit functionality from another class,
+called a superclass or base class.
+
+
+
+
+Polymorphism 
+
+Polymorphism means one name, many forms.  Polymorphism
+manifests itself by having multiple methods all with the same name, but
+slighty different functionality. 
+
+For instance overload procedure in Oracle.
+
+
+

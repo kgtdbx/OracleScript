@@ -89,6 +89,10 @@ Merge->Local Merge->Merge
 git push OracleScript master
 
 
+--if error then
+git pull OracleScript master
+git merge FETCH_HEAD
+
 --######################################--
 Create a new repository on GitHub. To avoid errors, do not initialize the new repository with README, license, or gitignore files. You can add these files after your project has been pushed to GitHub.
 Open Git Bash.

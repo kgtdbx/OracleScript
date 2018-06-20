@@ -119,5 +119,13 @@ FROM   employees;
 
 
 
+
+col table_name_stg for a30
+col table_name_arc for a30
+col load_batch_name for a15
+col banking_day_filter for a40
+set lines 500
+SET LINESIZE 150
+SET PAGESIZE 150
 						 
 						 

@@ -37,3 +37,28 @@ return chr(39) || in_v1 || chr(39);
 --return replace(dbms_assert.enquote_name(in_v1),'"',chr(39)); 
 END; 
 / 
+
+-----
+The syntax for the Oracle EXECUTE IMMEDIATE statement as follows:
+
+EXECUTE IMMEDIATE <SQL or SPL Commands>
+  [INTO <variable list>]
+  [USING <bind variable list>];
+Quotes and execute immediate
+When executing a string variable that contains quotes it is important to "escape" the quote marks.
+
+On 10g and beyond you can "escape" the quotes with two single quotes or a "q" and curly brackets:
+
+For example, this "execute immediate" escapes the quotes with a q'{xxxxxxxx}'
+sqlstring := q'{insert into x values( ' || i || ')}';
+
+execute immediate sqlstring;
+
+
+CREATE PROCEDURE fire_employee (emp_id NUMBER) AS
+BEGIN
+   EXECUTE IMMEDIATE
+      'DELETE FROM employees WHERE employee_id = :id' USING emp_id;
+END;
+/
+

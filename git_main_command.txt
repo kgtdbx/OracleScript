@@ -85,12 +85,8 @@ The Pull origin button If there are commits on the remote branch, you can pull t
 Remote ->Fetch from ->OracleScript
 Merge->Local Merge->Merge
 
---from Git CMD
+--or just use Git CMD
 cd C:\WORK\OracleScript
-
---to push new files from local to remote repo
-git push OracleScript master
-
 
 --to know the changes
 git status
@@ -143,6 +139,11 @@ git commit -am "commit message"
 
 git commit -am "update from IS 20180621"
 
+--pull the changes
+git pull OracleScript master
+
+--to push new/changed files from local to remote repo
+git push OracleScript master
 
 
 --######################################--

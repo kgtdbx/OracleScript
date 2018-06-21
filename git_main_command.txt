@@ -85,8 +85,64 @@ The Pull origin button If there are commits on the remote branch, you can pull t
 Remote ->Fetch from ->OracleScript
 Merge->Local Merge->Merge
 
+--from Git CMD
+cd C:\WORK\OracleScript
+
 --to push new files from local to remote repo
 git push OracleScript master
+
+
+--to know the changes
+git status
+
+--if there are some new files, you have to add them
+git add function_proc_test.sql
+
+/*
+usage: git checkout [<options>] <branch>
+   or: git checkout [<options>] [<branch>] -- <file>...
+
+    -q, --quiet           suppress progress reporting
+    -b <branch>           create and checkout a new branch
+    -B <branch>           create/reset and checkout a branch
+    -l                    create reflog for new branch
+    --detach              detach HEAD at named commit
+    -t, --track           set upstream info for new branch
+    --orphan <new-branch>
+                          new unparented branch
+    -2, --ours            checkout our version for unmerged files
+    -3, --theirs          checkout their version for unmerged files
+    -f, --force           force checkout (throw away local modifications)
+    -m, --merge           perform a 3-way merge with the new branch
+    --overwrite-ignore    update ignored files (default)
+    --conflict <style>    conflict style (merge or diff3)
+    -p, --patch           select hunks interactively
+    --ignore-skip-worktree-bits
+                          do not limit pathspecs to sparse entries only
+    --ignore-other-worktrees
+                          do not check if another worktree is holding the given ref
+    --recurse-submodules[=<checkout>]
+                          control recursive updating of submodules
+    --progress            force progress reporting
+
+*/
+
+
+git checkout --m git_main_command.txt
+
+--then do commit
+
+/*
+To commit changes (added before) we use following command
+
+git commit -m "commit message"
+To commit changes and automatically add modified files (doesn't add new files)
+
+git commit -am "commit message"
+*/
+
+git commit -am "update from IS 20180621"
+
 
 
 --######################################--
@@ -96,25 +152,24 @@ Open Git Bash.
 Change the current working directory to your local project.
 
 Initialize the local directory as a Git repository.
-
 git init
-Add the files in your new local repository. This stages them for the first commit.
 
+Add the files in your new local repository. This stages them for the first commit.
 git add .
 # Adds the files in the local repository and stages them for commit. To unstage a file, use 'git reset HEAD YOUR-FILE'.
-Commit the files that you've staged in your local repository.
 
+Commit the files that you've staged in your local repository.
 git commit -m "First commit"
 # Commits the tracked changes and prepares them to be pushed to a remote repository. To remove this commit and modify the file, use 'git reset --soft HEAD~1' and commit and add the file again.
+
 Copy remote repository URL fieldAt the top of your GitHub repository's Quick Setup page, click  to copy the remote repository URL.
-
 In the Command prompt, add the URL for the remote repository where your local repository will be pushed.
-
 git remote add origin remote repository URL
 # Sets the new remote
+
 git remote -v
 # Verifies the new remote URL
-Push the changes in your local repository to GitHub.
 
+Push the changes in your local repository to GitHub.
 git push origin master
 # Pushes the changes in your local repository up to the remote repository you specified as the origin

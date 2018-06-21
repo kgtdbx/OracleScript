@@ -139,7 +139,7 @@ git commit -am "commit message"
 
 git commit -am "update from IS 20180621"
 
---pull the changes
+--pull the changes from remote repo
 git pull OracleScript master
 
 --to push new/changed files from local to remote repo

@@ -1,0 +1,102 @@
+ORAENV for windows
+If you have had the misfortune of using Oracle software on a windows environment you will know that getting the Oracle Home, SID and path set up correctly can be a real pain
+
+Example:
+Install 11g DB and then install the grid control management agent.
+Every time you open a command prompt and try to sqlplus / as sysdba to the DB you will get a network adapter error.
+
+The problem is that the path and Oracle Home will always point towards the Oracle Home of the agent (Or which ever piece of Oracle software was installed last).
+
+This is even more of a problem if you have multiple Oracle Homes installed on a windows server.
+I do not understand why 11g DB for windows does not ship with some sort of oraenv utility like it does on Unix/Linux.
+
+To that end I created my own oraenv script
+
+How to use:
+Create a batch file called oraenv.bat in some directory (I choose C:\Users\Graham\Desktop\scripts\oraenv)
+Create 2 files: cur_sid.ora and oratab.ora in the same directory
+
+In the cur_sid.ora, type db001, save and exit.
+In oratab.ora add your Oracle SID and their Oracle Homes separated by a |
+EG:
+
+DB001|C:\oracle\dbhome_1
+DB002|C:\oracle\dbhome_1
+DB003|C:\oracle\dbhome_2
+DB0011|C:\oracle\dbhome_2
+
+
+The contents of oraenv.bat should be as follows:
+
+@echo off
+REM copyright © Jan 26th 2012 GRAHAM BOYLE
+REM This code is free to use, so long as the original author is recognised
+
+REM Set the environment Variables
+REM You will need to set the path to your oraenv directory
+
+SET ORAENV_DIR=C:\Users\Graham\Desktop\scripts\oraenv
+SET ORAENV_CURRENT_SID=%ORAENV_DIR%\cur_sid.ora
+SET ORAENV_ORATAB=%ORAENV_DIR%\oratab.ora
+
+REM Print out the Current ORACLE_SID and prompt for a new one
+
+echo Please enter Oracle SID:
+echo Current SID:
+for /f %%a in (%ORAENV_CURRENT_SID%) do (
+echo %%a
+SET ORA_SID=%%a
+)
+SET /P ORA_SID="New SID [%ORA_SID%?]: "
+
+REM If the user Enters nothing then keep the Current SID, like UNIX oranev does :)
+
+IF NOT %ORA_SID%=="" echo %ORA_SID% > %ORAENV_CURRENT_SID%
+
+REM Check the ORATAB file to see if this ORACLE_SID is listed
+REM If it's not the jump back to the command prompt
+
+FIND /I "%ORA_SID%|" %ORAENV_ORATAB% > nul
+IF NOT %ERRORLEVEL%==0 (
+echo Oracle SID not found
+exit /b
+)
+
+REM Set the ORACLE_SID
+set ORACLE_SID=%ORA_SID%
+
+REM Now get the Oracle Home from the oratab file
+FOR /F "tokens=2 delims=|" %%A IN ('FIND /I "%ORA_SID%|" %ORAENV_ORATAB%') DO SET ORACLE_HOME=%%A
+
+REM Last thing to do is set the Path
+SET PATH=%ORACLE_HOME%\bin;%PATH%
+
+REM And as a nice little touch we will Print out some details for the user
+ECHO ORACLE_SID has been set to '%ORACLE_SID%' 
+ECHO ORACLE_HOME has been set to '%ORACLE_HOME%'
+
+@echo on
+
+To Run:
+
+C:\Users\Graham>cd C:\Users\Graham\Desktop\scripts\oraenv
+C:\Users\Graham\Desktop\scripts\oraenv>oraenv
+Please enter Oracle SID:
+Current SID:
+db001
+New SID [db001?]: db002
+ORACLE_SID has been set to 'db002'
+ORACLE_HOME has been set to 'C:\oracle\dbhome_1'
+C:\Users\Graham\Desktop\scripts\oraenv>oraenv
+Please enter Oracle SID:
+Current SID:
+db002
+New SID [db002?]:
+ORACLE_SID has been set to 'db002'
+ORACLE_HOME has been set to 'C:\oracle\dbhome_1'
+C:\Users\Graham\Desktop\scripts\oraenv>
+
+
+Please note pressing enter with no value when prompted for a new SID will keep the current Oracle SID.
+Happy oraenv'ing
+G. 

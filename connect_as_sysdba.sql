@@ -39,7 +39,9 @@ This parameter must be set to either SHARED or EXCLUSIVE.  When set to SHARED,
 SQL> show parameter password
  
 NAME                                 TYPE        VALUE
------------------------------------- ----------- ----------remote_login_passwordfile            string      EXCLUSIVE
+------------------------------------ ----------- ----------
+remote_login_passwordfile            string      EXCLUSIVE
+
 alter system set remote_login_passwordfile=exclusive scope=both;
  
 STEP 3.   Grant SYSDBA or SYSOPER to users.  

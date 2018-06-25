@@ -5,3 +5,28 @@
 @myscript
 SQL*plusw будет искать скрипты в каталоге %ORACLE_HOME%\bin, что неудобно: приходится указывать полный путь к файлу со скриптом.
 Для установки удобного пути по умолчанию надо определить переменную окружения SQLPATH. Заходим (Windows XP): My Computer → Properties → Advanced → Environment Variables → User variables → New и устанавливаем нужное значение, например, "C:\myscripts\sql".
+
+
+To set it as a global environment variable in Windows:
+
+Go to Control Panel -> System -> Advanced.
+Click on button “Environment Variables”. This will open a window with two sets of variables – User and System. User variables are visible to your login only, while system variables are visible to anyone else who uses the system.
+Choose “New” to create ORACLE_HOME variable as either User or System variable, depending on how you want its visibility.
+Set its value to the Oracle directory.
+Click OK to save.
+Verify through a new command line session that the value has been set correctly.
+
+
+How to unset/change/delete ORACLE_HOME
+You might want to edit or delete ORACLE_HOME when there are multiple Oracle installs machine or if Oracle installation has been moved from one location to another.
+If you only want to override the value in one runtime session without affecting ORACLE_HOME permanently, just set it on command line as you would for a new variable.
+To change it globally on Windows, follow the same steps as for setting a new variable. But click here the “Edit” or “Delete” button, in place of the “New”.
+
+
+--for cmd
+--cheack %ORACLE_HOME%
+echo %ORACLE_HOME%
+
+--if no then 
+set ORACLE_HOME=C:\app\product\12.2.0\dbhome_1
+

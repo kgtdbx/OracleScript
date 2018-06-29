@@ -52,10 +52,6 @@ END;
 --Statement 3
 --Generally, I recommend that you created a nested subprogram called "initialize" and move all of your initialization into that procedure. Then call it as the first line in your "main" subprogram. That way, an exception raised when assigning a value can be trapped in that subprogram's exception section.
 --What's a Developer to Do? Initialize Later!
-/*
-Generally, I recommend that you created a nested subprogram called "initialize" and move all of your initialization into that procedure. Then call it as the first line in your "main" subprogram. That way, an exception raised when assigning a value can be trapped in that subprogram's exception section.
-*/
-
 BEGIN 
    DECLARE  
       aname VARCHAR2 (5);  

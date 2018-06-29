@@ -1,3 +1,93 @@
+How to get client version
+
+from PowerShell:
+
+gci C:\,D:\ -recurse -filter 'oraclient*.dll' -ErrorAction SilentlyContinue | %{ $_.VersionInfo } | ft -Property FileVersion, FileName -AutoSize
+
+
+--to set ORACLE_HOME
+[Environment]::SetEnvironmentVariable("ORACLE_HOME", "C:\app\product\12.2.0\dbhome_1" , "User")
+
+--to run sqlplus and perform the script
+& 'C:\app\product\12.2.0\dbhome_1\bin\sqlplus.exe' 'system/Zvagas44@ORCLPDB1 as sysdba' '@C:\work\MyDoc\OracleScript\OracleDBPerformance\sql_fulltext.sql'
+
+from CMD:
+
+powershell "gci C:\,D:\ -recurse -filter 'oraclient*.dll' -ErrorAction SilentlyContinue | %{ $_.VersionInfo } | ft -Property FileVersion, FileName -AutoSize"
+
+
+--get SID
+get-service -Name "OracleService*" | Where-Object {$_.status -eq "Running"} | ForEach {$_.name.Replace("OracleService","")}
+
+---------------------------
+
+Open up a command prompt
+
+Start -> Run -> "cmd.exe"
+Start sqlplus as administrator
+
+sqlplus / as sysdba
+There's a system stored procedure called get_env for retrieving the value for ORACLE_HOME, thanks Sabdar Syed for the query.
+
+SQL > var OHM varchar2(100);
+SQL > EXEC dbms_system.get_env('ORACLE_HOME', :OHM) ;
+SQL > PRINT OHM
+Should return a path like this:
+
+C:\app\oracle_account\product\12.1.0\dbhome_1
+
+---------------------------
+
+
+Set up the ORACLE_HOME environment variable to point to the directory where the Oracle database client software is installed. Set the variable on the admin application server and each non-admin application server.
+
+Procedure
+Log on to the application server.
+On Microsoft Windows, log on as a user with administrative privileges and full access to the local server drives.
+
+For UNIX, log in as a non-root user, such as the opuser user that you created for the IBM® OpenPages® GRC Platform installation.
+
+Set the ORACLE_HOME environment variable to point to the Oracle Admin Client installation directory.
+On Windows:
+Right-click My Computer > Properties.
+Click Advanced system settings > Environment Variables.
+Click New in the System Variables panel.
+Add the ORACLE_HOME variable to the New System Variable box, then click OK.
+For example: ORACLE_HOME=C:\app\Administrator\product\12.1.0\client_1
+
+Select the PATH variable in the System Variables panel, and click Edit.
+In the Edit System Variable box, add the path to ORACLE_HOME at the start of the PATH variable.
+%ORACLE_HOME%\bin
+
+By default, the PATH variable already includes the path <ORACLE_HOME>\bin after you install the Oracle client software.
+
+Click OK twice to exit.
+On UNIX, add the ORACLE_HOME variable to the profile.
+On Linux, the profile is /home/<user>/.bash_profile
+On AIX®, the profile is /home/<user>/.profile
+Where <user> is the person who logs in to the operating system and creates the OpenPages installation.
+
+For example:
+
+export ORACLE_HOME=/home/oracle/app/oracle/product/12.1.0/client_1copy to clipboard
+Append the location of <ORACLE_HOME>/bin to the PATH environment variable.
+For example:
+
+export PATH=$ORACLE_HOME/bin:$PATHcopy to clipboard
+Refresh the profile.
+For example, on Linux, open a shell and run the following command:
+
+. /home/opuser/.bash_profilecopy to clipboard
+On AIX, open a shell and run the following command:
+
+. /home/opuser/.profile
+
+
+---------------------------------------------------
+
+
+
+
 Путь по умолчанию к скриптам SQL*plus for Windows
  
 По умолчанию, при попытке выполнить в SQL*plusw команду
@@ -30,3 +120,93 @@ echo %ORACLE_HOME%
 --if no then 
 set ORACLE_HOME=C:\app\product\12.2.0\dbhome_1
 
+
+Try to start the listener service using lsnrctl from DOS prompt. 
+
+set ORACLE_HOME= cd %ORACLE_HOME%/bin 
+lsnrctl start LISTENER 
+
+
+--or
+SET ORACLE_HOME=C:\app\product\12.2.0\dbhome_1
+SET ORACLE_SID=ORCL12
+
+--
+
+To configure operating system environment variables for your database instance on Windows systems:
+
+Open an operating system command window.
+Use either regedit or the Oracle Administration Assistant for Windows to make sure the ORACLE_HOME and ORACLE_SID parameters are set to the correct values in the HKEY_LOCAL_MACHINE\SOFTWARE\ORACLE\KEY_HOME_NAME registry subkey.
+Ensure that the %ORACLE_HOME%\bin directory is in your PATH environment variable. At a command prompt, use a command similar to the following:
+set PATH=%ORACLE_HOME%\bin;%PATH%
+----
+
+
+Question:  I wish to display my ORACLE_HOME variable.  How do I find the value of ORACLE_HOME?
+
+ 
+
+Answer:  There are several commands, some internal and some external to Oracle that will find your current ORACLE_HOME.  Within Oracle SQL*Plus, the following SQL command script will display the value of your ORACLE_HOME:
+
+SQL > var OH varchar2(200);
+
+SQL > EXEC dbms_system.get_env('ORACLE_HOME', :OH) ;
+
+SQL > PRINT OH
+
+There are also external commands that show the current settings for the ORACLE_HOME variable.
+
+On most UNIX distributions (AIX, Solaris Linux and HP/UX) you can use the env and echo commands to find the current setting for your ORACLE_HOME. where ORACLE_HOME is set-up as an environmental variable.
+
+$ env|grep -i ORACLE_HOME
+
+/u01/app/oracle/product/10gR2/db_1
+
+$ echo ORACLE_HOME
+
+/u01/app/oracle/product/10gR2/db_1
+
+For other OS environments there ORACLE_HOME is not defined as a variable, you can find the ORACLE_HOME directory with these command sets:
+
+AIX: Display ORACLE_HOME
+
+$ ps -ef | grep pmon
+
+ora1024   262366        1   0   Mar 23      -  0:12 ora_pmon_mysid
+ 
+ORACLE_SID is mysid
+ 
+$ ls -l /proc/262366/cwd
+
+lr-x------   2 ora1024  dba  0 Mar 23 19:31 cwd -> /data/opt/app/product/10.2.0.4/db_1/dbs/
+ 
+ORACLE_HOME is /data/opt/app/product/10.2.0.4/db_1
+ 
+
+
+Linux & Solaris:Display ORACLE_HOME
+
+$ pgrep  -lf _pmon_
+
+12546 ora_pmon_mysid
+ 
+ORACLE_SID is mysid
+ 
+$ pwdx 12546
+
+12586: /u01/oracle/10.2.0.4/ee1/dbs
+
+HP/UX: Display ORACLE_HOME
+
+
+$ ps -ef | grep pmon
+ 
+ora1024 25441     1  0  Mar 21  ?         0:24 ora_pmon_itanic10
+ 
+ORACLE_SID is itanic10
+ 
+$ pfiles 25441 | grep  bin
+ 
+25441:                  /opt/ora/app/db_1/bin/oracle
+ 
+ORACLE_HOME is /opt/ora/app/db_1

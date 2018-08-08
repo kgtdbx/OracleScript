@@ -1,0 +1,52 @@
+When your query takes too long ...
+https://community.oracle.com/message/1814597#1814597
+ Rob van Wijk
+Innovator
+Rob van Wijk Sep 17, 2008 2:34 PM
+This thread is not a question.
+
+I will use this thread to refer to in other threads, to keep me from saying the same thing over and over again.
+
+What to do when your query is too slow?
+
+First of all, you have to know why it is slow. What is the real cause of your problem. If the reason why is not known, suggesting to rewrite the query, or hinting the query, suggesting parallellization et cetera is not very productive. Once in a while you may get lucky. But even then you have to realize that if your problem seems "solved", but you don't know why, nothing guarantees you that the problem won't come back tomorrow. So the first step should always be to investigate the root cause.
+
+The tools at your disposal are, among more:
+- dbms_profiler
+- explain plan
+- SQL*Trace / tkprof
+- statspack
+
+Use dbms_profiler if you want to know where time is being spent in PL/SQL code. Statspack is a must if you are a dba and want to know what is going on in your entire database. For a single query or a small process, explain plan and SQL*Trace and tkprof are your tools.
+
+explain plan
+
+in SQL*Plus you have to type:
+explain plan for <your query>;
+select * from table(dbms_xplan.display);
+When you get error messages or a message complaining about an old version of plan_table, make sure you run the script utlxplan.sql.
+
+The output you get here basically shows you what the cost based optimizer expects. It gives you an idea on why the cost based optimizer chooses an access path.
+
+SQL*Trace/tkprof
+
+For this you have to type in SQL*Plus:
+- alter session set sql_trace true;
+- <run your query>
+- disconnect (this step is important, because it ensures all cursors get closed, and "row source operation" is generated)
+- identify your trace file in the server directory as specified in the parameter user_dump_dest
+- on your operating system: tkprof <trace file> a.txt sys=no sort=prsela exeela fchela
+
+The file a.txt will now give you valuable information on what has actually happened. No predictions but the truth.
+
+By comparing the output from explain plan with the output from tkprof, you are able to identify the possible problem areas.
+
+So before rushing into possible solutions, always post the output of explain plan and tkprof with your question and don't forget to post them between the tags {noformat}
+{noformat} and {noformat}
+{noformat} for readability.
+
+PS: I am fully aware that this text is only a tiny fraction of what can be done, and that other people may choose different tools and actions, but the above gives you a very reasonable start at solving your performance problem.
+
+Edited by: Rob van Wijk on 17-sep-2008 16:32
+
+Adjusted the layout for the new forum software

@@ -1,0 +1,25 @@
+Tuning Steps
+
+First steps to identify performance problems on your Oracle Database
+
+– Look for objects statistics (they might be up-to-date for all objects)
+
+– Get the bottlenecks with Wait Events
+
+– Look for non-reentrant SQL (literals values inside SQL from v$sql)
+
+– Get advices concerning memories structures
+
+Advanced steps to identify performance problems on your Oracle Database
+
+– Install Statspack and get hourly snapshots
+
+– Analyze report for peak times activity
+
+– Get the bottlenecks with Wait Events
+
+– Find objects that the most used; try to put them in the “keep cache”
+
+– See if large-table full-table scans can be removed with well-placed indexes
+
+– Look for non-shared cursors

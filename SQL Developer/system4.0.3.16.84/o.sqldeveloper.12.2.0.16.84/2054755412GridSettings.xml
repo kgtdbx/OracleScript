@@ -1,0 +1,28 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">JOB_ID</Item>
+      <Item class="java.lang.String">JOB_NAME</Item>
+      <Item class="java.lang.String">JOB_START</Item>
+      <Item class="java.lang.String">CURRENT_USER</Item>
+      <Item class="java.lang.String">OS_USER</Item>
+      <Item class="java.lang.String">LOAD_DATE</Item>
+      <Item class="java.lang.String">STOP_ALL_JOB_LOADS</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>55</Item>
+      <Item>187</Item>
+      <Item>76</Item>
+      <Item>98</Item>
+      <Item>82</Item>
+      <Item>78</Item>
+      <Item>132</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item class="java.lang.String">3 asc</Item>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_KVASIRselect *
+from job_info j</uniqueName>
+</TableSettings>

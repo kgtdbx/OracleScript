@@ -1,0 +1,24 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">REFERENCE_DATE</Item>
+      <Item class="java.lang.String">TABLE_NAME</Item>
+      <Item class="java.lang.String">COLUMN_NAME</Item>
+      <Item class="java.lang.String">COLUMN_TYPE</Item>
+      <Item class="java.lang.String">COLUMN_TESTED</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>109</Item>
+      <Item>208</Item>
+      <Item>215</Item>
+      <Item>91</Item>
+      <Item>104</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item class="java.lang.String">3 asc</Item>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23vhgstbclone_depositsselect * 
+from diff_agr_prod_status</uniqueName>
+</TableSettings>

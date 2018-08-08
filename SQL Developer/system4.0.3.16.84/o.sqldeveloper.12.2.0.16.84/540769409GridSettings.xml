@@ -1,0 +1,85 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">OWNER</Item>
+      <Item class="java.lang.String">MVIEW_NAME</Item>
+      <Item class="java.lang.String">CONTAINER_NAME</Item>
+      <Item class="java.lang.String">QUERY</Item>
+      <Item class="java.lang.String">QUERY_LEN</Item>
+      <Item class="java.lang.String">UPDATABLE</Item>
+      <Item class="java.lang.String">UPDATE_LOG</Item>
+      <Item class="java.lang.String">MASTER_ROLLBACK_SEG</Item>
+      <Item class="java.lang.String">MASTER_LINK</Item>
+      <Item class="java.lang.String">REWRITE_ENABLED</Item>
+      <Item class="java.lang.String">REWRITE_CAPABILITY</Item>
+      <Item class="java.lang.String">REFRESH_MODE</Item>
+      <Item class="java.lang.String">REFRESH_METHOD</Item>
+      <Item class="java.lang.String">BUILD_MODE</Item>
+      <Item class="java.lang.String">FAST_REFRESHABLE</Item>
+      <Item class="java.lang.String">LAST_REFRESH_TYPE</Item>
+      <Item class="java.lang.String">LAST_REFRESH_DATE</Item>
+      <Item class="java.lang.String">LAST_REFRESH_END_TIME</Item>
+      <Item class="java.lang.String">STALENESS</Item>
+      <Item class="java.lang.String">AFTER_FAST_REFRESH</Item>
+      <Item class="java.lang.String">UNKNOWN_PREBUILT</Item>
+      <Item class="java.lang.String">UNKNOWN_PLSQL_FUNC</Item>
+      <Item class="java.lang.String">UNKNOWN_EXTERNAL_TABLE</Item>
+      <Item class="java.lang.String">UNKNOWN_CONSIDER_FRESH</Item>
+      <Item class="java.lang.String">UNKNOWN_IMPORT</Item>
+      <Item class="java.lang.String">UNKNOWN_TRUSTED_FD</Item>
+      <Item class="java.lang.String">COMPILE_STATE</Item>
+      <Item class="java.lang.String">USE_NO_INDEX</Item>
+      <Item class="java.lang.String">STALE_SINCE</Item>
+      <Item class="java.lang.String">NUM_PCT_TABLES</Item>
+      <Item class="java.lang.String">NUM_FRESH_PCT_REGIONS</Item>
+      <Item class="java.lang.String">NUM_STALE_PCT_REGIONS</Item>
+      <Item class="java.lang.String">SEGMENT_CREATED</Item>
+      <Item class="java.lang.String">EVALUATION_EDITION</Item>
+      <Item class="java.lang.String">UNUSABLE_BEFORE</Item>
+      <Item class="java.lang.String">UNUSABLE_BEGINNING</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>57</Item>
+      <Item>215</Item>
+      <Item>215</Item>
+      <Item>203243</Item>
+      <Item>77</Item>
+      <Item>76</Item>
+      <Item>84</Item>
+      <Item>141</Item>
+      <Item>87</Item>
+      <Item>115</Item>
+      <Item>129</Item>
+      <Item>99</Item>
+      <Item>112</Item>
+      <Item>83</Item>
+      <Item>119</Item>
+      <Item>124</Item>
+      <Item>126</Item>
+      <Item>150</Item>
+      <Item>96</Item>
+      <Item>133</Item>
+      <Item>124</Item>
+      <Item>140</Item>
+      <Item>163</Item>
+      <Item>167</Item>
+      <Item>116</Item>
+      <Item>141</Item>
+      <Item>100</Item>
+      <Item>95</Item>
+      <Item>85</Item>
+      <Item>108</Item>
+      <Item>155</Item>
+      <Item>153</Item>
+      <Item>117</Item>
+      <Item>130</Item>
+      <Item>115</Item>
+      <Item>131</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_KVASIRSELECT * FROM ALL_MVIEWS AM
+WHERE AM.OWNER = 'KVASIR'</uniqueName>
+</TableSettings>

@@ -1,0 +1,2734 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<displays>
+<display id="44f2b02c-015c-1000-8001-0a66094055c2" type="" style="Table" enable="true">
+	<name><![CDATA[my Sessions 1]]></name>
+	<description><![CDATA[Sessions]]></description>
+	<tooltip><![CDATA[Sessions]]></tooltip>
+	<drillclass><![CDATA[]]></drillclass>
+	<CustomValues>
+		<TYPE>horizontal</TYPE>
+	</CustomValues>
+	<query>
+		<sql><![CDATA[with vs as (select rownum rnum,
+                                                                              sid,
+                                                                              serial#,
+                                                                              status,
+                                                                              username,
+                                                                              last_call_et,
+                                                                              command,
+                                                                              machine,
+                                                                              osuser,
+                                                                              module,
+                                                                              action,
+                                                                              resource_consumer_group,
+                                                                              client_info,
+                                                                              client_identifier,
+                                                                              type,
+                                                                              terminal,
+                                                                              sql_id
+                                                                         from v$session) 
+                                                             select vs.sid ,serial# serial, vs.sql_id,
+                                                                    vs.username "Username",
+                                                                    case when vs.status = 'ACTIVE' 
+                                                                              then last_call_et 
+                                                                         else null end "Seconds in Wait",
+                                                                    decode(vs.command,  
+                                                                     0,null, 
+                                                                     1,'CRE TAB', 
+                                                                     2,'INSERT', 
+                                                                     3,'SELECT', 
+                                                                     4,'CRE CLUSTER', 
+                                                                     5,'ALT CLUSTER', 
+                                                                     6,'UPDATE', 
+                                                                     7,'DELETE', 
+                                                                     8,'DRP CLUSTER', 
+                                                                     9,'CRE INDEX', 
+                                                                     10,'DROP INDEX', 
+                                                                     11,'ALT INDEX', 
+                                                                     12,'DROP TABLE', 
+                                                                     13,'CRE SEQ', 
+                                                                     14,'ALT SEQ', 
+                                                                     15,'ALT TABLE', 
+                                                                     16,'DROP SEQ', 
+                                                                     17,'GRANT', 
+                                                                     18,'REVOKE', 
+                                                                     19,'CRE SYN', 
+                                                                     20,'DROP SYN', 
+                                                                     21,'CRE VIEW', 
+                                                                     22,'DROP VIEW', 
+                                                                     23,'VAL INDEX', 
+                                                                     24,'CRE PROC', 
+                                                                     25,'ALT PROC', 
+                                                                     26,'LOCK TABLE', 
+                                                                     28,'RENAME', 
+                                                                     29,'COMMENT', 
+                                                                     30,'AUDIT', 
+                                                                     31,'NOAUDIT', 
+                                                                     32,'CRE DBLINK', 
+                                                                     33,'DROP DBLINK', 
+                                                                     34,'CRE DB', 
+                                                                     35,'ALTER DB', 
+                                                                     36,'CRE RBS', 
+                                                                     37,'ALT RBS', 
+                                                                     38,'DROP RBS', 
+                                                                     39,'CRE TBLSPC', 
+                                                                     40,'ALT TBLSPC', 
+                                                                     41,'DROP TBLSPC', 
+                                                                     42,'ALT SESSION', 
+                                                                     43,'ALT USER', 
+                                                                     44,'COMMIT', 
+                                                                     45,'ROLLBACK', 
+                                                                     46,'SAVEPOINT', 
+                                                                     47,'PL/SQL EXEC', 
+                                                                     48,'SET XACTN', 
+                                                                     49,'SWITCH LOG', 
+                                                                     50,'EXPLAIN', 
+                                                                     51,'CRE USER', 
+                                                                     52,'CRE ROLE', 
+                                                                     53,'DROP USER', 
+                                                                     54,'DROP ROLE', 
+                                                                     55,'SET ROLE', 
+                                                                     56,'CRE SCHEMA', 
+                                                                     57,'CRE CTLFILE', 
+                                                                     58,'ALTER TRACING', 
+                                                                     59,'CRE TRIGGER', 
+                                                                     60,'ALT TRIGGER', 
+                                                                     61,'DRP TRIGGER', 
+                                                                     62,'ANALYZE TAB', 
+                                                                     63,'ANALYZE IX', 
+                                                                     64,'ANALYZE CLUS', 
+                                                                     65,'CRE PROFILE', 
+                                                                     66,'DRP PROFILE', 
+                                                                     67,'ALT PROFILE', 
+                                                                     68,'DRP PROC', 
+                                                                     69,'DRP PROC', 
+                                                                     70,'ALT RESOURCE', 
+                                                                     71,'CRE SNPLOG', 
+                                                                     72,'ALT SNPLOG', 
+                                                                     73,'DROP SNPLOG', 
+                                                                     74,'CREATE SNAP', 
+                                                                     75,'ALT SNAP', 
+                                                                     76,'DROP SNAP', 
+                                                                     79,'ALTER ROLE', 
+                                                                     79,'ALTER ROLE', 
+                                                                     85,'TRUNC TAB', 
+                                                                     86,'TRUNC CLUST', 
+                                                                     88,'ALT VIEW', 
+                                                                     91,'CRE FUNC', 
+                                                                     92,'ALT FUNC', 
+                                                                     93,'DROP FUNC', 
+                                                                     94,'CRE PKG', 
+                                                                     95,'ALT PKG', 
+                                                                     96,'DROP PKG', 
+                                                                     97,'CRE PKG BODY', 
+                                                                     98,'ALT PKG BODY', 
+                                                                     99,'DRP PKG BODY', 
+                                                                     to_char(vs.command)) "Command",
+                                                                    vs.machine "Machine",
+                                                                    vs.osuser "OS User", 
+                                                                    lower(vs.status) "Status",
+                                                                    vs.module "Module",
+                                                                    vs.action "Action",
+                                                                    vs.resource_consumer_group,
+                                                                    vs.client_info,
+                                                                    vs.client_identifier
+                                                               from vs 
+                                                              where vs.USERNAME is not null
+                                                                and nvl(vs.osuser,'x') <> 'SYSTEM'
+                                                                and vs.type <> 'BACKGROUND'
+                                                                order by 1]]></sql>
+	</query>
+		<pdf version="VERSION_1_7" compression="CONTENT">
+			<docproperty title="null" author="null" subject="null" keywords="null" />
+			<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+			<column>
+				<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+				<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+				<blob blob="NONE" zip="false" />
+			</column>
+			<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+			<header enable="false" generatedate="false">
+				<data>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				null																																																</data>
+			</header>
+			<footer enable="false" generatedate="false">
+				<data value="null" />
+			</footer>
+			<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+				<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+			</security>
+			<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+		</pdf>
+	<display id="" type="" style="Code" enable="true">
+		<name><![CDATA[Active SQL]]></name>
+		<description><![CDATA[The Current or last SQL for the selected session]]></description>
+		<tooltip><![CDATA[The Current or last SQL for the selected session]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<query>
+			<sql><![CDATA[select replace(q.SQL_FULLTEXT,chr(0)) sql_text
+                                        from v$session s,v$sql q
+                            where s.sql_address = q.address
+                                         and s.sql_hash_value = q.hash_value
+                                         and s.sid = :SID]]></sql>
+			<binds>
+				<bind id="SID">
+					<prompt><![CDATA[SID]]></prompt>
+					<tooltip><![CDATA[SID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="" author="" subject="" keywords="" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																												</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Explain Plan]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[SELECT sp.inst_id, plan_hash_value,LPAD('  ',4*(DEPTH-1))||operation||' '||options
+   ||' '||object_name
+   ||' '||DECODE(id, 0, 'Cost = '||position) "Query Plan",lpad(
+                        CASE
+                                WHEN cardinality > 1000000
+                                THEN to_char(trunc(cardinality/1000000)) || 'M'
+                                WHEN cardinality > 1000
+                                THEN to_char(trunc(cardinality/1000)) || 'K'
+                                ELSE cardinality || ' '
+                        END
+                ,       6
+                ,       ' '
+                ) AS "Rows" 
+  --  nvl(entries,0) as "Rowsource Time"
+   FROM v$sql_plan sp
+   /*,(select sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value, count(*) entries
+from v$active_session_history where sql_id = :SQL_ID
+and sql_exec_id = (select sql_exec_id from v$active_session_history 
+                    where sql_id =  :SQL_ID and rownum=1)
+group by sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value
+) ash
+  WHERE sp.sql_id = :SQL_ID
+  AND ash.sql_id(+) = sp.sql_id
+  AND ash.sql_plan_line_id(+)= sp.id
+  ORDER by sp.plan_hash_value, sp.id 
+   */
+  WHERE sp.sql_id = :SQL_ID 
+  order by sp.plan_hash_value,sp.inst_id,sp.child_address,sp.id]]></sql>
+		</query>
+		<query>
+			<sql><![CDATA[SELECT  LPAD('  ',4*(DEPTH-1))||operation||' '||options
+   ||' '||object_name
+   ||' '||DECODE(id, 0, 'Cost = '||position) "Query Plan",lpad(
+                        CASE
+                                WHEN cardinality > 1000000
+                                THEN to_char(trunc(cardinality/1000000)) || 'M'
+                                WHEN cardinality > 1000
+                                THEN to_char(trunc(cardinality/1000)) || 'K'
+                                ELSE cardinality || ' '
+                        END
+                ,       6
+                ,       ' '
+                ) AS "Rows",
+    nvl(entries,0) as "Rowsource Time(s)"
+   FROM v$sql_plan sp,(select sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value, count(*) entries
+from v$active_session_history where sql_id = :SQL_ID
+and sql_exec_id = (select sql_exec_id from v$active_session_history 
+                    where sql_id =  :SQL_ID and rownum=1)
+group by sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value
+) ash
+  WHERE sp.sql_id = :SQL_ID
+  AND ash.sql_id(+) = sp.sql_id
+  AND ash.sql_plan_line_id(+)= sp.id
+  ORDER by sp.plan_hash_value, sp.id]]></sql>
+			<binds>
+				<bind id="SQL_ID">
+					<prompt><![CDATA[SQL_ID]]></prompt>
+					<tooltip><![CDATA[SQL_ID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																												</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Waits]]></name>
+		<description><![CDATA[Session Waits]]></description>
+		<tooltip><![CDATA[Session Waits]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select event,p1,p2,
+                                   case when p3 = 0 then null else p3 end p3
+                              from v$session_wait
+                             where sid = :SID]]></sql>
+			<binds>
+				<bind id="SID">
+					<prompt><![CDATA[SID]]></prompt>
+					<tooltip><![CDATA[SID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																												</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Server]]></name>
+		<description><![CDATA[Server Details]]></description>
+		<tooltip><![CDATA[Server Details]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select s.SID,s.status,s.username,s.process,s.LOGON_TIME,
+                                   s.logon_time since,s.server,s.type,p.spid,p.TRACEID,
+                                   s.serial#
+                              from v$session s, v$process p
+                             where sid = :SID
+                               and s.paddr = p.addr]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																												</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Client]]></name>
+		<description><![CDATA[Client Info]]></description>
+		<tooltip><![CDATA[Client Info]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select osuser,machine,terminal,CLIENT_INFO,CLIENT_IDENTIFIER
+                              from v$session
+                             where sid = :SID]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																												</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Application]]></name>
+		<description><![CDATA[Application Info    ]]></description>
+		<tooltip><![CDATA[Application Info]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select  decode(command,  
+                                                                     0,null, 
+                                                                     1,'CRE TAB', 
+                                                                     2,'INSERT', 
+                                                                     3,'SELECT', 
+                                                                     4,'CRE CLUSTER', 
+                                                                     5,'ALT CLUSTER', 
+                                                                     6,'UPDATE', 
+                                                                     7,'DELETE', 
+                                                                     8,'DRP CLUSTER', 
+                                                                     9,'CRE INDEX', 
+                                                                     10,'DROP INDEX', 
+                                                                     11,'ALT INDEX', 
+                                                                     12,'DROP TABLE', 
+                                                                     13,'CRE SEQ', 
+                                                                     14,'ALT SEQ', 
+                                                                     15,'ALT TABLE', 
+                                                                     16,'DROP SEQ', 
+                                                                     17,'GRANT', 
+                                                                     18,'REVOKE', 
+                                                                     19,'CRE SYN', 
+                                                                     20,'DROP SYN', 
+                                                                     21,'CRE VIEW', 
+                                                                     22,'DROP VIEW', 
+                                                                     23,'VAL INDEX', 
+                                                                     24,'CRE PROC', 
+                                                                     25,'ALT PROC', 
+                                                                     26,'LOCK TABLE', 
+                                                                     28,'RENAME', 
+                                                                     29,'COMMENT', 
+                                                                     30,'AUDIT', 
+                                                                     31,'NOAUDIT', 
+                                                                     32,'CRE DBLINK', 
+                                                                     33,'DROP DBLINK', 
+                                                                     34,'CRE DB', 
+                                                                     35,'ALTER DB', 
+                                                                     36,'CRE RBS', 
+                                                                     37,'ALT RBS', 
+                                                                     38,'DROP RBS', 
+                                                                     39,'CRE TBLSPC', 
+                                                                     40,'ALT TBLSPC', 
+                                                                     41,'DROP TBLSPC', 
+                                                                     42,'ALT SESSION', 
+                                                                     43,'ALT USER', 
+                                                                     44,'COMMIT', 
+                                                                     45,'ROLLBACK', 
+                                                                     46,'SAVEPOINT', 
+                                                                     47,'PL/SQL EXEC', 
+                                                                     48,'SET XACTN', 
+                                                                     49,'SWITCH LOG', 
+                                                                     50,'EXPLAIN', 
+                                                                     51,'CRE USER', 
+                                                                     52,'CRE ROLE', 
+                                                                     53,'DROP USER', 
+                                                                     54,'DROP ROLE', 
+                                                                     55,'SET ROLE', 
+                                                                     56,'CRE SCHEMA', 
+                                                                     57,'CRE CTLFILE', 
+                                                                     58,'ALTER TRACING', 
+                                                                     59,'CRE TRIGGER', 
+                                                                     60,'ALT TRIGGER', 
+                                                                     61,'DRP TRIGGER', 
+                                                                     62,'ANALYZE TAB', 
+                                                                     63,'ANALYZE IX', 
+                                                                     64,'ANALYZE CLUS', 
+                                                                     65,'CRE PROFILE', 
+                                                                     66,'DRP PROFILE', 
+                                                                     67,'ALT PROFILE', 
+                                                                     68,'DRP PROC', 
+                                                                     69,'DRP PROC', 
+                                                                     70,'ALT RESOURCE', 
+                                                                     71,'CRE SNPLOG', 
+                                                                     72,'ALT SNPLOG', 
+                                                                     73,'DROP SNPLOG', 
+                                                                     74,'CREATE SNAP', 
+                                                                     75,'ALT SNAP', 
+                                                                     76,'DROP SNAP', 
+                                                                     79,'ALTER ROLE', 
+                                                                     79,'ALTER ROLE', 
+                                                                     85,'TRUNC TAB', 
+                                                                     86,'TRUNC CLUST', 
+                                                                     88,'ALT VIEW', 
+                                                                     91,'CRE FUNC', 
+                                                                     92,'ALT FUNC', 
+                                                                     93,'DROP FUNC', 
+                                                                     94,'CRE PKG', 
+                                                                     95,'ALT PKG', 
+                                                                     96,'DROP PKG', 
+                                                                     97,'CRE PKG BODY', 
+                                                                     98,'ALT PKG BODY', 
+                                                                     99,'DRP PKG BODY', 
+                                                                     to_char(command)) "Command"
+                            ,LAST_CALL_ET,program,module,action
+                             from v$session where sid = :SID]]></sql>
+			<binds>
+				<bind id="SID">
+					<prompt><![CDATA[SID]]></prompt>
+					<tooltip><![CDATA[SID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																												</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Contention]]></name>
+		<description><![CDATA[Contention ( Locks ) ]]></description>
+		<tooltip><![CDATA[Contention ( Locks ) ]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[with locks as(
+                                select session_id,lock_type,
+                                       mode_held,mode_requested,lock_id1,lock_id2,blocking_others
+                                  from sys.dba_lock),
+                            waiters as (
+                                select w.session_id waiting_session,
+                                        h.session_id holding_session,
+                                        w.lock_type lock_type,
+                                        h.mode_held mode_held,
+                                        w.mode_requested mode_requested,
+                                        w.lock_id1,
+                                        w.lock_id2
+                                  from locks w, locks h
+                                 where h.blocking_others =  'Blocking'
+                                  and  h.mode_held      !=  'None'
+                                  and  h.mode_held      !=  'Null'
+                                  and  w.mode_requested !=  'None'
+                                  and  w.lock_type       =  h.lock_type
+                                  and  w.lock_id1        =  h.lock_id1
+                                  and  w.lock_id2        =  h.lock_id2
+                                  and  (w.session_id = :SID
+                                        or
+                                        h.session_id = :SID)),
+                            blockers as(
+                                select holding_session waiting_session, to_number(null) holding_session, 
+                                       'None' lock_type, null mode_held, null mode_requested, 
+                                       null lock_id1, null lock_id2
+                                  from waiters
+                                 minus
+                                select waiting_session waiting_session, to_number(null) holding_session, 
+                                       'None' lock_type, null mode_held, null mode_requested, 
+                                       null lock_id1, null lock_id2
+                                  from waiters),
+                            waiters_blockers as(
+                                select waiting_session,holding_session,lock_type,mode_held,mode_requested,lock_id1,lock_id2
+                                  from waiters
+                                 union all
+                                select waiting_session,holding_session,lock_type,mode_held,mode_requested,lock_id1,lock_id2
+                                  from blockers),
+                            lock_objects as(
+                                select session_id,cnt lock_obj_count,
+                                       case when cnt = 1 then object_name
+                                            else null end object_name,
+                                       object_id,owner,object_type
+                                  from(
+                                    select session_id,count(distinct object_name) cnt,max(object_name) object_name,
+                                           max(lo.object_id) object_id, max(ao.owner) owner,max(object_type) object_type
+                                      from gv$locked_object lo,all_objects ao,waiters_blockers wb
+                                     where lo.object_id = ao.object_id
+                                       and (wb.waiting_session = lo.session_id
+                                            or
+                                            wb.holding_session = lo.session_id)
+                                     group by session_id)),
+                            wait_block_ses as(
+                            select waiting_session,holding_session,lock_type,mode_held,mode_requested,
+                                   s.username,s.osuser,s.CLIENT_INFO,s.CLIENT_IDENTIFIER,o.object_name,o.owner,o.object_id,module,o.object_type,o.lock_obj_count,
+                                    decode(s.command,  
+                                     0,null, 
+                                     1,'CRE TAB', 
+                                     2,'INSERT', 
+                                     3,'SELECT', 
+                                     4,'CRE CLUSTER', 
+                                     5,'ALT CLUSTER', 
+                                     6,'UPDATE', 
+                                     7,'DELETE', 
+                                     8,'DRP CLUSTER', 
+                                     9,'CRE INDEX', 
+                                     10,'DROP INDEX', 
+                                     11,'ALT INDEX', 
+                                     12,'DROP TABLE', 
+                                     13,'CRE SEQ', 
+                                     14,'ALT SEQ', 
+                                     15,'ALT TABLE', 
+                                     16,'DROP SEQ', 
+                                     17,'GRANT', 
+                                     18,'REVOKE', 
+                                     19,'CRE SYN', 
+                                     20,'DROP SYN', 
+                                     21,'CRE VIEW', 
+                                     22,'DROP VIEW', 
+                                     23,'VAL INDEX', 
+                                     24,'CRE PROC', 
+                                     25,'ALT PROC', 
+                                     26,'LOCK TABLE', 
+                                     28,'RENAME', 
+                                     29,'COMMENT', 
+                                     30,'AUDIT', 
+                                     31,'NOAUDIT', 
+                                     32,'CRE DBLINK', 
+                                     33,'DROP DBLINK', 
+                                     34,'CRE DB', 
+                                     35,'ALTER DB', 
+                                     36,'CRE RBS', 
+                                     37,'ALT RBS', 
+                                     38,'DROP RBS', 
+                                     39,'CRE TBLSPC', 
+                                     40,'ALT TBLSPC', 
+                                     41,'DROP TBLSPC', 
+                                     42,'ALT SESSION', 
+                                     43,'ALT USER', 
+                                     44,'COMMIT', 
+                                     45,'ROLLBACK', 
+                                     46,'SAVEPOINT', 
+                                     47,'PL/SQL EXEC', 
+                                     48,'SET XACTN', 
+                                     49,'SWITCH LOG', 
+                                     50,'EXPLAIN', 
+                                     51,'CRE USER', 
+                                     52,'CRE ROLE', 
+                                     53,'DROP USER', 
+                                     54,'DROP ROLE', 
+                                     55,'SET ROLE', 
+                                     56,'CRE SCHEMA', 
+                                     57,'CRE CTLFILE', 
+                                     58,'ALTER TRACING', 
+                                     59,'CRE TRIGGER', 
+                                     60,'ALT TRIGGER', 
+                                     61,'DRP TRIGGER', 
+                                     62,'ANALYZE TAB', 
+                                     63,'ANALYZE IX', 
+                                     64,'ANALYZE CLUS', 
+                                     65,'CRE PROFILE', 
+                                     66,'DRP PROFILE', 
+                                     67,'ALT PROFILE', 
+                                     68,'DRP PROC', 
+                                     69,'DRP PROC', 
+                                     70,'ALT RESOURCE', 
+                                     71,'CRE SNPLOG', 
+                                     72,'ALT SNPLOG', 
+                                     73,'DROP SNPLOG', 
+                                     74,'CREATE SNAP', 
+                                     75,'ALT SNAP', 
+                                     76,'DROP SNAP', 
+                                     79,'ALTER ROLE', 
+                                     79,'ALTER ROLE', 
+                                     85,'TRUNC TAB', 
+                                     86,'TRUNC CLUST', 
+                                     88,'ALT VIEW', 
+                                     91,'CRE FUNC', 
+                                     92,'ALT FUNC', 
+                                     93,'DROP FUNC', 
+                                     94,'CRE PKG', 
+                                     95,'ALT PKG', 
+                                     96,'DROP PKG', 
+                                     97,'CRE PKG BODY', 
+                                     98,'ALT PKG BODY', 
+                                     99,'DRP PKG BODY', 
+                                     to_char(s.command)) command
+                              from waiters_blockers wb, v$session s,
+                                   lock_objects o
+                             where s.sid = wb.waiting_session
+                               and o.session_id(+) = wb.waiting_session
+                              )
+                            select  case when holding_session is null then 'Lock'
+                                         else 'Lock Waiting'
+                                   end status,
+                                   waiting_session,
+                                   username,
+                                    object_name,      
+                                   object_id,owner,object_type
+                              from wait_block_ses 
+                             start with holding_session is null
+                             connect by prior waiting_session =  holding_session]]></sql>
+			<binds>
+				<bind id="SID">
+					<prompt><![CDATA[SID]]></prompt>
+					<tooltip><![CDATA[SID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																												</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Long Opsq]]></name>
+		<description><![CDATA[% done of long running transactions]]></description>
+		<tooltip><![CDATA[Long operations]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[SELECT
+								       TRUNC(sl.elapsed_seconds/60) || ':' || MOD(sl.elapsed_seconds,60) elapsed,
+								       TRUNC(sl.time_remaining/60) || ':' || MOD(sl.time_remaining,60) remaining,
+								       ROUND(sl.sofar/sl.totalwork*100, 2) progress_pct--, inst_id
+							FROM         v$session_longops sl
+							WHERE  sql_id =:SQL_ID
+							AND time_remaining > 0]]></sql>
+			<binds>
+				<bind id="SQL_ID">
+					<prompt><![CDATA[SQL_ID]]></prompt>
+					<tooltip><![CDATA[SQL_ID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																												</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+</display>
+<display id="541015ac-015c-1000-8001-0a6609409f84" type="" style="Table" enable="true">
+	<name><![CDATA[my Active Sessions]]></name>
+	<description><![CDATA[Active Sessions]]></description>
+	<tooltip><![CDATA[Active Sessions]]></tooltip>
+	<drillclass><![CDATA[]]></drillclass>
+	<CustomValues>
+		<TYPE>horizontal</TYPE>
+	</CustomValues>
+	<query>
+		<sql><![CDATA[select /*inst_id,*/program,module,event,SQL_ID,machine,osuser,
+lpad(
+                to_char(
+                        trunc(24*(sysdate-s.logon_time))
+                ) ||
+                to_char(trunc(sysdate) + (sysdate-s.logon_time)
+                ,       ':MI:SS'
+                )
+        , 10, ' ') AS UP_time from v$session s where type!='BACKGROUND'
+and status='ACTIVE' and sql_id is not null]]></sql>
+	</query>
+		<pdf version="VERSION_1_7" compression="CONTENT">
+			<docproperty title="null" author="null" subject="null" keywords="null" />
+			<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+			<column>
+				<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+				<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+				<blob blob="NONE" zip="false" />
+			</column>
+			<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+			<header enable="false" generatedate="false">
+				<data>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				null																																												</data>
+			</header>
+			<footer enable="false" generatedate="false">
+				<data value="null" />
+			</footer>
+			<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+				<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+			</security>
+			<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+		</pdf>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[SQL Text]]></name>
+		<description><![CDATA[SQL Text	]]></description>
+		<tooltip><![CDATA[SQL Text]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select --inst_id,
+                                      (cpu_time/1000000) "CPU_Seconds",
+                                      disk_reads "Disk_Reads",
+                                      buffer_gets "Buffer_Gets",
+                                      executions "Executions",
+                                      case when rows_processed = 0 then null
+                                           else round((buffer_gets/nvl(replace(rows_processed,0,1),1))) 
+                                           end "Buffer_gets/rows_proc",
+                                      round((buffer_gets/nvl(replace(executions,0,1),1))) "Buffer_gets/executions",
+                                      (elapsed_time/1000000) "Elapsed_Seconds", 
+                                      substr(sql_text,1,500) "SQL",
+                                      module "Module",sql_id
+                                 from v$sql s
+                                 where sql_id =:SQL_ID]]></sql>
+			<binds>
+				<bind id="SQL_ID">
+					<prompt><![CDATA[SQL_ID]]></prompt>
+					<tooltip><![CDATA[SQL_ID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																							</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Explain Plan]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[SELECT /*sp.inst_id,*/ plan_hash_value,LPAD('  ',4*(DEPTH-1))||operation||' '||options
+   ||' '||object_name
+   ||' '||DECODE(id, 0, 'Cost = '||position) "Query Plan",lpad(
+                        CASE
+                                WHEN cardinality > 1000000
+                                THEN to_char(trunc(cardinality/1000000)) || 'M'
+                                WHEN cardinality > 1000
+                                THEN to_char(trunc(cardinality/1000)) || 'K'
+                                ELSE cardinality || ' '
+                        END
+                ,       6
+                ,       ' '
+                ) AS "Rows" 
+  --  nvl(entries,0) as "Rowsource Time"
+   FROM v$sql_plan sp
+   /*,(select sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value, count(*) entries
+from v$active_session_history where sql_id = :SQL_ID
+and sql_exec_id = (select sql_exec_id from v$active_session_history 
+                    where sql_id =  :SQL_ID and rownum=1)
+group by sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value
+) ash
+  WHERE sp.sql_id = :SQL_ID
+  AND ash.sql_id(+) = sp.sql_id
+  AND ash.sql_plan_line_id(+)= sp.id
+  ORDER by sp.plan_hash_value, sp.id 
+   */
+  WHERE sp.sql_id = :SQL_ID 
+  --and sp.inst_id=:INST_ID
+  order by sp.plan_hash_value/*,sp.inst_id*/,sp.child_address,sp.id]]></sql>
+			<binds>
+				<bind id="SQL_ID">
+					<prompt><![CDATA[SQL_ID]]></prompt>
+					<tooltip><![CDATA[SQL_ID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+		<query>
+			<sql><![CDATA[SELECT  LPAD('  ',4*(DEPTH-1))||operation||' '||options
+   ||' '||object_name
+   ||' '||DECODE(id, 0, 'Cost = '||position) "Query Plan",lpad(
+                        CASE
+                                WHEN cardinality > 1000000
+                                THEN to_char(trunc(cardinality/1000000)) || 'M'
+                                WHEN cardinality > 1000
+                                THEN to_char(trunc(cardinality/1000)) || 'K'
+                                ELSE cardinality || ' '
+                        END
+                ,       6
+                ,       ' '
+                ) AS "Rows",
+    nvl(entries,0) as "Rowsource Time(s)"
+   FROM v$sql_plan sp,(select sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value, count(*) entries
+from v$active_session_history where sql_id = :SQL_ID
+and sql_exec_id = (select sql_exec_id from v$active_session_history 
+                    where sql_id =  :SQL_ID and rownum=1)
+group by sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value
+) ash
+  WHERE sp.sql_id = :SQL_ID
+  AND ash.sql_id(+) = sp.sql_id
+  AND ash.sql_plan_line_id(+)= sp.id
+  ORDER by sp.plan_hash_value, sp.id]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																							</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Bind Variables]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select  /*inst_id, */position,datatype_string,value_string value,sql_id, to_char(last_captured,'hh:MI:SS') 
+   from v$sql_bind_capture
+  where 
+  last_captured is not null and 
+  sql_id=:SQL_ID
+   order by last_captured,position]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																							</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[Long Opsq]]></name>
+		<description><![CDATA[% done of long running transactions]]></description>
+		<tooltip><![CDATA[Long operations]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[SELECT
+       TRUNC(sl.elapsed_seconds/60) || ':' || MOD(sl.elapsed_seconds,60) elapsed,
+       TRUNC(sl.time_remaining/60) || ':' || MOD(sl.time_remaining,60) remaining,
+       ROUND(sl.sofar/sl.totalwork*100, 2) progress_pct--, inst_id
+FROM         v$session_longops sl
+WHERE  sql_id =:SQL_ID
+AND time_remaining > 0]]></sql>
+			<binds>
+				<bind id="SQL_ID">
+					<prompt><![CDATA[SQL_ID]]></prompt>
+					<tooltip><![CDATA[SQL_ID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																																							</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+</display>
+<display id="a5be2632-015c-1000-8001-0afadc03a594" type="" style="Table" enable="true">
+	<name><![CDATA[My Blocking Locks by User]]></name>
+	<description><![CDATA[Blocking Locks by user (Except type MR)]]></description>
+	<tooltip><![CDATA[Blocking Locks by user]]></tooltip>
+	<drillclass><![CDATA[]]></drillclass>
+	<CustomValues>
+		<TYPE>horizontal</TYPE>
+	</CustomValues>
+	<query>
+		<sql><![CDATA[select /*+ ORDERED */
+   blocker.sid blocker_sid
+,  waiting.sid waiting_sid
+,  TRUNC(waiting.ctime/60) min_waiting
+,  waiting.request
+from (select *
+      from v$lock
+      where block != 0
+      and type = 'TX') blocker
+,    v$lock            waiting
+where waiting.type='TX' 
+and waiting.block = 0
+and waiting.id1 = blocker.id1]]></sql>
+	</query>
+		<pdf version="VERSION_1_7" compression="CONTENT">
+			<docproperty title="null" author="null" subject="null" keywords="null" />
+			<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+			<column>
+				<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+				<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+				<blob blob="NONE" zip="false" />
+			</column>
+			<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+			<header enable="false" generatedate="false">
+				<data>
+				
+				
+				
+				
+				
+				
+				
+				
+				null																																				</data>
+			</header>
+			<footer enable="false" generatedate="false">
+				<data value="null" />
+			</footer>
+			<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+				<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+			</security>
+			<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+		</pdf>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[sql from blocking session]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select  sql_text from v$sql where sql_id in ( select distinct sql_id  from v$active_session_history 
+  where session_id = :BLOCKER_SID
+  and session_type='FOREGROUND' and sql_id is not null)]]></sql>
+			<binds>
+				<bind id="BLOCKER_SID">
+					<prompt><![CDATA[BLOCKER_SID]]></prompt>
+					<tooltip><![CDATA[BLOCKER_SID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																													</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="" type="" style="Table" enable="true">
+		<name><![CDATA[sql from waiting session]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select sql_text from v$sql where sql_id in ( select sql_id  from v$session
+  where  sid= :WAITING_SID)]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					
+					
+					null																																													</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+</display>
+<display id="1bfd5b00-015d-1000-8002-0afadc233c5a" type="" style="Table" enable="true">
+	<name><![CDATA[Top SQL by Buffer Gets]]></name>
+	<description><![CDATA[Top SQL by Buffer Gets]]></description>
+	<tooltip><![CDATA[Top SQL by Buffer Gets]]></tooltip>
+	<drillclass><![CDATA[]]></drillclass>
+	<CustomValues>
+		<TYPE>horizontal</TYPE>
+	</CustomValues>
+	<query>
+		<sql><![CDATA[select substr(sql_text,1,500) "SQL",
+                                      (cpu_time/1000000) "CPU_Seconds",
+                                      disk_reads "Disk_Reads",
+                                      buffer_gets "Buffer_Gets",
+                                      executions "Executions",
+                                      case when rows_processed = 0 then null
+                                           else round((buffer_gets/nvl(replace(rows_processed,0,1),1))) 
+                                           end "Buffer_gets/rows_proc",
+                                      round((buffer_gets/nvl(replace(executions,0,1),1))) "Buffer_gets/executions",
+                                      (elapsed_time/1000000) "Elapsed_Seconds",
+                                      module "Module"
+                                 from v$sql s
+                                order by buffer_gets desc nulls last]]></sql>
+	</query>
+		<pdf version="VERSION_1_7" compression="CONTENT">
+			<docproperty title="null" author="null" subject="null" keywords="null" />
+			<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+			<column>
+				<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+				<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+				<blob blob="NONE" zip="false" />
+			</column>
+			<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+			<header enable="false" generatedate="false">
+				<data>
+				
+				
+				
+				
+				
+				
+				
+				null																																</data>
+			</header>
+			<footer enable="false" generatedate="false">
+				<data value="null" />
+			</footer>
+			<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+				<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+			</security>
+			<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+		</pdf>
+</display>
+<display id="1bfeb32d-015d-1000-8004-0afadc233c5a" type="" style="Table" enable="true">
+	<name><![CDATA[Top SQL by Disk Reads]]></name>
+	<description><![CDATA[Top SQL by Disk Reads]]></description>
+	<tooltip><![CDATA[Top SQL by Disk Reads]]></tooltip>
+	<drillclass><![CDATA[]]></drillclass>
+	<CustomValues>
+		<TYPE>horizontal</TYPE>
+	</CustomValues>
+	<query>
+		<sql><![CDATA[select substr(sql_text,1,500) "SQL",
+                                      (cpu_time/1000000) "CPU_Seconds",
+                                      disk_reads "Disk_Reads",
+                                      buffer_gets "Buffer_Gets",
+                                      executions "Executions",
+                                      case when rows_processed = 0 then null
+                                           else round((buffer_gets/nvl(replace(rows_processed,0,1),1))) 
+                                           end "Buffer_gets/rows_proc",
+                                      round((buffer_gets/nvl(replace(executions,0,1),1))) "Buffer_gets/executions",
+                                      (elapsed_time/1000000) "Elapsed_Seconds",
+                                      module "Module"
+                                 from v$sql s
+                                order by disk_reads desc nulls last]]></sql>
+	</query>
+		<pdf version="VERSION_1_7" compression="CONTENT">
+			<docproperty title="null" author="null" subject="null" keywords="null" />
+			<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+			<column>
+				<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+				<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+				<blob blob="NONE" zip="false" />
+			</column>
+			<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+			<header enable="false" generatedate="false">
+				<data>
+				
+				
+				
+				
+				
+				
+				
+				null																																</data>
+			</header>
+			<footer enable="false" generatedate="false">
+				<data value="null" />
+			</footer>
+			<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+				<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+			</security>
+			<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+		</pdf>
+</display>
+<display id="1c01c462-015d-1000-800c-0afadc233c5a" type="report" style="" enable="true">
+	<name><![CDATA[Search Source Code]]></name>
+	<description><![CDATA[Search Source Code]]></description>
+	<tooltip><![CDATA[Search Source Code]]></tooltip>
+	<drillclass><![CDATA[]]></drillclass>
+	<query>
+		<sql><![CDATA[
+                   select owner "Owner", 
+                                   name  "PL/SQL Object Name",
+                                   type  "Type",
+                                   line  "Line",
+                                   text  "Text",
+                                   owner  sdev_link_owner,
+                                   name   sdev_link_name,
+                                   type   sdev_link_type,
+								   line   sdev_link_line 
+                              from sys.all_source
+                             where owner = user
+                               and (:OBJECT_NAME is null or 
+                                    instr(upper(name),upper(:OBJECT_NAME)) > 0)
+                               and (:TEXT_STRING is null or 
+                                    instr(upper(text),upper(:TEXT_STRING)) > 0)
+                               and name not like 'BIN$%'
+                             order by owner, name, type, line    
+                ]]></sql>
+		<binds>
+			<bind id="OBJECT_NAME">
+				<prompt><![CDATA[PL/SQL Object Name]]></prompt>
+				<tooltip><![CDATA[Name or part of name to search for (case insensitive).]]></tooltip>
+				<value><![CDATA[NULL_VALUE]]></value>
+				<bracket><![CDATA[null]]></bracket>
+			</bind>
+			<bind id="TEXT_STRING">
+				<prompt><![CDATA[Text Search]]></prompt>
+				<tooltip><![CDATA[String to seach for in Text (case insensitive).]]></tooltip>
+				<value><![CDATA[NULL_VALUE]]></value>
+				<bracket><![CDATA[null]]></bracket>
+			</bind>
+		</binds>
+	</query>
+</display>
+<display id="1c02d380-015d-1000-800d-0afadc233c5a" type="report" style="" enable="true">
+	<name><![CDATA[Role Privileges]]></name>
+	<description><![CDATA[Role Privileges]]></description>
+	<tooltip><![CDATA[Role Privileges]]></tooltip>
+	<drillclass><![CDATA[]]></drillclass>
+	<query>
+		<sql><![CDATA[
+                      select username              "User",
+                                      granted_role          "Granted_Role",
+                                      initcap(admin_option) "Admin_Option",
+                                      initcap(default_role) "Default_Role"
+                                 from user_role_privs
+                                order by username, granted_role
+                   ]]></sql>
+	</query>
+</display>
+<display id="322ada5e-015d-1000-8003-0afadc23ba56" type="" style="Table" enable="true">
+	<name><![CDATA[Sessions]]></name>
+	<description><![CDATA[Sessions]]></description>
+	<tooltip><![CDATA[Sessions]]></tooltip>
+	<drillclass><![CDATA[null]]></drillclass>
+	<CustomValues>
+		<TYPE>horizontal</TYPE>
+	</CustomValues>
+	<query>
+		<sql><![CDATA[select pxs.qcsid as parent
+     , se.sid
+     , se.serial#
+     , se.blocking_session as blocked_by
+     , se.username
+     , se.osuser
+     , se.module
+     , se.action
+     , se.client_info
+     , ( select aa.name from
+                ( select action, name from audit_actions union select 189, 'MERGE' from dual ) aa
+         where aa.action = se.command + case when se.command < 0 then 256 else 0 end) as command
+     , se.program
+     , se.state
+     , se.wait_class
+     -- From docs for v$session:
+     -- If WAIT_TIME = 0, then SECONDS_IN_WAIT is the seconds spent in the current wait condition.
+     -- If WAIT_TIME > 0, then SECONDS_IN_WAIT is the seconds since the start of the last wait, and SECONDS_IN_WAIT - WAIT_TIME / 100 is the active seconds since the last wait ended.
+     , case when se.wait_time = 0 then se.seconds_in_wait end as current_wait_secs
+     , case when se.wait_time > 0 then se.seconds_in_wait - se.wait_time / 100 end as secs_since_last_wait
+     , se.event as current_wait
+     , ( select rtrim(owner || '.' || object_name || '.' || o.subobject_name,'.') from dba_objects o
+         where  o.object_id = row_wait_obj# ) as wait_object
+     , se.lockwait
+     , ( select rtrim(pro_entry.object_name || '.' || pro_entry.procedure_name,'.')
+         from   dba_procedures pro_entry
+         where  pro_entry.object_id = se.plsql_entry_object_id
+         and    pro_entry.subprogram_id = se.plsql_entry_subprogram_id ) as entry_procedure
+     , ( select rtrim(pro_current.object_name || '.' || pro_current.procedure_name,'.')
+         from   dba_procedures pro_current
+         where  pro_current.object_id = se.plsql_object_id
+         and    pro_current.subprogram_id = se.plsql_subprogram_id ) as current_procedure
+     --, row_wait_file#, row_wait_block#, row_wait_row#
+     , se.row_wait_obj#  -- Needed for 'Current wait' detail query
+     , se.logon_time
+     --, last_call_et
+     , se.pdml_enabled
+     , se.pdml_status
+     --, pddl_status
+     , se.pq_status
+     , ltrim(pxs.req_degree || ' (' || pxs.req_degree || ')','() ') as "Parallel (Reqested)"
+     -- , resource_consumer_group  -- Uncomment if using Oracle Resource manager
+     , se.current_queue_duration
+     , se.client_identifier
+     , se.service_name
+     -- , sql_trace, sql_trace_waits, sql_trace_binds
+     , se.saddr
+     --, process  -- client process not normally useful
+     , se.paddr
+     , se.audsid
+     , se.taddr
+     , se.machine
+     , se.terminal
+     , se.sql_address
+     , se.sql_hash_value
+     , se.sql_id
+     , se.sql_child_number
+     --, se.sql_exec_id  -- 11g
+     --, se.sql_exec_start  -- 11g
+     --, se.prev_sql_addr
+     --, prev_hash_value
+     , prev_sql_id
+     , prev_child_number
+     --, failover_type, failover_method, failed_over
+     --, blocking_session_status, blocking_instance
+     --, server
+     , user#
+     , round(sm.cpu,1) as "CPU"
+     , sm.physical_reads
+     , sm.logical_reads
+     , round(sm.pga_memory/1048576,1) as pga_memory_mb
+     , sm.hard_parses, sm.soft_parses
+     , round(sm.physical_read_pct,1) as physical_read_pct
+     , round(sm.logical_read_pct,1)  as logical_read_pct
+
+     , ( select round(sum(tu.blocks) * ts.block_size / 1048576,1)
+         from   gv$tempseg_usage tu
+                join dba_tablespaces ts
+                on   ts.tablespace_name = tu.tablespace
+         where  tu.session_addr = se.saddr
+         and    tu.inst_id = se.inst_id
+         and    tu.session_addr = se.saddr
+         and    tu.session_num = se.serial#
+         group by ts.block_size ) as temp_mb
+
+     , row_number() over (order by sm.cpu desc nulls last) as rank_by_cpu
+     , row_number() over (order by sm.physical_reads desc nulls last) as rank_by_physical_reads
+     , row_number() over (order by sm.logical_reads desc nulls last) as rank_by_logical_reads
+     , row_number() over (order by sm.pga_memory desc nulls last) as rank_by_pga
+
+     , row_number() over (order by sm.cpu desc nulls last) +
+       row_number() over (order by sm.physical_reads desc nulls last) +
+       row_number() over (order by sm.logical_reads desc nulls last) +
+       row_number() over (order by sm.pga_memory desc nulls last) as ranks_combined
+
+     , se.inst_id as instance
+     , se.status
+
+from   gv$session se
+
+       left join gv$px_session pxs
+       on   pxs.sid = se.sid
+       and  pxs.serial# = se.serial#
+       and  pxs.inst_id = se.inst_id
+
+       left join gv$sessmetric sm
+       on   sm.session_id = se.sid
+       and  sm.serial_num = se.serial#
+       and  sm.inst_id = se.inst_id
+
+       left join v$transaction tr
+       on   tr.addr = se.taddr
+
+where  ( se.username is not null and 'ACTIVE' in (tr.status, se.status) and se.audsid != sys_context('USERENV','SESSIONID') )
+or     se.sid in
+       ( select blocking_session from v$session
+         union
+         select qcsid from gv$px_session )
+order by se.inst_id, pxs.qcsid, pxs.qcserial# nulls first  -- PQ controller appears without serial# in v$px_session
+      , se.sid, se.sid,se.serial#]]></sql>
+	</query>
+		<pdf version="VERSION_1_7" compression="CONTENT">
+			<docproperty title="null" author="null" subject="null" keywords="null" />
+			<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+			<column>
+				<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+				<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+				<blob blob="NONE" zip="false" />
+			</column>
+			<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+			<header enable="false" generatedate="false">
+				<data>
+				
+				
+				
+				
+				
+				
+				null																												</data>
+			</header>
+			<footer enable="false" generatedate="false">
+				<data value="null" />
+			</footer>
+			<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+				<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+			</security>
+			<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+		</pdf>
+	<display id="null" type="" style="Code" enable="true">
+		<name><![CDATA[Active SQL]]></name>
+		<description><![CDATA[The Current or last SQL for the selected session]]></description>
+		<tooltip><![CDATA[The Current or last SQL for the selected session]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select replace(q.SQL_FULLTEXT,chr(0)) sql_text
+                                        from gv$session s,gv$sql q
+                            where s.sql_address = q.address
+                                         and s.sql_hash_value = q.hash_value
+                                         and s.sid = :SID]]></sql>
+			<binds>
+				<bind id="SID">
+					<prompt><![CDATA[SID]]></prompt>
+					<tooltip><![CDATA[SID]]></tooltip>
+					<value><![CDATA[NULL_VALUE]]></value>
+					<bracket><![CDATA[null]]></bracket>
+				</bind>
+			</binds>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					null																																			</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Explain Plan for]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select plan_table_output || chr(10) as plan
+from   table(dbms_xplan.display_cursor(sql_id=>:SQL_ID, cursor_child_no =>:SQL_CHILD_NUMBER, format=>'ADVANCED +peeked_binds +projection'))]]></sql>
+		</query>
+		<query>
+			<sql><![CDATA[select plan_table_output || chr(10) as plan
+from   table(dbms_xplan.display_cursor(sql_id=>:sql_id, cursor_child_no =>:sql_child_number, format=>'ADVANCED +peeked_binds +projection'))]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="Agency FB" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					null																																			</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="true" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Waits]]></name>
+		<description><![CDATA[Session Waits]]></description>
+		<tooltip><![CDATA[Session Waits]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select event,p1,p2,
+                                   case when p3 = 0 then null else p3 end p3
+                              from gv$session_wait
+                             where sid = :SID]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					null																																			</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Server]]></name>
+		<description><![CDATA[Server Details]]></description>
+		<tooltip><![CDATA[Server Details]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select s.SID,s.status,s.username,s.process,s.LOGON_TIME,
+                                   s.logon_time since,s.server,s.type,p.spid,p.TRACEID,
+                                   s.serial#
+                              from gv$session s, gv$process p
+                             where sid = :SID
+                               and s.paddr = p.addr]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					null																																			</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[SQL Stats]]></name>
+		<description><![CDATA[Client Info]]></description>
+		<tooltip><![CDATA[Client Info]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select sql_id
+     , plan_hash_value
+     , last_active_time
+     , executions
+     , round(100 * parse_calls/nullif(executions,0),1)  as "Parsed%"
+     , parse_calls
+     , cast(numtodsinterval(elapsed_time/1E6,'SECOND')  as interval day(0) to second(0)) as elapsed_total
+     , cast(numtodsinterval(elapsed_time / nullif(executions,0) / 1E6,'SECOND') as interval day(0) to second(0)) as elapsed_per_exec
+     , round(100 * cpu_time / elapsed_time,1) "CPU%"
+     , round(100 * user_io_wait_time / elapsed_time,1) "IO%"
+     , round(100 * concurrency_wait_time / elapsed_time,1) "CONCURRRENCY%"
+     , round(100 * application_wait_time / elapsed_time,1) "APPLICATION%"
+     , round(100 * plsql_exec_time / elapsed_time,1) "PL/SQL%"
+     , buffer_gets buffer_gets_total
+     , round(buffer_gets / nullif(executions,0))        as buffer_gets_per_exec
+     , disk_reads
+     , round(rows_processed / nullif(fetches,0),1)      as rows_per_fetch
+     , round(rows_processed / nullif(executions,0),1)   as rows_per_exec
+     , direct_writes
+     , rows_processed
+     , fetches
+     , end_of_fetch_count
+     , loads
+     , version_count
+     , invalidations
+     , px_servers_executions
+     , round(avg_hard_parse_time / 1E6,2)               as avg_hard_parse_secs
+     , cluster_wait_time
+     , cast(numtodsinterval(plsql_exec_time/1E6,'SECOND') as interval day(0) to second(0)) as plsql_exec_time
+     , cast(numtodsinterval(java_exec_time/1E6,'SECOND') as interval day(0) to second(0)) as java_exec_time
+     , sorts
+     , sharable_mem
+     , total_sharable_mem
+     , last_active_child_address
+     , serializable_aborts
+from   v$sqlstats s
+where  s.sql_id = :sql_id]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					null																																			</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Application]]></name>
+		<description><![CDATA[Application Info    ]]></description>
+		<tooltip><![CDATA[Application Info]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select  decode(command,  
+                                                                     0,null, 
+                                                                     1,'CRE TAB', 
+                                                                     2,'INSERT', 
+                                                                     3,'SELECT', 
+                                                                     4,'CRE CLUSTER', 
+                                                                     5,'ALT CLUSTER', 
+                                                                     6,'UPDATE', 
+                                                                     7,'DELETE', 
+                                                                     8,'DRP CLUSTER', 
+                                                                     9,'CRE INDEX', 
+                                                                     10,'DROP INDEX', 
+                                                                     11,'ALT INDEX', 
+                                                                     12,'DROP TABLE', 
+                                                                     13,'CRE SEQ', 
+                                                                     14,'ALT SEQ', 
+                                                                     15,'ALT TABLE', 
+                                                                     16,'DROP SEQ', 
+                                                                     17,'GRANT', 
+                                                                     18,'REVOKE', 
+                                                                     19,'CRE SYN', 
+                                                                     20,'DROP SYN', 
+                                                                     21,'CRE VIEW', 
+                                                                     22,'DROP VIEW', 
+                                                                     23,'VAL INDEX', 
+                                                                     24,'CRE PROC', 
+                                                                     25,'ALT PROC', 
+                                                                     26,'LOCK TABLE', 
+                                                                     28,'RENAME', 
+                                                                     29,'COMMENT', 
+                                                                     30,'AUDIT', 
+                                                                     31,'NOAUDIT', 
+                                                                     32,'CRE DBLINK', 
+                                                                     33,'DROP DBLINK', 
+                                                                     34,'CRE DB', 
+                                                                     35,'ALTER DB', 
+                                                                     36,'CRE RBS', 
+                                                                     37,'ALT RBS', 
+                                                                     38,'DROP RBS', 
+                                                                     39,'CRE TBLSPC', 
+                                                                     40,'ALT TBLSPC', 
+                                                                     41,'DROP TBLSPC', 
+                                                                     42,'ALT SESSION', 
+                                                                     43,'ALT USER', 
+                                                                     44,'COMMIT', 
+                                                                     45,'ROLLBACK', 
+                                                                     46,'SAVEPOINT', 
+                                                                     47,'PL/SQL EXEC', 
+                                                                     48,'SET XACTN', 
+                                                                     49,'SWITCH LOG', 
+                                                                     50,'EXPLAIN', 
+                                                                     51,'CRE USER', 
+                                                                     52,'CRE ROLE', 
+                                                                     53,'DROP USER', 
+                                                                     54,'DROP ROLE', 
+                                                                     55,'SET ROLE', 
+                                                                     56,'CRE SCHEMA', 
+                                                                     57,'CRE CTLFILE', 
+                                                                     58,'ALTER TRACING', 
+                                                                     59,'CRE TRIGGER', 
+                                                                     60,'ALT TRIGGER', 
+                                                                     61,'DRP TRIGGER', 
+                                                                     62,'ANALYZE TAB', 
+                                                                     63,'ANALYZE IX', 
+                                                                     64,'ANALYZE CLUS', 
+                                                                     65,'CRE PROFILE', 
+                                                                     66,'DRP PROFILE', 
+                                                                     67,'ALT PROFILE', 
+                                                                     68,'DRP PROC', 
+                                                                     69,'DRP PROC', 
+                                                                     70,'ALT RESOURCE', 
+                                                                     71,'CRE SNPLOG', 
+                                                                     72,'ALT SNPLOG', 
+                                                                     73,'DROP SNPLOG', 
+                                                                     74,'CREATE SNAP', 
+                                                                     75,'ALT SNAP', 
+                                                                     76,'DROP SNAP', 
+                                                                     79,'ALTER ROLE', 
+                                                                     79,'ALTER ROLE', 
+                                                                     85,'TRUNC TAB', 
+                                                                     86,'TRUNC CLUST', 
+                                                                     88,'ALT VIEW', 
+                                                                     91,'CRE FUNC', 
+                                                                     92,'ALT FUNC', 
+                                                                     93,'DROP FUNC', 
+                                                                     94,'CRE PKG', 
+                                                                     95,'ALT PKG', 
+                                                                     96,'DROP PKG', 
+                                                                     97,'CRE PKG BODY', 
+                                                                     98,'ALT PKG BODY', 
+                                                                     99,'DRP PKG BODY', 
+                                                                     to_char(command)) "Command"
+                            ,LAST_CALL_ET,program,module,action
+                             from gv$session where sid = :SID]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					null																																			</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Contention]]></name>
+		<description><![CDATA[Contention ( Locks ) ]]></description>
+		<tooltip><![CDATA[Contention ( Locks ) ]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[with locks as(
+                                select session_id,lock_type,
+                                       mode_held,mode_requested,lock_id1,lock_id2,blocking_others
+                                  from sys.dba_lock),
+                            waiters as (
+                                select w.session_id waiting_session,
+                                        h.session_id holding_session,
+                                        w.lock_type lock_type,
+                                        h.mode_held mode_held,
+                                        w.mode_requested mode_requested,
+                                        w.lock_id1,
+                                        w.lock_id2
+                                  from locks w, locks h
+                                 where h.blocking_others =  'Blocking'
+                                  and  h.mode_held      !=  'None'
+                                  and  h.mode_held      !=  'Null'
+                                  and  w.mode_requested !=  'None'
+                                  and  w.lock_type       =  h.lock_type
+                                  and  w.lock_id1        =  h.lock_id1
+                                  and  w.lock_id2        =  h.lock_id2
+                                  and  (w.session_id = :SID
+                                        or
+                                        h.session_id = :SID)),
+                            blockers as(
+                                select holding_session waiting_session, to_number(null) holding_session, 
+                                       'None' lock_type, null mode_held, null mode_requested, 
+                                       null lock_id1, null lock_id2
+                                  from waiters
+                                 minus
+                                select waiting_session waiting_session, to_number(null) holding_session, 
+                                       'None' lock_type, null mode_held, null mode_requested, 
+                                       null lock_id1, null lock_id2
+                                  from waiters),
+                            waiters_blockers as(
+                                select waiting_session,holding_session,lock_type,mode_held,mode_requested,lock_id1,lock_id2
+                                  from waiters
+                                 union all
+                                select waiting_session,holding_session,lock_type,mode_held,mode_requested,lock_id1,lock_id2
+                                  from blockers),
+                            lock_objects as(
+                                select session_id,cnt lock_obj_count,
+                                       case when cnt = 1 then object_name
+                                            else null end object_name,
+                                       object_id,owner,object_type
+                                  from(
+                                    select session_id,count(distinct object_name) cnt,max(object_name) object_name,
+                                           max(lo.object_id) object_id, max(ao.owner) owner,max(object_type) object_type
+                                      from gv$locked_object lo,all_objects ao,waiters_blockers wb
+                                     where lo.object_id = ao.object_id
+                                       and (wb.waiting_session = lo.session_id
+                                            or
+                                            wb.holding_session = lo.session_id)
+                                     group by session_id)),
+                            wait_block_ses as(
+                            select waiting_session,holding_session,lock_type,mode_held,mode_requested,
+                                   s.username,s.osuser,s.CLIENT_INFO,s.CLIENT_IDENTIFIER,o.object_name,o.owner,o.object_id,module,o.object_type,o.lock_obj_count,
+                                    decode(s.command,  
+                                     0,null, 
+                                     1,'CRE TAB', 
+                                     2,'INSERT', 
+                                     3,'SELECT', 
+                                     4,'CRE CLUSTER', 
+                                     5,'ALT CLUSTER', 
+                                     6,'UPDATE', 
+                                     7,'DELETE', 
+                                     8,'DRP CLUSTER', 
+                                     9,'CRE INDEX', 
+                                     10,'DROP INDEX', 
+                                     11,'ALT INDEX', 
+                                     12,'DROP TABLE', 
+                                     13,'CRE SEQ', 
+                                     14,'ALT SEQ', 
+                                     15,'ALT TABLE', 
+                                     16,'DROP SEQ', 
+                                     17,'GRANT', 
+                                     18,'REVOKE', 
+                                     19,'CRE SYN', 
+                                     20,'DROP SYN', 
+                                     21,'CRE VIEW', 
+                                     22,'DROP VIEW', 
+                                     23,'VAL INDEX', 
+                                     24,'CRE PROC', 
+                                     25,'ALT PROC', 
+                                     26,'LOCK TABLE', 
+                                     28,'RENAME', 
+                                     29,'COMMENT', 
+                                     30,'AUDIT', 
+                                     31,'NOAUDIT', 
+                                     32,'CRE DBLINK', 
+                                     33,'DROP DBLINK', 
+                                     34,'CRE DB', 
+                                     35,'ALTER DB', 
+                                     36,'CRE RBS', 
+                                     37,'ALT RBS', 
+                                     38,'DROP RBS', 
+                                     39,'CRE TBLSPC', 
+                                     40,'ALT TBLSPC', 
+                                     41,'DROP TBLSPC', 
+                                     42,'ALT SESSION', 
+                                     43,'ALT USER', 
+                                     44,'COMMIT', 
+                                     45,'ROLLBACK', 
+                                     46,'SAVEPOINT', 
+                                     47,'PL/SQL EXEC', 
+                                     48,'SET XACTN', 
+                                     49,'SWITCH LOG', 
+                                     50,'EXPLAIN', 
+                                     51,'CRE USER', 
+                                     52,'CRE ROLE', 
+                                     53,'DROP USER', 
+                                     54,'DROP ROLE', 
+                                     55,'SET ROLE', 
+                                     56,'CRE SCHEMA', 
+                                     57,'CRE CTLFILE', 
+                                     58,'ALTER TRACING', 
+                                     59,'CRE TRIGGER', 
+                                     60,'ALT TRIGGER', 
+                                     61,'DRP TRIGGER', 
+                                     62,'ANALYZE TAB', 
+                                     63,'ANALYZE IX', 
+                                     64,'ANALYZE CLUS', 
+                                     65,'CRE PROFILE', 
+                                     66,'DRP PROFILE', 
+                                     67,'ALT PROFILE', 
+                                     68,'DRP PROC', 
+                                     69,'DRP PROC', 
+                                     70,'ALT RESOURCE', 
+                                     71,'CRE SNPLOG', 
+                                     72,'ALT SNPLOG', 
+                                     73,'DROP SNPLOG', 
+                                     74,'CREATE SNAP', 
+                                     75,'ALT SNAP', 
+                                     76,'DROP SNAP', 
+                                     79,'ALTER ROLE', 
+                                     79,'ALTER ROLE', 
+                                     85,'TRUNC TAB', 
+                                     86,'TRUNC CLUST', 
+                                     88,'ALT VIEW', 
+                                     91,'CRE FUNC', 
+                                     92,'ALT FUNC', 
+                                     93,'DROP FUNC', 
+                                     94,'CRE PKG', 
+                                     95,'ALT PKG', 
+                                     96,'DROP PKG', 
+                                     97,'CRE PKG BODY', 
+                                     98,'ALT PKG BODY', 
+                                     99,'DRP PKG BODY', 
+                                     to_char(s.command)) command
+                              from waiters_blockers wb, gv$session s,
+                                   lock_objects o
+                             where s.sid = wb.waiting_session
+                               and o.session_id(+) = wb.waiting_session
+                              )
+                            select  case when holding_session is null then 'Lock'
+                                         else 'Lock Waiting'
+                                   end status,
+                                   waiting_session,
+                                   username,
+                                    object_name,      
+                                   object_id,owner,object_type
+                              from wait_block_ses 
+                             start with holding_session is null
+                             connect by prior waiting_session =  holding_session]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					null																																			</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Long Opsq]]></name>
+		<description><![CDATA[% done of long running transactions]]></description>
+		<tooltip><![CDATA[Long operations]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[SELECT
+								       TRUNC(sl.elapsed_seconds/60) || ':' || MOD(sl.elapsed_seconds,60) elapsed,
+								       TRUNC(sl.time_remaining/60) || ':' || MOD(sl.time_remaining,60) remaining,
+								       ROUND(sl.sofar/sl.totalwork*100, 2) progress_pct, inst_id
+							FROM         gv$session_longops sl
+							WHERE  sql_id =:SQL_ID
+							AND time_remaining > 0]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					
+					null																																			</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Explain plan]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[SELECT  LPAD('  ',4*(DEPTH-1))||operation||' '||options
+   ||' '||object_name
+   ||' '||DECODE(id, 0, 'Cost = '||position) "Query Plan",lpad(
+                        CASE
+                                WHEN cardinality > 1000000
+                                THEN to_char(trunc(cardinality/1000000)) || 'M'
+                                WHEN cardinality > 1000
+                                THEN to_char(trunc(cardinality/1000)) || 'K'
+                                ELSE cardinality || ' '
+                        END
+                ,       6
+                ,       ' '
+                ) AS "Rows",
+    nvl(entries,0) as "Rowsource Time(s)"
+   FROM v$sql_plan sp,(select sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value, count(*) entries
+from v$active_session_history where sql_id = :SQL_ID
+and sql_exec_id = (select sql_exec_id from v$active_session_history 
+                    where sql_id =  :SQL_ID and rownum=1)
+group by sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value
+) ash
+  WHERE sp.sql_id = :SQL_ID
+  AND ash.sql_id(+) = sp.sql_id
+  AND ash.sql_plan_line_id(+)= sp.id
+  ORDER by sp.plan_hash_value, sp.id]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					null																														</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Cursor]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select c.sql_id, c.sql_text, s.executions, s.executions - s.end_of_fetch_count as incomplete
+     , ash.last_active
+     , case when systimestamp - ash.last_active < interval '1' minute then 'Y' end as active_in_last_min
+     , case when systimestamp - ash.last_active < interval '10' minute then 'Y' end as active_in_last_10_min
+from   v$open_cursor c
+       join v$sqlstats s on s.sql_id = c.sql_id
+       left join
+            ( select session_id, sql_id, max(sample_time) as last_active
+              from   v$active_session_history
+              group by session_id, sql_id ) ash
+       on   ash.session_id = c.sid
+       and  ash.sql_id = c.sql_id
+where  sid = :sid
+order by ash.last_active desc nulls last, incomplete desc, c.sql_id]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					null																														</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Locks]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select decode(l.xidusn, 0,'Waiting','Held') as lock_status  -- xidusn is the undo segment ID
+     , l.locked_mode
+     , decode( l.locked_mode
+             , 0, case when l.xidusn = 0 then 'Table-Exclusive' else 'None' end  -- from trial and error!
+             , 1, 'NULL'
+             , 2, 'Row-Shared (select for update) or table in share update mode'
+             , 3, 'Row-Exclusive (insert/update/delete) or select for update'
+             , 4, 'Table-Share (historically, unindexed FK)'
+             , 5, 'Share Row-Exclusive'
+             , 6, 'Table-Exclusive'
+             , l.locked_mode ) AS locked_mode
+     , o.owner as object_owner, o.object_name, o.subobject_name
+     , to_date(t.start_time,'MM/DD/RR HH24:MI:SS') AS start_time
+     , l.process
+from   v$locked_object l
+       join dba_objects o on o.object_id = l.object_id
+       left join v$transaction t
+       on t.xidusn = l.xidusn and t.xidslot = l.xidslot and t.xidsqn = l.xidsqn
+where  l.session_id = :sid
+and    l.oracle_username = :username
+and    l.os_user_name = :osuser
+order  by o.object_name]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					null																														</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+	<display id="null" type="" style="Table" enable="true">
+		<name><![CDATA[Temp space]]></name>
+		<description><![CDATA[]]></description>
+		<tooltip><![CDATA[]]></tooltip>
+		<drillclass><![CDATA[null]]></drillclass>
+		<CustomValues>
+			<TYPE>horizontal</TYPE>
+		</CustomValues>
+		<query>
+			<sql><![CDATA[select s.tablespace
+     , s.contents
+     , s.segtype
+     , s.sql_id
+     , s.segfile#
+     , s.extents
+     , s.blocks
+     , s.blocks * f.blocksize_k as KB
+     , s.blocks * f.blocksize_m as MB
+     , round(s.blocks * f.blocksize_g,1) as GB
+from   v$tempseg_usage s
+     , ( select distinct tablespace_name
+              , bytes/blocks/1024 as blocksize_k
+              , bytes/blocks/1048576 as blocksize_m
+              , bytes/blocks/1073741824 as blocksize_g
+         from   dba_temp_files ) f
+where  s.session_addr = :saddr
+and    s.session_num = :serial#
+and    f.tablespace_name = s.tablespace]]></sql>
+		</query>
+			<pdf version="VERSION_1_7" compression="CONTENT">
+				<docproperty title="null" author="null" subject="null" keywords="null" />
+				<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+				<column>
+					<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+					<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+					<blob blob="NONE" zip="false" />
+				</column>
+				<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+				<header enable="false" generatedate="false">
+					<data>
+					
+					
+					
+					
+					
+					null																														</data>
+				</header>
+				<footer enable="false" generatedate="false">
+					<data value="null" />
+				</footer>
+				<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+					<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+				</security>
+				<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+			</pdf>
+	</display>
+</display>
+<display id="4a5ba6e7-0160-1000-8001-0afadca53a21" type="" style="Table" enable="true">
+	<name><![CDATA[details_about_a_specific_SQL_ID]]></name>
+	<description><![CDATA[details about a specific SQL ID
+
+ have plenty of examples that Oracle 12cR1 selects poor execution plans over good ones.
+This is a recent example from one of my databases. Notice that there are two different plans for the same SQL ID, one that seems to take long per exection, and a good plan that executes each statement very quickly:
+In this case, my goal is to create a fixed baseline for the execution plan with hash value as PLAN_HASH_VALUE.]]></description>
+	<tooltip><![CDATA[]]></tooltip>
+	<drillclass><![CDATA[]]></drillclass>
+	<CustomValues>
+		<TYPE>horizontal</TYPE>
+	</CustomValues>
+	<query>
+		<sql><![CDATA[with vs as (select rownum rnum,
+                                                                              sid,
+                                                                              serial#,
+                                                                              status,
+                                                                              username,
+                                                                              last_call_et,
+                                                                              command,
+                                                                              machine,
+                                                                              osuser,
+                                                                              module,
+                                                                              action,
+                                                                              resource_consumer_group,
+                                                                              client_info,
+                                                                              client_identifier,
+                                                                              type,
+                                                                              terminal,
+                                                                              sql_id
+                                                                         from v$session) 
+ ,sql_stmt as (                                                            select /*vs.sid ,serial# serial,*/ vs.sql_id/*, vs.username "Username",
+                                                                    case when vs.status = 'ACTIVE' 
+                                                                              then last_call_et 
+                                                                         else null end "Seconds in Wait",
+                                                                    decode(vs.command,  
+                                                                     0,null, 
+                                                                     1,'CRE TAB', 
+                                                                     2,'INSERT', 
+                                                                     3,'SELECT', 
+                                                                     4,'CRE CLUSTER', 
+                                                                     5,'ALT CLUSTER', 
+                                                                     6,'UPDATE', 
+                                                                     7,'DELETE', 
+                                                                     8,'DRP CLUSTER', 
+                                                                     9,'CRE INDEX', 
+                                                                     10,'DROP INDEX', 
+                                                                     11,'ALT INDEX', 
+                                                                     12,'DROP TABLE', 
+                                                                     13,'CRE SEQ', 
+                                                                     14,'ALT SEQ', 
+                                                                     15,'ALT TABLE', 
+                                                                     16,'DROP SEQ', 
+                                                                     17,'GRANT', 
+                                                                     18,'REVOKE', 
+                                                                     19,'CRE SYN', 
+                                                                     20,'DROP SYN', 
+                                                                     21,'CRE VIEW', 
+                                                                     22,'DROP VIEW', 
+                                                                     23,'VAL INDEX', 
+                                                                     24,'CRE PROC', 
+                                                                     25,'ALT PROC', 
+                                                                     26,'LOCK TABLE', 
+                                                                     28,'RENAME', 
+                                                                     29,'COMMENT', 
+                                                                     30,'AUDIT', 
+                                                                     31,'NOAUDIT', 
+                                                                     32,'CRE DBLINK', 
+                                                                     33,'DROP DBLINK', 
+                                                                     34,'CRE DB', 
+                                                                     35,'ALTER DB', 
+                                                                     36,'CRE RBS', 
+                                                                     37,'ALT RBS', 
+                                                                     38,'DROP RBS', 
+                                                                     39,'CRE TBLSPC', 
+                                                                     40,'ALT TBLSPC', 
+                                                                     41,'DROP TBLSPC', 
+                                                                     42,'ALT SESSION', 
+                                                                     43,'ALT USER', 
+                                                                     44,'COMMIT', 
+                                                                     45,'ROLLBACK', 
+                                                                     46,'SAVEPOINT', 
+                                                                     47,'PL/SQL EXEC', 
+                                                                     48,'SET XACTN', 
+                                                                     49,'SWITCH LOG', 
+                                                                     50,'EXPLAIN', 
+                                                                     51,'CRE USER', 
+                                                                     52,'CRE ROLE', 
+                                                                     53,'DROP USER', 
+                                                                     54,'DROP ROLE', 
+                                                                     55,'SET ROLE', 
+                                                                     56,'CRE SCHEMA', 
+                                                                     57,'CRE CTLFILE', 
+                                                                     58,'ALTER TRACING', 
+                                                                     59,'CRE TRIGGER', 
+                                                                     60,'ALT TRIGGER', 
+                                                                     61,'DRP TRIGGER', 
+                                                                     62,'ANALYZE TAB', 
+                                                                     63,'ANALYZE IX', 
+                                                                     64,'ANALYZE CLUS', 
+                                                                     65,'CRE PROFILE', 
+                                                                     66,'DRP PROFILE', 
+                                                                     67,'ALT PROFILE', 
+                                                                     68,'DRP PROC', 
+                                                                     69,'DRP PROC', 
+                                                                     70,'ALT RESOURCE', 
+                                                                     71,'CRE SNPLOG', 
+                                                                     72,'ALT SNPLOG', 
+                                                                     73,'DROP SNPLOG', 
+                                                                     74,'CREATE SNAP', 
+                                                                     75,'ALT SNAP', 
+                                                                     76,'DROP SNAP', 
+                                                                     79,'ALTER ROLE', 
+                                                                     79,'ALTER ROLE', 
+                                                                     85,'TRUNC TAB', 
+                                                                     86,'TRUNC CLUST', 
+                                                                     88,'ALT VIEW', 
+                                                                     91,'CRE FUNC', 
+                                                                     92,'ALT FUNC', 
+                                                                     93,'DROP FUNC', 
+                                                                     94,'CRE PKG', 
+                                                                     95,'ALT PKG', 
+                                                                     96,'DROP PKG', 
+                                                                     97,'CRE PKG BODY', 
+                                                                     98,'ALT PKG BODY', 
+                                                                     99,'DRP PKG BODY', 
+                                                                     to_char(vs.command)) "Command",
+                                                                    vs.machine "Machine",
+                                                                    vs.osuser "OS User", 
+                                                                    lower(vs.status) "Status",
+                                                                    vs.module "Module",
+                                                                    vs.action "Action",
+                                                                    vs.resource_consumer_group,
+                                                                    vs.client_info,
+                                                                    vs.client_identifier*/
+                                                                    
+                                                               from vs 
+                                                              where vs.USERNAME is not null
+                                                                and nvl(vs.osuser,'x') <> 'SYSTEM'
+                                                                and vs.type <> 'BACKGROUND'
+                                                                order by 1)
+SELECT TO_CHAR(LAST_ACTIVE_TIME, 'dd.mm.yyyy hh24:mi') "last active",
+       SQL_ID,
+       PLAN_HASH_VALUE,
+       SQL_PLAN_BASELINE "BASELINE", 
+       SQL_PROFILE,
+       IS_RESOLVED_ADAPTIVE_PLAN,
+       CHILD_NUMBER AS "Child Num",
+       ELAPSED_TIME,
+       EXECUTIONS,
+       ROUND(ELAPSED_TIME/1000000) "duration (sec)"
+       ,CASE WHEN EXECUTIONS > 0 THEN
+        ROUND( (ELAPSED_TIME/EXECUTIONS)/1000000, 1)
+        ELSE
+            NULL
+       END "sec per exe"
+FROM V$SQL 
+WHERE SQL_ID in (select sql_id from sql_stmt )
+ORDER BY LAST_ACTIVE_TIME DESC]]></sql>
+	</query>
+		<pdf version="VERSION_1_7" compression="CONTENT">
+			<docproperty title="null" author="null" subject="null" keywords="null" />
+			<cell toppadding="2" bottompadding="2" leftpadding="2" rightpadding="2" horizontalalign="LEFT" verticalalign="TOP" wrap="true" />
+			<column>
+				<heading font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="FIRST_PAGE" />
+				<footing font="null" size="10" style="NORMAL" color="-16777216" rowshading="-1" labeling="NONE" />
+				<blob blob="NONE" zip="false" />
+			</column>
+			<table font="null" size="10" style="NORMAL" color="-16777216" userowshading="false" oddrowshading="-1" evenrowshading="-1" showborders="true" spacingbefore="12" spacingafter="12" horizontalalign="LEFT" />
+			<header enable="false" generatedate="false">
+				<data>
+				
+				
+				null												</data>
+			</header>
+			<footer enable="false" generatedate="false">
+				<data value="null" />
+			</footer>
+			<security enable="false" useopenpassword="false" openpassword="null" encryption="EXCLUDE_METADATA">
+				<permission enable="false" permissionpassword="null" allowcopying="true" allowprinting="true" allowupdating="false" allowaccessdevices="false" />
+			</security>
+			<pagesetup papersize="LETTER" orientation="1" measurement="in" margintop="1.0" marginbottom="1.0" marginleft="1.0" marginright="1.0" />
+		</pdf>
+</display>
+</displays>

@@ -1,0 +1,89 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">INDEX_NAME</Item>
+      <Item class="java.lang.String">PARTITION_NAME</Item>
+      <Item class="java.lang.String">SUBPARTITION_NAME</Item>
+      <Item class="java.lang.String">HIGH_VALUE</Item>
+      <Item class="java.lang.String">HIGH_VALUE_LENGTH</Item>
+      <Item class="java.lang.String">SUBPARTITION_POSITION</Item>
+      <Item class="java.lang.String">STATUS</Item>
+      <Item class="java.lang.String">TABLESPACE_NAME</Item>
+      <Item class="java.lang.String">PCT_FREE</Item>
+      <Item class="java.lang.String">INI_TRANS</Item>
+      <Item class="java.lang.String">MAX_TRANS</Item>
+      <Item class="java.lang.String">INITIAL_EXTENT</Item>
+      <Item class="java.lang.String">NEXT_EXTENT</Item>
+      <Item class="java.lang.String">MIN_EXTENT</Item>
+      <Item class="java.lang.String">MAX_EXTENT</Item>
+      <Item class="java.lang.String">MAX_SIZE</Item>
+      <Item class="java.lang.String">PCT_INCREASE</Item>
+      <Item class="java.lang.String">FREELISTS</Item>
+      <Item class="java.lang.String">FREELIST_GROUPS</Item>
+      <Item class="java.lang.String">LOGGING</Item>
+      <Item class="java.lang.String">COMPRESSION</Item>
+      <Item class="java.lang.String">BLEVEL</Item>
+      <Item class="java.lang.String">LEAF_BLOCKS</Item>
+      <Item class="java.lang.String">DISTINCT_KEYS</Item>
+      <Item class="java.lang.String">AVG_LEAF_BLOCKS_PER_KEY</Item>
+      <Item class="java.lang.String">AVG_DATA_BLOCKS_PER_KEY</Item>
+      <Item class="java.lang.String">CLUSTERING_FACTOR</Item>
+      <Item class="java.lang.String">NUM_ROWS</Item>
+      <Item class="java.lang.String">SAMPLE_SIZE</Item>
+      <Item class="java.lang.String">LAST_ANALYZED</Item>
+      <Item class="java.lang.String">BUFFER_POOL</Item>
+      <Item class="java.lang.String">FLASH_CACHE</Item>
+      <Item class="java.lang.String">CELL_FLASH_CACHE</Item>
+      <Item class="java.lang.String">USER_STATS</Item>
+      <Item class="java.lang.String">GLOBAL_STATS</Item>
+      <Item class="java.lang.String">INTERVAL</Item>
+      <Item class="java.lang.String">SEGMENT_CREATED</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>96</Item>
+      <Item>108</Item>
+      <Item>159</Item>
+      <Item>96</Item>
+      <Item>125</Item>
+      <Item>148</Item>
+      <Item>61</Item>
+      <Item>115</Item>
+      <Item>69</Item>
+      <Item>73</Item>
+      <Item>79</Item>
+      <Item>99</Item>
+      <Item>87</Item>
+      <Item>81</Item>
+      <Item>83</Item>
+      <Item>68</Item>
+      <Item>94</Item>
+      <Item>71</Item>
+      <Item>112</Item>
+      <Item>64</Item>
+      <Item>92</Item>
+      <Item>53</Item>
+      <Item>87</Item>
+      <Item>96</Item>
+      <Item>162</Item>
+      <Item>165</Item>
+      <Item>128</Item>
+      <Item>78</Item>
+      <Item>85</Item>
+      <Item>100</Item>
+      <Item>90</Item>
+      <Item>90</Item>
+      <Item>119</Item>
+      <Item>82</Item>
+      <Item>94</Item>
+      <Item>67</Item>
+      <Item>117</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_KVASIRselect * 
+from USER_IND_SUBPARTITIONS uis
+where UIS.INDEX_NAME in ('DATA_STORE_UQ', 'DATA_STORE_PK', 'I0_DATA_STORE')
+and UIS.STATUS &lt;> 'USABLE'</uniqueName>
+</TableSettings>

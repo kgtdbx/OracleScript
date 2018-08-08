@@ -1,0 +1,193 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<client-settings class="java.util.HashMap" xmlns="http://xmlns.oracle.com/jdeveloper/110000/client-preferences">
+   <Item>
+      <Key>editors-options</Key>
+      <Value class="oracle.ide.editor.EditorsOptions">
+         <editorsData/>
+         <lruFiles>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_213671_KjarninDW/Task_230077_CreateDataQualityChecks/01_datacompare_work_mv_agr.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#vhgstbclone_deposits.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/Task_230876_LOAD_PAYMENT_LEFTforERGO/Task_230876_LOAD_PAYMENT_LEFTforERGO.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#vhgstbclone_deposits.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_IFRS9/Task 231570_AddColumns_stg_sap_mdm_bp_dw_is/Task 231570_AddColumns_stg_sap_mdm_bp_dw_is.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGDEV_BIFROST.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_230875_LoansToHagstofa/Task_230876_LOAD_PAYMENT_LEFTforERGO/2_KVASIR.TMP_FACILITIES_MISSING_DATA.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#vhgstbclone_mimir.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_230875_LoansToHagstofa/Task_230877_ChangeMIMIR_V_HS_DETAIL/scripts_for_testing.sql"/>
+               <projectURL/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_230875_LoansToHagstofa/Task_230876_LOAD_PAYMENT_LEFTforERGO/KVASIR.TMP_FACILITIES_MISSING_DATA.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#vhgstbclone_kvasir.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_213671_KjarninDW/Task_228649_V_PRODUCT_DEPOSIT_DISTINCT_to_MV/Task_228649_V_PRODUCT_DEPOSIT_DISTINCT_to_MV.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGDEV_BIFROST.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_213671_KjarninDW/Task_231580_CREATE_Interest_views/Task_231580_CREATE_Interest_views.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGDEV_BIFROST.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_213671_KjarninDW/Task_234934_CreateMV_ EV_INTEREST_DETAIL_TDC_MV/EXTSTG.RB_TDC_CND02_ARC.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#ISDEV_PRODUCTS.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_IFRS9/Task_221980_StageAndArch_pub_impairment_stock/Task_221980_StageAndArch_pub_impairment_stock.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGDEV_BIFROST.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_230875_LoansToHagstofa/Task_235280_ToGet_prev_duedate_payment_interval_payments_left/Task_235280_ToGet_prev_duedate, payment_interval, payments_left.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGDEV_BIFROST.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_230875_LoansToHagstofa/Task_230877_ChangeMIMIR_V_HS_DETAIL/Task_230877_ChangeMIMIR_V_HS_DETAIL.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGPROD_KVASIR.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_230875_LoansToHagstofa/Task_230876_LOAD_PAYMENT_LEFTforERGO/Task_230876_LOAD_PAYMENT_LEFTforERGO.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGPROD_KVASIR.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_235293_NewKondorProductInDW/Task_235301_StageArchTables/Task_235301_StageArchTables.sql"/>
+               <projectURL/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_IFRS9/Task_228858_ChangeSTGSourceAIF/Task_228858_ChangeSTGSourceAIF.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGDEV_BIFROST.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_213671_KjarninDW/Task_234934_CreateMV_ EV_INTEREST_DETAIL_TDC_MV/Task_234934_CreateMV_ EV_INTEREST_DETAIL_TDC_MV.sql"/>
+               <projectURL/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_213671_KjarninDW/Task_235063_DEPOSITS_UTILS_issues/Task_235063_DEPOSITS_UTILS_issues.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGDEV_BIFROST.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_235777_StagingDataSAP_BW/Task_235782_CreateNewBodiJob_STG_SAP_BW_GL_BPC_JOB/Task_235782_CreateNewBodiJob_STG_SAP_BW_GL_BPC_JOB.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGDEV_BIFROST.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_235777_StagingDataSAP_BW/Task_235781_CreateNewBodiJob_STG_SAP_BW_BPC_ACCOUNTS_JOB/Task_235781_CreateNewBodiJob_STG_SAP_BW_BPC_ACCOUNTS_JOB.sql"/>
+               <projectURL path="../o.sqldeveloper.12.2.0.16.84/projects/IdeConnections#VHGDEV_BIFROST.jpr"/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+            <Item class="oracle.ide.editor.RecentFile">
+               <editor>oracle.ideimpl.editor.DeclarativeEditorAddin-oracle.dbtools.worksheet.editor.Worksheet</editor>
+               <explicit>false</explicit>
+               <nodeClass>oracle.ide.db.model.SqlNode</nodeClass>
+               <nodeURL path="../../../../../../../WORK/UserStory_235293_NewKondorProductInDW/Task_235584_StageArchMtm/Task_235584_StageArchMtm.sql"/>
+               <projectURL/>
+               <recentTime>0</recentTime>
+               <workspaceURL path="../o.sqldeveloper.12.2.0.16.84/projects/Databases.jws"/>
+            </Item>
+         </lruFiles>
+         <recentFilesShowAll>false</recentFilesShowAll>
+         <recentFilesShowClosedOnly>true</recentFilesShowClosedOnly>
+      </Value>
+   </Item>
+</client-settings>

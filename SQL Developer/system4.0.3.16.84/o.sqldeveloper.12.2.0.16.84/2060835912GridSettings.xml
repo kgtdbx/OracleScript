@@ -1,0 +1,56 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">OWNER</Item>
+      <Item class="java.lang.String">CONSTRAINT_NAME</Item>
+      <Item class="java.lang.String">CONSTRAINT_TYPE</Item>
+      <Item class="java.lang.String">TABLE_NAME</Item>
+      <Item class="java.lang.String">SEARCH_CONDITION</Item>
+      <Item class="java.lang.String">SEARCH_CONDITION_VC</Item>
+      <Item class="java.lang.String">R_OWNER</Item>
+      <Item class="java.lang.String">R_CONSTRAINT_NAME</Item>
+      <Item class="java.lang.String">DELETE_RULE</Item>
+      <Item class="java.lang.String">STATUS</Item>
+      <Item class="java.lang.String">DEFERRABLE</Item>
+      <Item class="java.lang.String">DEFERRED</Item>
+      <Item class="java.lang.String">VALIDATED</Item>
+      <Item class="java.lang.String">GENERATED</Item>
+      <Item class="java.lang.String">BAD</Item>
+      <Item class="java.lang.String">RELY</Item>
+      <Item class="java.lang.String">LAST_CHANGE</Item>
+      <Item class="java.lang.String">INDEX_OWNER</Item>
+      <Item class="java.lang.String">INDEX_NAME</Item>
+      <Item class="java.lang.String">INVALID</Item>
+      <Item class="java.lang.String">VIEW_RELATED</Item>
+      <Item class="java.lang.String">ORIGIN_CON_ID</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>61</Item>
+      <Item>215</Item>
+      <Item>114</Item>
+      <Item>215</Item>
+      <Item>271</Item>
+      <Item>271</Item>
+      <Item>109</Item>
+      <Item>196</Item>
+      <Item>86</Item>
+      <Item>122</Item>
+      <Item>103</Item>
+      <Item>71</Item>
+      <Item>74</Item>
+      <Item>103</Item>
+      <Item>47</Item>
+      <Item>47</Item>
+      <Item>90</Item>
+      <Item>93</Item>
+      <Item>83</Item>
+      <Item>59</Item>
+      <Item>95</Item>
+      <Item>101</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_DEPOSITSselect * from user_constraints uc</uniqueName>
+</TableSettings>

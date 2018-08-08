@@ -1,0 +1,1709 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">AGREEMENT_ID</Item>
+      <Item class="java.lang.String">REG_YEAR_INDEXATION_ISK</Item>
+      <Item class="java.lang.String">RELATED_CATEGORY</Item>
+      <Item class="java.lang.String">RELATED_CONNECTION</Item>
+      <Item class="java.lang.String">EXTRA_YEAR_INTEREST_ISK</Item>
+      <Item class="java.lang.String">REG_YEAR_PRINCIPAL_ISK</Item>
+      <Item class="java.lang.String">REG_YEAR_PEN_INTEREST_ISK</Item>
+      <Item class="java.lang.String">EXTRA_YEAR_PRINCIPAL_ISK</Item>
+      <Item class="java.lang.String">EXTRA_YEAR_PEN_INTEREST_ISK</Item>
+      <Item class="java.lang.String">REG_YEAR_INTEREST_ISK</Item>
+      <Item class="java.lang.String">EXTRA_YEAR_INDEXATION_ISK</Item>
+      <Item class="java.lang.String">EXTRA_PRINCIPAL_ISK</Item>
+      <Item class="java.lang.String">CARD_NUMBER_MASKED</Item>
+      <Item class="java.lang.String">EXTRA_INTEREST_ISK</Item>
+      <Item class="java.lang.String">EXTRA_INDEXATION_ISK</Item>
+      <Item class="java.lang.String">EXTRA_PENALTY_INTEREST_ISK</Item>
+      <Item class="java.lang.String">PLEDGED_AMT</Item>
+      <Item class="java.lang.String">LEOY_BOOKVALUE</Item>
+      <Item class="java.lang.String">REG_INTEREST_ISK</Item>
+      <Item class="java.lang.String">REG_PENALTY_INTEREST_ISK</Item>
+      <Item class="java.lang.String">REG_PRINCIPAL_ISK</Item>
+      <Item class="java.lang.String">REG_INDEXATION_ISK</Item>
+      <Item class="java.lang.String">IS_CB_REPO</Item>
+      <Item class="java.lang.String">ORG_LOAN_RISK_CLASS_MODEL</Item>
+      <Item class="java.lang.String">DURATION_BUCKET_PAY</Item>
+      <Item class="java.lang.String">DURATION_BUCKET_REC</Item>
+      <Item class="java.lang.String">ORG_LOAN_RISK_CLASS</Item>
+      <Item class="java.lang.String">ORG_LOAN_RISK_CLASS_DATE</Item>
+      <Item class="java.lang.String">ORG_LOAN_PD</Item>
+      <Item class="java.lang.String">MAIN_BRANCH</Item>
+      <Item class="java.lang.String">DOMICILE_COUNTRY_CODE</Item>
+      <Item class="java.lang.String">AGE</Item>
+      <Item class="java.lang.String">DATE_OF_BIRTH</Item>
+      <Item class="java.lang.String">CHILDREN</Item>
+      <Item class="java.lang.String">TYPE_OF_CUSTOMER_RAW</Item>
+      <Item class="java.lang.String">TYPE_OF_CUSTOMER</Item>
+      <Item class="java.lang.String">GENDER</Item>
+      <Item class="java.lang.String">ZIP_CODE</Item>
+      <Item class="java.lang.String">NATIONALITY</Item>
+      <Item class="java.lang.String">CUST_ADDRESS</Item>
+      <Item class="java.lang.String">AGE_BUCKET</Item>
+      <Item class="java.lang.String">GROUP_SSN</Item>
+      <Item class="java.lang.String">CUST_CITY</Item>
+      <Item class="java.lang.String">MAKI2</Item>
+      <Item class="java.lang.String">FX_BORROWER</Item>
+      <Item class="java.lang.String">ISB_INDUSTRY_SECTOR</Item>
+      <Item class="java.lang.String">IS_INTERNAL_SSN</Item>
+      <Item class="java.lang.String">DOMICILE_COUNTRY_CODE_REGION</Item>
+      <Item class="java.lang.String">IS_MARRIED</Item>
+      <Item class="java.lang.String">CUST_FULL_NAME</Item>
+      <Item class="java.lang.String">SA_EXPOSURE_CLASS</Item>
+      <Item class="java.lang.String">FX_PARENTS</Item>
+      <Item class="java.lang.String">COL_ACCOUNTS_RECEIVABLE</Item>
+      <Item class="java.lang.String">COL_REAL_ESTATE</Item>
+      <Item class="java.lang.String">FME_UTLAN_VANSKIL</Item>
+      <Item class="java.lang.String">IMPAIRMENT_FX_NOREDIST</Item>
+      <Item class="java.lang.String">FAIRVALUE_PCT</Item>
+      <Item class="java.lang.String">UNWIND_INTEREST</Item>
+      <Item class="java.lang.String">NEXT_MARGIN_RESET</Item>
+      <Item class="java.lang.String">IS_HST</Item>
+      <Item class="java.lang.String">LOGFRM</Item>
+      <Item class="java.lang.String">IN_ARREARS_61_90D_NET</Item>
+      <Item class="java.lang.String">EXPOSURE</Item>
+      <Item class="java.lang.String">ASSET_LIABILITY</Item>
+      <Item class="java.lang.String">CLAIM_VALUE</Item>
+      <Item class="java.lang.String">ORIGIN_DATE</Item>
+      <Item class="java.lang.String">COMPANY</Item>
+      <Item class="java.lang.String">CCF</Item>
+      <Item class="java.lang.String">IMPAIRMENT_PCT</Item>
+      <Item class="java.lang.String">UNALL_IMPAIRMENT</Item>
+      <Item class="java.lang.String">ADJ_DISCOUNT_FX</Item>
+      <Item class="java.lang.String">INIT_DISCOUNT</Item>
+      <Item class="java.lang.String">LOAN_BOOK</Item>
+      <Item class="java.lang.String">OVERRIDE_PORTFOLIO</Item>
+      <Item class="java.lang.String">PORTFOLIO_NAME</Item>
+      <Item class="java.lang.String">NEXT_BASE_RESET</Item>
+      <Item class="java.lang.String">FUNDING_MARGIN</Item>
+      <Item class="java.lang.String">BASE_RATE</Item>
+      <Item class="java.lang.String">PROFIT_CENTER_NAME</Item>
+      <Item class="java.lang.String">GL_ACCOUNT_NAME</Item>
+      <Item class="java.lang.String">OBS_EXPOSURE_LEV</Item>
+      <Item class="java.lang.String">IN_ARREARS_31_60D_NET</Item>
+      <Item class="java.lang.String">EXPOSURE_W_VANSKIL</Item>
+      <Item class="java.lang.String">IN_ARREARS_GT_90D</Item>
+      <Item class="java.lang.String">IN_ARREARS_61_90D</Item>
+      <Item class="java.lang.String">IN_ARREARS_31_60D</Item>
+      <Item class="java.lang.String">OBS_EXPOSURE</Item>
+      <Item class="java.lang.String">CURRENCY_FIXING_RATE</Item>
+      <Item class="java.lang.String">CURRENCY</Item>
+      <Item class="java.lang.String">TYPE_NAME</Item>
+      <Item class="java.lang.String">CONTRACT_NUMBER</Item>
+      <Item class="java.lang.String">UNWIND_CPI</Item>
+      <Item class="java.lang.String">OVERDRAFT_LIMIT</Item>
+      <Item class="java.lang.String">PAYMENT_INTERVAL</Item>
+      <Item class="java.lang.String">BUSINESS_UNIT_MARGIN</Item>
+      <Item class="java.lang.String">LPA_TIMEBUCKET</Item>
+      <Item class="java.lang.String">DISCOUNT</Item>
+      <Item class="java.lang.String">SSN</Item>
+      <Item class="java.lang.String">ACCOUNTING_HIERARCHY</Item>
+      <Item class="java.lang.String">SPECIFIC_PROVISION</Item>
+      <Item class="java.lang.String">COL_SECURITIES</Item>
+      <Item class="java.lang.String">IN_ARREARS_BUCKETS</Item>
+      <Item class="java.lang.String">NUMBER_OF_PAYMENTS</Item>
+      <Item class="java.lang.String">ADD_RECOVERY</Item>
+      <Item class="java.lang.String">ADD_IMPAIRMENT</Item>
+      <Item class="java.lang.String">INTEREST_FIX_FLO</Item>
+      <Item class="java.lang.String">LOAN_INTEREST_RATE</Item>
+      <Item class="java.lang.String">DATES_IN_ARREAS</Item>
+      <Item class="java.lang.String">OBS_EXPOSURE_TAG</Item>
+      <Item class="java.lang.String">SYSTEM_ID</Item>
+      <Item class="java.lang.String">ASSET_LIABILITY_EXP</Item>
+      <Item class="java.lang.String">IN_ARREARS</Item>
+      <Item class="java.lang.String">LOAN_BALANCE</Item>
+      <Item class="java.lang.String">TYPE_ID</Item>
+      <Item class="java.lang.String">MATURITY_DATE</Item>
+      <Item class="java.lang.String">COL_SHIP</Item>
+      <Item class="java.lang.String">UNDRAWN_AMOUNT_ISK</Item>
+      <Item class="java.lang.String">PAYMENT_TYPE</Item>
+      <Item class="java.lang.String">JOINED_PORTFOLIO_DT</Item>
+      <Item class="java.lang.String">IMPAIRMENT_ALLOWANCE</Item>
+      <Item class="java.lang.String">IS_GRJ</Item>
+      <Item class="java.lang.String">SUBSYSTEM_NAME</Item>
+      <Item class="java.lang.String">PRODUCT_TYPE</Item>
+      <Item class="java.lang.String">EXPOSURE_W_VANSKIL_NET</Item>
+      <Item class="java.lang.String">IN_ARREARS_1_30D_NET</Item>
+      <Item class="java.lang.String">EXPOSURE_CALC</Item>
+      <Item class="java.lang.String">IMPAIRMENT</Item>
+      <Item class="java.lang.String">DW_EXPOSURE</Item>
+      <Item class="java.lang.String">LOAN_BALANCE_ISK</Item>
+      <Item class="java.lang.String">SOURCE_SYSTEM</Item>
+      <Item class="java.lang.String">BOOKVALUE</Item>
+      <Item class="java.lang.String">ISB_BYR</Item>
+      <Item class="java.lang.String">NEWOLD</Item>
+      <Item class="java.lang.String">NEW_LOAN</Item>
+      <Item class="java.lang.String">DISCOUNT_PCT</Item>
+      <Item class="java.lang.String">UNWIND_DISCOUNT</Item>
+      <Item class="java.lang.String">SUBLEDGER_BOOK</Item>
+      <Item class="java.lang.String">IFX_LOAN_ID</Item>
+      <Item class="java.lang.String">LOAN_TYPE</Item>
+      <Item class="java.lang.String">INTEREST_TYPE</Item>
+      <Item class="java.lang.String">LAST_BASE_RESET</Item>
+      <Item class="java.lang.String">TOTAL_MARGIN</Item>
+      <Item class="java.lang.String">IS_STRECH</Item>
+      <Item class="java.lang.String">ORIGINAL_AMOUNT</Item>
+      <Item class="java.lang.String">IN_ARREARS_GT_90D_NET</Item>
+      <Item class="java.lang.String">IN_ARREARS_1_30D</Item>
+      <Item class="java.lang.String">GL_ACCOUNT</Item>
+      <Item class="java.lang.String">DAYS_IN_ARREARS</Item>
+      <Item class="java.lang.String">LANTOKUGJOLD</Item>
+      <Item class="java.lang.String">LEGAL_COLLECTION_TYPE</Item>
+      <Item class="java.lang.String">LOAN_ORIGIN</Item>
+      <Item class="java.lang.String">IMPAIRMENT_FX</Item>
+      <Item class="java.lang.String">IMPAIRMENT_1410</Item>
+      <Item class="java.lang.String">RISKBIN6</Item>
+      <Item class="java.lang.String">GL_GROUP_ACCOUNT</Item>
+      <Item class="java.lang.String">DATE_IN_ARREAS</Item>
+      <Item class="java.lang.String">ID</Item>
+      <Item class="java.lang.String">NATURAL_KEY</Item>
+      <Item class="java.lang.String">BRANCH</Item>
+      <Item class="java.lang.String">BRANCH_ID</Item>
+      <Item class="java.lang.String">NETEXPOSURE</Item>
+      <Item class="java.lang.String">COL_OTHER</Item>
+      <Item class="java.lang.String">COL_INVENTORY</Item>
+      <Item class="java.lang.String">UNDRAWN_AMOUNT</Item>
+      <Item class="java.lang.String">UNWIND_FX</Item>
+      <Item class="java.lang.String">ADJ_IMP_U101</Item>
+      <Item class="java.lang.String">DETOX</Item>
+      <Item class="java.lang.String">CUST_PORTFOLIO</Item>
+      <Item class="java.lang.String">PORTFOLIO_ID</Item>
+      <Item class="java.lang.String">PL_ACCOUNT</Item>
+      <Item class="java.lang.String">OVERDRAFT_LIMIT_FOREIGN</Item>
+      <Item class="java.lang.String">LAST_MARGIN_RESET</Item>
+      <Item class="java.lang.String">STRECH_TYPE</Item>
+      <Item class="java.lang.String">PRODUCT_TYPE_NOTES</Item>
+      <Item class="java.lang.String">FACILITY_TYPE</Item>
+      <Item class="java.lang.String">INDEXATION</Item>
+      <Item class="java.lang.String">GROUP_ACCOUNT</Item>
+      <Item class="java.lang.String">REF_KEY3</Item>
+      <Item class="java.lang.String">ACCOUNTS_GROUP_L5</Item>
+      <Item class="java.lang.String">BS1_L5</Item>
+      <Item class="java.lang.String">BS1_GROUP_L3</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_L4</Item>
+      <Item class="java.lang.String">INTEREST_IN_ARREARS</Item>
+      <Item class="java.lang.String">NOM_PLUS_INDEX</Item>
+      <Item class="java.lang.String">LEG_ACCOUNT</Item>
+      <Item class="java.lang.String">BS1_GROUP_L2</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_L1</Item>
+      <Item class="java.lang.String">PROFIT_CENTER_SHORT_NAME</Item>
+      <Item class="java.lang.String">BS1_L1</Item>
+      <Item class="java.lang.String">CF_M2_M7_M9_AMT</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_GROUP_L7</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_GROUP_L5</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_GROUP_L4</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_GROUP_L2</Item>
+      <Item class="java.lang.String">PRCTR_PARENT_NODE_ID</Item>
+      <Item class="java.lang.String">ACCOUNT_SHORT_NAME</Item>
+      <Item class="java.lang.String">ACCOUNT</Item>
+      <Item class="java.lang.String">FUNDING_GROUP_EFFECTIVE_DATE</Item>
+      <Item class="java.lang.String">CF_M2_M10_M12_AMT</Item>
+      <Item class="java.lang.String">VIDSKIPTAVAKT</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_GROUP_L3</Item>
+      <Item class="java.lang.String">REF_KEY3_NAME</Item>
+      <Item class="java.lang.String">PRCTR_NODE_NAME</Item>
+      <Item class="java.lang.String">BUSINESS_MANAGER_NAME</Item>
+      <Item class="java.lang.String">ACCOUNTS_GROUP_L2</Item>
+      <Item class="java.lang.String">CREDIT_MANAGER_NAME</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_L2</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_GROUP_L1</Item>
+      <Item class="java.lang.String">TOTAL_BALANCE</Item>
+      <Item class="java.lang.String">DEPARTMENT</Item>
+      <Item class="java.lang.String">COMPANY_CODE</Item>
+      <Item class="java.lang.String">ADVISOR_NAME</Item>
+      <Item class="java.lang.String">ACCOUNTS_GROUP_L7</Item>
+      <Item class="java.lang.String">ACCOUNTS_GROUP_L6</Item>
+      <Item class="java.lang.String">ACCOUNTS_GROUP_L1</Item>
+      <Item class="java.lang.String">STRIKE</Item>
+      <Item class="java.lang.String">DOMICILE_COUNTRY_CODE_2L</Item>
+      <Item class="java.lang.String">BS1_L4</Item>
+      <Item class="java.lang.String">BS1_GROUP_L1</Item>
+      <Item class="java.lang.String">DIVISION</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_L6</Item>
+      <Item class="java.lang.String">FISCAL_PERIOD</Item>
+      <Item class="java.lang.String">SUBSYSTEM_ID</Item>
+      <Item class="java.lang.String">TOTAL_UNWIND</Item>
+      <Item class="java.lang.String">ACCRUED_INTEREST</Item>
+      <Item class="java.lang.String">PROFIT_CENTER</Item>
+      <Item class="java.lang.String">ACCOUNTS_GROUP_L4</Item>
+      <Item class="java.lang.String">ACCOUNTS_GROUP_L3</Item>
+      <Item class="java.lang.String">BP_AGE</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_2014_TEXT_IS</Item>
+      <Item class="java.lang.String">BS1_GROUP_L5</Item>
+      <Item class="java.lang.String">BS1_L2</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_GROUP_L6</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_L5</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_L3</Item>
+      <Item class="java.lang.String">PENALTY_INTEREST</Item>
+      <Item class="java.lang.String">NOMINAL</Item>
+      <Item class="java.lang.String">NOT_ASSIGNED</Item>
+      <Item class="java.lang.String">TRADING_PARTNER_CURRENCY</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_2014</Item>
+      <Item class="java.lang.String">BS1_GROUP_L4</Item>
+      <Item class="java.lang.String">BS1_L3</Item>
+      <Item class="java.lang.String">OWNERSHIP_CATEGORY_TEXT_IS</Item>
+      <Item class="java.lang.String">OWNERSHIP_CATEGORY_TEXT_EN</Item>
+      <Item class="java.lang.String">OWNERSHIP_CATEGORY</Item>
+      <Item class="java.lang.String">GL_HIERARCHY_L7</Item>
+      <Item class="java.lang.String">REPORT_ID</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_2014_TEXT_EN</Item>
+      <Item class="java.lang.String">FIRST_SEEN</Item>
+      <Item class="java.lang.String">FONIX_ALLOCATED_AMOUNT</Item>
+      <Item class="java.lang.String">FONIX_NEW_AMOUNT</Item>
+      <Item class="java.lang.String">BPV</Item>
+      <Item class="java.lang.String">BPV_PAY</Item>
+      <Item class="java.lang.String">BPV_REC</Item>
+      <Item class="java.lang.String">EXCESSCOLLATERAL_DERIVATIVES</Item>
+      <Item class="java.lang.String">COLLATERAL_DERIVATIVES</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D30</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D19</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D10</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D16</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D12</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D10</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D28</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D9</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D24</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D16</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D18</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D7</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D9</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D27</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D14</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D22</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D24</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D4</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D18</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D6</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D29</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D20</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D15</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D27</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D5</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D11</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D8</Item>
+      <Item class="java.lang.String">JOB_ID</Item>
+      <Item class="java.lang.String">ACTIVE</Item>
+      <Item class="java.lang.String">LINE_ID_TYPE</Item>
+      <Item class="java.lang.String">LINE_ID</Item>
+      <Item class="java.lang.String">THE_DATE</Item>
+      <Item class="java.lang.String">ENTRY_ID</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D6</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D3</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D28</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D5</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D23</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D23</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D3</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D14</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D25</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D17</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D26</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D13</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D15</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D4</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D25</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D17</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D13</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D30</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D2</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D26</Item>
+      <Item class="java.lang.String">DEPOSIT_POSITIVE_INTEREST_RATE</Item>
+      <Item class="java.lang.String">DEPOSIT_NEGATIVE_INTEREST_RATE</Item>
+      <Item class="java.lang.String">DEPOSIT_POSITIVE_INT_RATE</Item>
+      <Item class="java.lang.String">POSITION_REC</Item>
+      <Item class="java.lang.String">CF_M2_M7_M12_AMT</Item>
+      <Item class="java.lang.String">EXTRA_YEAR_FEES_ISK</Item>
+      <Item class="java.lang.String">CF_M2_Y2_Y3_AMT</Item>
+      <Item class="java.lang.String">REG_FEES_ISK</Item>
+      <Item class="java.lang.String">CF_M2_ON_30D_AMT</Item>
+      <Item class="java.lang.String">DEPOSIT_NEGATIVE_INT_RATE</Item>
+      <Item class="java.lang.String">GROUP_CREDIT_RISK_EXPOSURE</Item>
+      <Item class="java.lang.String">TOTAL_DEPOSITS_BALANCE_SSN</Item>
+      <Item class="java.lang.String">TOTAL_INT_DEPOSITS_CASHFLOW</Item>
+      <Item class="java.lang.String">TOTAL_INST_DEPOSITS_CASHFLOW</Item>
+      <Item class="java.lang.String">TOTAL_INT_EXPOSURE_CASHFLOW</Item>
+      <Item class="java.lang.String">EUR_ISK_RATE</Item>
+      <Item class="java.lang.String">TOTAL_INST_EXPOSURE_CASHFLOW</Item>
+      <Item class="java.lang.String">IS_ACTIVE</Item>
+      <Item class="java.lang.String">CF_M2_ON_3M_AMT</Item>
+      <Item class="java.lang.String">CF_M2_Y4_Y5_AMT</Item>
+      <Item class="java.lang.String">REG_YEAR_FEES_ISK</Item>
+      <Item class="java.lang.String">CF_M2_OVER_5Y_AMT</Item>
+      <Item class="java.lang.String">ISB_BOARD_MEMBER</Item>
+      <Item class="java.lang.String">EXTRA_FEES_ISK</Item>
+      <Item class="java.lang.String">CF_M2_M4_M6_AMT</Item>
+      <Item class="java.lang.String">CF_M2_M2_M3_AMT</Item>
+      <Item class="java.lang.String">CPTY_FOLDERS_ID</Item>
+      <Item class="java.lang.String">MODIFIED_DURATION_REC</Item>
+      <Item class="java.lang.String">MODIFIED_DURATION_PAY</Item>
+      <Item class="java.lang.String">ASSET_LIABILITY_BV</Item>
+      <Item class="java.lang.String">AMOUNT_ISK</Item>
+      <Item class="java.lang.String">AMOUNT</Item>
+      <Item class="java.lang.String">CB_ACCRUED</Item>
+      <Item class="java.lang.String">CBRATE</Item>
+      <Item class="java.lang.String">CBRATE_ON_TRADEDATE</Item>
+      <Item class="java.lang.String">NPV</Item>
+      <Item class="java.lang.String">ADJUSTEDFACTOR</Item>
+      <Item class="java.lang.String">PRINCIPAL_CUMULATIVE</Item>
+      <Item class="java.lang.String">PLEDGED_JK_SG_AMT</Item>
+      <Item class="java.lang.String">PLEDGED_SEC_LENDING_AMT</Item>
+      <Item class="java.lang.String">TYPE_</Item>
+      <Item class="java.lang.String">INDEXATION_TYPE_REC</Item>
+      <Item class="java.lang.String">INDEXATION_TYPE</Item>
+      <Item class="java.lang.String">IRRESET_BUCKET_RN_REC</Item>
+      <Item class="java.lang.String">IRRESET_BUCKET_FIXINT_PAY</Item>
+      <Item class="java.lang.String">INDEXATION_TYPE_PAY</Item>
+      <Item class="java.lang.String">IRRESET_BUCKET_RN_PAY</Item>
+      <Item class="java.lang.String">DURATION_REC</Item>
+      <Item class="java.lang.String">DURATION_PAY</Item>
+      <Item class="java.lang.String">IRRESET_BUCKET_FIXINT_REC</Item>
+      <Item class="java.lang.String">IRRESET_BUCKET_FIXINT</Item>
+      <Item class="java.lang.String">NEXT_BASE_RESET_MOD</Item>
+      <Item class="java.lang.String">IRR</Item>
+      <Item class="java.lang.String">IRRESET_BUCKET_RN</Item>
+      <Item class="java.lang.String">NEXT_MARGIN_RESET_MOD</Item>
+      <Item class="java.lang.String">RISK_CAPITAL_CHARGE_DESC</Item>
+      <Item class="java.lang.String">RISK_CAPITAL_CHARGE</Item>
+      <Item class="java.lang.String">ACCRUEDINTERESTPAYING</Item>
+      <Item class="java.lang.String">ADJUSTEDFACTORPAYING</Item>
+      <Item class="java.lang.String">CURRENCY_TYPE_REC</Item>
+      <Item class="java.lang.String">PRINCIPALCUMULATIVE_REC</Item>
+      <Item class="java.lang.String">ACCRUEDINTERESTRECEIVING</Item>
+      <Item class="java.lang.String">ADJUSTEDFACTORRECEIVING</Item>
+      <Item class="java.lang.String">PRINCIPALCUMULATIVE_PAY</Item>
+      <Item class="java.lang.String">CURRENCY_TYPE_PAY</Item>
+      <Item class="java.lang.String">TRADE_BALANCE</Item>
+      <Item class="java.lang.String">CREDIT_QUALITY_STEP</Item>
+      <Item class="java.lang.String">DURATION_ADJUSTED_POSITION</Item>
+      <Item class="java.lang.String">LONG_SHORT</Item>
+      <Item class="java.lang.String">INTEREST_CHANGE_EFFECT</Item>
+      <Item class="java.lang.String">DURATION_ZONE</Item>
+      <Item class="java.lang.String">RESIDUAL_MATURITY_YR</Item>
+      <Item class="java.lang.String">ORIGINAL_MATURITY_YR</Item>
+      <Item class="java.lang.String">RESIDUAL_BUCKET</Item>
+      <Item class="java.lang.String">MR_RISKWEIGHT</Item>
+      <Item class="java.lang.String">CURRENCY_REC</Item>
+      <Item class="java.lang.String">FRAMLAGDAR_TRYGGINGAR_ISK</Item>
+      <Item class="java.lang.String">AMOUNT_PAY_ISK</Item>
+      <Item class="java.lang.String">TRYGGINGATHORF_ISK</Item>
+      <Item class="java.lang.String">NPV_PAY</Item>
+      <Item class="java.lang.String">IS_CIRS_SWAP</Item>
+      <Item class="java.lang.String">CBRATE_PAY</Item>
+      <Item class="java.lang.String">AMOUNT_REC</Item>
+      <Item class="java.lang.String">TRYGGINGATHORF_PCT</Item>
+      <Item class="java.lang.String">NPV_REC</Item>
+      <Item class="java.lang.String">TRYGGINGAT_MED_UPPS_TAPI_ISK</Item>
+      <Item class="java.lang.String">CB_ACCRUED_PAY</Item>
+      <Item class="java.lang.String">AMOUNT_PAY</Item>
+      <Item class="java.lang.String">CBRATE_REC</Item>
+      <Item class="java.lang.String">BASE_RATE_TYPE</Item>
+      <Item class="java.lang.String">INTEREST_DAY_CONVENTION</Item>
+      <Item class="java.lang.String">AMOUNT_CAPITAL_INTEREST</Item>
+      <Item class="java.lang.String">FIRST_INTEREST_DATE</Item>
+      <Item class="java.lang.String">FUNDING_GROUP_OWNER</Item>
+      <Item class="java.lang.String">DURATION_BUCKET</Item>
+      <Item class="java.lang.String">CB_MTMISK</Item>
+      <Item class="java.lang.String">CBRATE_REC_ON_TRADEDATE</Item>
+      <Item class="java.lang.String">ACCRUED</Item>
+      <Item class="java.lang.String">AMOUNT_REC_ISK</Item>
+      <Item class="java.lang.String">CB_ACCRUED_REC</Item>
+      <Item class="java.lang.String">CBRATE_PAY_ON_TRADEDATE</Item>
+      <Item class="java.lang.String">CURRENCY_PAY</Item>
+      <Item class="java.lang.String">LLLEOY_BOOKVALUE</Item>
+      <Item class="java.lang.String">LLEOY_BALANCE</Item>
+      <Item class="java.lang.String">FME_CAT</Item>
+      <Item class="java.lang.String">LCR_CAT</Item>
+      <Item class="java.lang.String">SI_CAT</Item>
+      <Item class="java.lang.String">LLEOY_BOOKVALUE</Item>
+      <Item class="java.lang.String">LLLEOY_BALANCE</Item>
+      <Item class="java.lang.String">IS_LOAN_ANCESTOR</Item>
+      <Item class="java.lang.String">SKULDFLOKKUN_ENSKT_HEITI</Item>
+      <Item class="java.lang.String">INTEREST_FIX_FLO_PAY</Item>
+      <Item class="java.lang.String">INTEREST_FIX_FLO_REC</Item>
+      <Item class="java.lang.String">IS_IN_RECALCULATION</Item>
+      <Item class="java.lang.String">IS_REAL_FX</Item>
+      <Item class="java.lang.String">CF_M1_Y1TOY5_RATIO</Item>
+      <Item class="java.lang.String">CF_M1_TOM3_RATIO</Item>
+      <Item class="java.lang.String">CF_M1_M3TOM12_RATIO</Item>
+      <Item class="java.lang.String">CF_M1_OVERY5_RATIO</Item>
+      <Item class="java.lang.String">ORG_GROUP_HEAD_NAME</Item>
+      <Item class="java.lang.String">ORG_GROUP_HEAD_SSN</Item>
+      <Item class="java.lang.String">ORG_GROUP_NAME</Item>
+      <Item class="java.lang.String">SPECIAL_RISK_CATEGORY</Item>
+      <Item class="java.lang.String">GLMF_AF_VEXTIR_GJOLD</Item>
+      <Item class="java.lang.String">CURRENCY_CODE</Item>
+      <Item class="java.lang.String">Q3_BOOKVALUE</Item>
+      <Item class="java.lang.String">Q2_BOOKVALUE</Item>
+      <Item class="java.lang.String">Q1_BOOKVALUE</Item>
+      <Item class="java.lang.String">Q4_BOOKVALUE</Item>
+      <Item class="java.lang.String">SAP_CURRENCY_CODE</Item>
+      <Item class="java.lang.String">GLMF_VEXTIR_ARS_GJOLD</Item>
+      <Item class="java.lang.String">GLMF_STADA_NU_GJOLD</Item>
+      <Item class="java.lang.String">LGD_SECURED_DOWN</Item>
+      <Item class="java.lang.String">LGD_SECURED_BASE</Item>
+      <Item class="java.lang.String">LGD_SECURED_UP</Item>
+      <Item class="java.lang.String">FAIR_VALUE_HIERARCHY</Item>
+      <Item class="java.lang.String">FUNDING_GROUP</Item>
+      <Item class="java.lang.String">CREDIT_LIMIT_AMOUNT</Item>
+      <Item class="java.lang.String">SUBSIDIARY_SSN_LEVEL</Item>
+      <Item class="java.lang.String">LAST_SEEN</Item>
+      <Item class="java.lang.String">RUN_ID</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D21</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D11</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D21</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D7</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D19</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D29</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D20</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D2</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D12</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D31</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D31</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D22</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D1</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D1</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D8</Item>
+      <Item class="java.lang.String">COL_VEHICLES_EQUIPMENT</Item>
+      <Item class="java.lang.String">MATSVERD</Item>
+      <Item class="java.lang.String">DAGSETNING_MATSVERDS</Item>
+      <Item class="java.lang.String">SUMMA_VEDBOKAR_A_UNDAN_A</Item>
+      <Item class="java.lang.String">HEITIEIGNAR</Item>
+      <Item class="java.lang.String">UPPFAERT_MATSVERD</Item>
+      <Item class="java.lang.String">LAST_COUPON_DATE_PAID</Item>
+      <Item class="java.lang.String">COUPON_RATE_OF_NEW_LOAN</Item>
+      <Item class="java.lang.String">PROPERTY_TYPE</Item>
+      <Item class="java.lang.String">ERTHETTAALSHERJARVED</Item>
+      <Item class="java.lang.String">SVEITARFELAG</Item>
+      <Item class="java.lang.String">ERVEDTIL</Item>
+      <Item class="java.lang.String">CLTV</Item>
+      <Item class="java.lang.String">REGION_NAME</Item>
+      <Item class="java.lang.String">IS_STORREYKJAVIKURSVAEDID</Item>
+      <Item class="java.lang.String">PROPERTY_USE</Item>
+      <Item class="java.lang.String">UPPHAED_ALSHERJARVEDS</Item>
+      <Item class="java.lang.String">PAYMENTS_LEFT</Item>
+      <Item class="java.lang.String">INTEREST_REVISION_DATE</Item>
+      <Item class="java.lang.String">FASTEIGNAMAT</Item>
+      <Item class="java.lang.String">VEDHLUTFALL_FAST</Item>
+      <Item class="java.lang.String">FASTANUMER</Item>
+      <Item class="java.lang.String">TEGUND_SERTAEKS_VEDS</Item>
+      <Item class="java.lang.String">SUMMA_TRB_A_UNDAN</Item>
+      <Item class="java.lang.String">ERTHETTATRYGGINGABREF</Item>
+      <Item class="java.lang.String">TRYGGING_STOFN_NR</Item>
+      <Item class="java.lang.String">ER_I_FRYSTINGU</Item>
+      <Item class="java.lang.String">SUMMA_VEDBOKAR_A_UNDAN</Item>
+      <Item class="java.lang.String">VEDRETTUR</Item>
+      <Item class="java.lang.String">CF_M1_3TO12M_RATIO</Item>
+      <Item class="java.lang.String">CF_M1_ONDEMAND_RATIO</Item>
+      <Item class="java.lang.String">CF_M1_OVER5Y_RATIO</Item>
+      <Item class="java.lang.String">CF_M1_TO3M_RATIO</Item>
+      <Item class="java.lang.String">CF_M1_SUM_CF</Item>
+      <Item class="java.lang.String">CF_M1_1TO5Y_RATIO</Item>
+      <Item class="java.lang.String">INTERNAL_UNIT</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M6</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M3</Item>
+      <Item class="java.lang.String">CF_INT_BASE_Y6_10</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M9</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y4</Item>
+      <Item class="java.lang.String">CF_INST_BASE_D0</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M2</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y6_10</Item>
+      <Item class="java.lang.String">CF_INT_BASE_TOTAL_CASHFLOW</Item>
+      <Item class="java.lang.String">CF_INST_M1_ONDEMAND_RATIO</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M9</Item>
+      <Item class="java.lang.String">CF_INT_BASE_Y4</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M4</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M12</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M5</Item>
+      <Item class="java.lang.String">CF_INT_BASE_UNDEFINED</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M11</Item>
+      <Item class="java.lang.String">CF_INST_M1_SUM_CF</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y5</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M1</Item>
+      <Item class="java.lang.String">CF_INT_BASE_Y16_20</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y11_15</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M8</Item>
+      <Item class="java.lang.String">CF_INST_M1_3TO12M_RATIO</Item>
+      <Item class="java.lang.String">CF_INT_BASE_Y3</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M8</Item>
+      <Item class="java.lang.String">CF_INST_BASE_UNDEFINED</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y20_OVER</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M1</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y2</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M12</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M10</Item>
+      <Item class="java.lang.String">CF_INT_BASE_Y2</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M3</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M10</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M2</Item>
+      <Item class="java.lang.String">CF_INST_M1_1TO5Y_RATIO</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M11</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y3</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M4</Item>
+      <Item class="java.lang.String">CF_INST_M1_TO3M_RATIO</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M7</Item>
+      <Item class="java.lang.String">CF_INST_M1_OVER5Y_RATIO</Item>
+      <Item class="java.lang.String">CF_INT_BASE_Y11_15</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M5</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y16_20</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M6</Item>
+      <Item class="java.lang.String">CF_INT_BASE_D0</Item>
+      <Item class="java.lang.String">CF_INT_BASE_M7</Item>
+      <Item class="java.lang.String">CF_INT_BASE_Y20_OVER</Item>
+      <Item class="java.lang.String">CF_INT_BASE_Y5</Item>
+      <Item class="java.lang.String">CF_INST_BASE_TOTAL_CASHFLOW</Item>
+      <Item class="java.lang.String">NEW_LOAN_THIS_YEAR</Item>
+      <Item class="java.lang.String">NEW_LOAN_THIS_MONTH</Item>
+      <Item class="java.lang.String">RESPONSIBLE_BRANCH</Item>
+      <Item class="java.lang.String">ALLOCATION_ID</Item>
+      <Item class="java.lang.String">RESOLUTION</Item>
+      <Item class="java.lang.String">MONEY_MONTH</Item>
+      <Item class="java.lang.String">LOAN_FAMILY_FIRST_DT</Item>
+      <Item class="java.lang.String">MONEY_YEAR</Item>
+      <Item class="java.lang.String">EXPOSURE_LY_DELTA</Item>
+      <Item class="java.lang.String">EXPOSURE_LM_DELTA</Item>
+      <Item class="java.lang.String">DOMESTIC_FOREIGN</Item>
+      <Item class="java.lang.String">DOMESTIC_FOREIGN_TEXT</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_CLASSIFY</Item>
+      <Item class="java.lang.String">CUST_TYPE_ID</Item>
+      <Item class="java.lang.String">CUST_CATEGORY</Item>
+      <Item class="java.lang.String">COREP_GROUP_EXPOSURE</Item>
+      <Item class="java.lang.String">COREP_GROUPS_LIST</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_CLASSIFY_TEXT</Item>
+      <Item class="java.lang.String">MODIFIED_DURATION</Item>
+      <Item class="java.lang.String">CONVEXITY</Item>
+      <Item class="java.lang.String">CREDIT_RISK_EXPOSURE</Item>
+      <Item class="java.lang.String">BALANCE_ISK</Item>
+      <Item class="java.lang.String">HAS_20_IMPAIRMENT_NEW</Item>
+      <Item class="java.lang.String">INNL_UTSK_REASON</Item>
+      <Item class="java.lang.String">GLMF_AF_VEXTIR_TEKJUR</Item>
+      <Item class="java.lang.String">GLMF_VEXTIR_ARS_TEKJUR</Item>
+      <Item class="java.lang.String">GLMF_STADA_NU_TEKJUR</Item>
+      <Item class="java.lang.String">INTEREST_INCOME</Item>
+      <Item class="java.lang.String">FX_GAINS</Item>
+      <Item class="java.lang.String">FEES_COMMISSIONS</Item>
+      <Item class="java.lang.String">OTHER_EXPENSE_INCOME</Item>
+      <Item class="java.lang.String">INTEREST_EXPENSE</Item>
+      <Item class="java.lang.String">QUANTITY</Item>
+      <Item class="java.lang.String">SKULDFLOKKUN</Item>
+      <Item class="java.lang.String">BRANCH_NAME_MERGED</Item>
+      <Item class="java.lang.String">BRANCH_ID_MERGED</Item>
+      <Item class="java.lang.String">BOOKVALUE_DATE</Item>
+      <Item class="java.lang.String">LAST_TERM_CHANGE_DATE</Item>
+      <Item class="java.lang.String">PROVISION_STRUTUR_REASON</Item>
+      <Item class="java.lang.String">PROVISION_STRUTUR</Item>
+      <Item class="java.lang.String">ALLOCATION</Item>
+      <Item class="java.lang.String">TYPE_OF_CUSTOMER_ISL</Item>
+      <Item class="java.lang.String">LPA_CODE</Item>
+      <Item class="java.lang.String">LPA_TEXT_ENGLISH</Item>
+      <Item class="java.lang.String">LPA_TEXT_ICELANDIC</Item>
+      <Item class="java.lang.String">ER_A_THINGI</Item>
+      <Item class="java.lang.String">COUNTRY_RATING_OUTLOOK</Item>
+      <Item class="java.lang.String">COUNTRY_FITCH_RATING</Item>
+      <Item class="java.lang.String">COUNTRY_MOODYS_RATING</Item>
+      <Item class="java.lang.String">COUNTRY_SP_RATING</Item>
+      <Item class="java.lang.String">COUNTRY_CREDIT_GROUP</Item>
+      <Item class="java.lang.String">COUNTRY_CREDIT_STEP</Item>
+      <Item class="java.lang.String">DURATION</Item>
+      <Item class="java.lang.String">RISK_CLASS</Item>
+      <Item class="java.lang.String">RISK_MODEL</Item>
+      <Item class="java.lang.String">RISK_CLASS_VALID_FROM</Item>
+      <Item class="java.lang.String">RISK_CLASS_VALID_TO</Item>
+      <Item class="java.lang.String">TOTAL_EXPOSURE</Item>
+      <Item class="java.lang.String">TOTAL_BOOKVALUE</Item>
+      <Item class="java.lang.String">OB_RETL_TYPE</Item>
+      <Item class="java.lang.String">RELATIONSHIP_KIND</Item>
+      <Item class="java.lang.String">ISB_CONSOLIDATE</Item>
+      <Item class="java.lang.String">PERCENT_CAPITAL_INTEREST</Item>
+      <Item class="java.lang.String">RL_CURRENT_INDEX_VALUE</Item>
+      <Item class="java.lang.String">PAYMENTS_IN_MONTH</Item>
+      <Item class="java.lang.String">VALUE_DATE</Item>
+      <Item class="java.lang.String">STATUS</Item>
+      <Item class="java.lang.String">INTEREST_BEFORE_AFTER</Item>
+      <Item class="java.lang.String">UNBOUND_AMOUNT</Item>
+      <Item class="java.lang.String">DEPOSIT_POS_INTEREST_RATE</Item>
+      <Item class="java.lang.String">TRADE_DATE</Item>
+      <Item class="java.lang.String">INTEREST_CURRENCY</Item>
+      <Item class="java.lang.String">TYPE_KEY</Item>
+      <Item class="java.lang.String">DISPOSITION_ACCOUNT</Item>
+      <Item class="java.lang.String">ACCOUNT_TURNOVER</Item>
+      <Item class="java.lang.String">CURRENCY_ID</Item>
+      <Item class="java.lang.String">INTEREST_RATE</Item>
+      <Item class="java.lang.String">DEPOSIT_NEG_INTEREST_RATE</Item>
+      <Item class="java.lang.String">CURRENCY_NAME</Item>
+      <Item class="java.lang.String">BALANCE_SRC</Item>
+      <Item class="java.lang.String">FIT</Item>
+      <Item class="java.lang.String">CURRENCY_NR</Item>
+      <Item class="java.lang.String">LAST_TRANSACTION</Item>
+      <Item class="java.lang.String">LAST_BANKING_DAY_DATE</Item>
+      <Item class="java.lang.String">IS_LEGAL_SSN</Item>
+      <Item class="java.lang.String">LPA_STATUS</Item>
+      <Item class="java.lang.String">LPA_BUCKET</Item>
+      <Item class="java.lang.String">NUMBER_OF_INTEREST_PAYMENTS</Item>
+      <Item class="java.lang.String">ORIGINAL_CURRENCY_VALUE</Item>
+      <Item class="java.lang.String">FIRST_PAYMENT_DATE</Item>
+      <Item class="java.lang.String">DAYS_FROM_LAST_ARREARS</Item>
+      <Item class="java.lang.String">FME_CURRENCY_TYPE</Item>
+      <Item class="java.lang.String">CURRENT_INDEX_VALUE</Item>
+      <Item class="java.lang.String">PAYMENTS_IN_ARREARS</Item>
+      <Item class="java.lang.String">AMOUNT_ON_LAST_COUPON</Item>
+      <Item class="java.lang.String">FME_TRYGGING_STADA</Item>
+      <Item class="java.lang.String">LAST_PAYMENT_DATE</Item>
+      <Item class="java.lang.String">DATE_OF_LAST_COUPON</Item>
+      <Item class="java.lang.String">FME_PAYMENT_TYPE</Item>
+      <Item class="java.lang.String">ISSUE_DATE</Item>
+      <Item class="java.lang.String">LOAN_DATE_IN_ARREARS</Item>
+      <Item class="java.lang.String">PAYMENT_INTERVAL_TYPE</Item>
+      <Item class="java.lang.String">REGISTERED_DATE</Item>
+      <Item class="java.lang.String">ORIGINAL_INDEX_VALUE</Item>
+      <Item class="java.lang.String">INDEX_TYPE</Item>
+      <Item class="java.lang.String">B_SUBTYPE</Item>
+      <Item class="java.lang.String">LOAN_TYPE_LPA</Item>
+      <Item class="java.lang.String">FOLDER</Item>
+      <Item class="java.lang.String">ACTIVE_INTEREST</Item>
+      <Item class="java.lang.String">CONTRACTUAL_INTERESTS</Item>
+      <Item class="java.lang.String">BULLET_ISB</Item>
+      <Item class="java.lang.String">BULLET_FME</Item>
+      <Item class="java.lang.String">RESIDENCE_MATCH</Item>
+      <Item class="java.lang.String">COLLATERAL_ADDRESS</Item>
+      <Item class="java.lang.String">BA_F202</Item>
+      <Item class="java.lang.String">OBS_VALUE_ADJUSTMENT</Item>
+      <Item class="java.lang.String">IS_IN_ARREARS</Item>
+      <Item class="java.lang.String">OBS_NETEXPOSURE</Item>
+      <Item class="java.lang.String">CR_FACILITY_ID</Item>
+      <Item class="java.lang.String">BA_8184</Item>
+      <Item class="java.lang.String">BA_8150</Item>
+      <Item class="java.lang.String">LOAD_ID</Item>
+      <Item class="java.lang.String">INTERNAL_RISK_SECTOR</Item>
+      <Item class="java.lang.String">INTERNAL_RISK_SECTOR_DESC</Item>
+      <Item class="java.lang.String">COLLECTIVE_IMP_ALLOWANCE</Item>
+      <Item class="java.lang.String">IMP_FX_LOAN_ID</Item>
+      <Item class="java.lang.String">REF970</Item>
+      <Item class="java.lang.String">GROUP_EXPOSURE</Item>
+      <Item class="java.lang.String">GROUP_BOOKVALUE</Item>
+      <Item class="java.lang.String">THE_IMPAIRMENT_ALLOWANCE</Item>
+      <Item class="java.lang.String">SPECIFIC_IMP_ALLOWANCE</Item>
+      <Item class="java.lang.String">IMPAIRMENT_ALLOWANCE2</Item>
+      <Item class="java.lang.String">IMPAIRMENT_ALLOWANCE_BASE</Item>
+      <Item class="java.lang.String">BA_B503</Item>
+      <Item class="java.lang.String">CONSIDERED_FOR_RW_35</Item>
+      <Item class="java.lang.String">CRM_RISKWEIGHT</Item>
+      <Item class="java.lang.String">OVERDR_LIMIT_EFFECTIVE_DATE</Item>
+      <Item class="java.lang.String">SPECIFIC_PROVISION_SBS2</Item>
+      <Item class="java.lang.String">OVERDRAFT_END_DATE</Item>
+      <Item class="java.lang.String">OVERDRAFT_FOREIGN_END_DATE</Item>
+      <Item class="java.lang.String">OVERDRAFT_LIMIT_EFFECTIVE_DATE</Item>
+      <Item class="java.lang.String">IS_PAWNED</Item>
+      <Item class="java.lang.String">BYGGINGARSTIG7</Item>
+      <Item class="java.lang.String">RESIDENCEFLAG</Item>
+      <Item class="java.lang.String">RISK_WEIGHT_35</Item>
+      <Item class="java.lang.String">FX_PARENT</Item>
+      <Item class="java.lang.String">SAMFELLD_VEDROD</Item>
+      <Item class="java.lang.String">BA_BALANCE</Item>
+      <Item class="java.lang.String">STRATEGY_ID</Item>
+      <Item class="java.lang.String">DERIVATIVE_ID</Item>
+      <Item class="java.lang.String">CUST_SSN</Item>
+      <Item class="java.lang.String">SYSTEM_NAME</Item>
+      <Item class="java.lang.String">ACCOUNT_NAME</Item>
+      <Item class="java.lang.String">CURRENT_KEY</Item>
+      <Item class="java.lang.String">CRMINFLOW</Item>
+      <Item class="java.lang.String">CRMOTHER</Item>
+      <Item class="java.lang.String">CRMFINANCIAL</Item>
+      <Item class="java.lang.String">CRMGUARANTEES</Item>
+      <Item class="java.lang.String">SPECIFICPROVISION</Item>
+      <Item class="java.lang.String">ISINTERNALSSN</Item>
+      <Item class="java.lang.String">EXPOSUREPROS</Item>
+      <Item class="java.lang.String">EXPOSURETYPE</Item>
+      <Item class="java.lang.String">SAEXPOSURECLASS</Item>
+      <Item class="java.lang.String">REFDATE</Item>
+      <Item class="java.lang.String">KEY_</Item>
+      <Item class="java.lang.String">CREDIT_ASSESSMENT</Item>
+      <Item class="java.lang.String">CCF_50</Item>
+      <Item class="java.lang.String">RWA</Item>
+      <Item class="java.lang.String">CRM_SECURED_FINANCIAL</Item>
+      <Item class="java.lang.String">CCF_100</Item>
+      <Item class="java.lang.String">OBS_RWA</Item>
+      <Item class="java.lang.String">CCF_20</Item>
+      <Item class="java.lang.String">CCF_0</Item>
+      <Item class="java.lang.String">GLE_BALANCE</Item>
+      <Item class="java.lang.String">GLE_ACCRUED_INTEREST</Item>
+      <Item class="java.lang.String">PAYMENT_ADJUSTMENT_AMOUNT</Item>
+      <Item class="java.lang.String">GLE_INDEXATION</Item>
+      <Item class="java.lang.String">GLE_INTEREST_IN_ARREARS</Item>
+      <Item class="java.lang.String">GLE_PENALTY_INTEREST</Item>
+      <Item class="java.lang.String">GLE_NOMINAL</Item>
+      <Item class="java.lang.String">OWNER_SSN</Item>
+      <Item class="java.lang.String">BA_U104</Item>
+      <Item class="java.lang.String">BA_U999</Item>
+      <Item class="java.lang.String">BA_B102</Item>
+      <Item class="java.lang.String">FME_INDUSTRY_SECTOR</Item>
+      <Item class="java.lang.String">RWA_AFTER_CRM</Item>
+      <Item class="java.lang.String">CRM_SECURED_CASH</Item>
+      <Item class="java.lang.String">CRM_SECURED_OTHER</Item>
+      <Item class="java.lang.String">CRM_RWA_SECURED</Item>
+      <Item class="java.lang.String">CRM_SECURED_CRE</Item>
+      <Item class="java.lang.String">CRM_SECURED_TOTAL</Item>
+      <Item class="java.lang.String">CRM_SECURED_RRE</Item>
+      <Item class="java.lang.String">RWA_BEFORE_CRM</Item>
+      <Item class="java.lang.String">CAD_TYPE</Item>
+      <Item class="java.lang.String">TRUE_BOOK_VALUE</Item>
+      <Item class="java.lang.String">DETAIL_SOURCE</Item>
+      <Item class="java.lang.String">BRANCH_NAME</Item>
+      <Item class="java.lang.String">FME_FACILITY_TYPE</Item>
+      <Item class="java.lang.String">SOURCE</Item>
+      <Item class="java.lang.String">CPTY_NAME</Item>
+      <Item class="java.lang.String">CPTY_SHORT_NAME</Item>
+      <Item class="java.lang.String">FME_EXPOSURE_TYPE</Item>
+      <Item class="java.lang.String">MTMISK</Item>
+      <Item class="java.lang.String">MARKET_VALUE</Item>
+      <Item class="java.lang.String">LEDGER</Item>
+      <Item class="java.lang.String">FACILITY_SUBTYPE</Item>
+      <Item class="java.lang.String">ACCOUNT_TYPE</Item>
+      <Item class="java.lang.String">NOTIONAL</Item>
+      <Item class="java.lang.String">DEALID</Item>
+      <Item class="java.lang.String">RISKWEIGHT</Item>
+      <Item class="java.lang.String">RISKWEIGHT_DESC</Item>
+      <Item class="java.lang.String">VALUE_ADJUSTMENT</Item>
+      <Item class="java.lang.String">FX_LANTAKI</Item>
+      <Item class="java.lang.String">PORTFOLIO</Item>
+      <Item class="java.lang.String">REIKU_CURRENCY_RATE</Item>
+      <Item class="java.lang.String">REIKU_RATE</Item>
+      <Item class="java.lang.String">RATE</Item>
+      <Item class="java.lang.String">ACCOUNTING_CLASSIFICATION</Item>
+      <Item class="java.lang.String">REFERENCE_DATE</Item>
+      <Item class="java.lang.String">ISIN</Item>
+      <Item class="java.lang.String">CURRENCY_TYPE</Item>
+      <Item class="java.lang.String">ISSUE</Item>
+      <Item class="java.lang.String">PARENT_COMPANY</Item>
+      <Item class="java.lang.String">BALANCE</Item>
+      <Item class="java.lang.String">DW_SUBSYSTEM_ID</Item>
+      <Item class="java.lang.String">MARKETVALUE</Item>
+      <Item class="java.lang.String">FME_PRODUCT_TYPE</Item>
+      <Item class="java.lang.String">DW_SYSTEM_ID</Item>
+      <Item class="java.lang.String">INTEREST_INDEXATION</Item>
+      <Item class="java.lang.String">PRODUCT_SUBTYPE</Item>
+      <Item class="java.lang.String">TSRT</Item>
+      <Item class="java.lang.String">KAUPHOLL_LAND</Item>
+      <Item class="java.lang.String">ISSUE_ID</Item>
+      <Item class="java.lang.String">CURRENCY_RATE</Item>
+      <Item class="java.lang.String">DEAL_ID</Item>
+      <Item class="java.lang.String">RISK_CLASSIFICATION</Item>
+      <Item class="java.lang.String">GROUP_COMPANY</Item>
+      <Item class="java.lang.String">SEGMENT_NAME</Item>
+      <Item class="java.lang.String">CB_CATEGORY</Item>
+      <Item class="java.lang.String">DW_DOMICILE_COUNTRY_CODE</Item>
+      <Item class="java.lang.String">OBLIGOR_TYPE</Item>
+      <Item class="java.lang.String">COMPANY_TYPE</Item>
+      <Item class="java.lang.String">SUBSIDIARY_SSN</Item>
+      <Item class="java.lang.String">MARITAL_STATUS</Item>
+      <Item class="java.lang.String">COUNTRY_CODE_REGION</Item>
+      <Item class="java.lang.String">COUNTRY_CODE</Item>
+      <Item class="java.lang.String">SEGMENT_ID</Item>
+      <Item class="java.lang.String">COMPANY_TYPE_NAME</Item>
+      <Item class="java.lang.String">INTERNAL_SSN</Item>
+      <Item class="java.lang.String">FAMILY_ID</Item>
+      <Item class="java.lang.String">GROUP_NAME</Item>
+      <Item class="java.lang.String">OBLIGOR_SUBTYPE</Item>
+      <Item class="java.lang.String">TRADING_PARTNER</Item>
+      <Item class="java.lang.String">REIKU_RATE_EST</Item>
+      <Item class="java.lang.String">OVER_20_PERC_90D</Item>
+      <Item class="java.lang.String">MANUALLY_ADDED</Item>
+      <Item class="java.lang.String">DEPOSIT_MATURITY</Item>
+      <Item class="java.lang.String">CREDIT_CARD_DEBT</Item>
+      <Item class="java.lang.String">DURATION_CALC_MR</Item>
+      <Item class="java.lang.String">LEOY_BALANCE</Item>
+      <Item class="java.lang.String">TOTAL_LCF_M2_M7_M12_SSN_AMT</Item>
+      <Item class="java.lang.String">TOTAL_LCF_M2_M4_M6_SSN_AMT</Item>
+      <Item class="java.lang.String">TOTAL_LCF_M2_Y4_Y5_SSN_AMT</Item>
+      <Item class="java.lang.String">TOTAL_LCF_M2_Y2_Y3_SSN_AMT</Item>
+      <Item class="java.lang.String">TOTAL_LCF_M2_OVER_5Y_SSN_AMT</Item>
+      <Item class="java.lang.String">TOTAL_LCF_M2_M2_M3_SSN_AMT</Item>
+      <Item class="java.lang.String">TOTAL_LCF_M2_ON_30D_SSN_AMT</Item>
+      <Item class="java.lang.String">TOTAL_LCF_M2_ON_3M_SSN_AMT</Item>
+      <Item class="java.lang.String">LOAN_HAS_RW_35</Item>
+      <Item class="java.lang.String">ISAT_ORIGINAL</Item>
+      <Item class="java.lang.String">POSITION</Item>
+      <Item class="java.lang.String">POSITION_PAY</Item>
+      <Item class="java.lang.String">COLLECTIVE_IMP</Item>
+      <Item class="java.lang.String">COLLATERAL_SUBTYPE</Item>
+      <Item class="java.lang.String">LOAN_FAMILY_ID</Item>
+      <Item class="java.lang.String">SECTOR_ID</Item>
+      <Item class="java.lang.String">RESPONSIBLE_BRANCH_ID</Item>
+      <Item class="java.lang.String">BINDITIMI</Item>
+      <Item class="java.lang.String">EST_LOSS_INCREASES</Item>
+      <Item class="java.lang.String">EST_LOSS_DECREASES</Item>
+      <Item class="java.lang.String">AMT_AGAINST_DECREASES</Item>
+      <Item class="java.lang.String">ADD_IMP_OPENING_BALANCE</Item>
+      <Item class="java.lang.String">FME_SUPERVISION_CATEG</Item>
+      <Item class="java.lang.String">COMPANY_CONTROL</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M12_15</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M15_18</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M18_21</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M21_24</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M24_27</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M27_30</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M30_33</Item>
+      <Item class="java.lang.String">CF_INST_BASE_M33_36</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y3_5</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y5_10</Item>
+      <Item class="java.lang.String">CF_INST_BASE_Y10_OVER</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>96</Item>
+      <Item>161</Item>
+      <Item>123</Item>
+      <Item>136</Item>
+      <Item>159</Item>
+      <Item>152</Item>
+      <Item>172</Item>
+      <Item>164</Item>
+      <Item>184</Item>
+      <Item>147</Item>
+      <Item>173</Item>
+      <Item>132</Item>
+      <Item>140</Item>
+      <Item>127</Item>
+      <Item>141</Item>
+      <Item>176</Item>
+      <Item>90</Item>
+      <Item>109</Item>
+      <Item>115</Item>
+      <Item>164</Item>
+      <Item>120</Item>
+      <Item>129</Item>
+      <Item>81</Item>
+      <Item>180</Item>
+      <Item>141</Item>
+      <Item>142</Item>
+      <Item>140</Item>
+      <Item>172</Item>
+      <Item>138</Item>
+      <Item>92</Item>
+      <Item>156</Item>
+      <Item>39</Item>
+      <Item>101</Item>
+      <Item>69</Item>
+      <Item>154</Item>
+      <Item>124</Item>
+      <Item>59</Item>
+      <Item>69</Item>
+      <Item>86</Item>
+      <Item>138</Item>
+      <Item>83</Item>
+      <Item>79</Item>
+      <Item>103</Item>
+      <Item>54</Item>
+      <Item>96</Item>
+      <Item>201</Item>
+      <Item>109</Item>
+      <Item>201</Item>
+      <Item>81</Item>
+      <Item>208</Item>
+      <Item>127</Item>
+      <Item>82</Item>
+      <Item>166</Item>
+      <Item>113</Item>
+      <Item>124</Item>
+      <Item>157</Item>
+      <Item>99</Item>
+      <Item>115</Item>
+      <Item>127</Item>
+      <Item>54</Item>
+      <Item>60</Item>
+      <Item>151</Item>
+      <Item>71</Item>
+      <Item>103</Item>
+      <Item>87</Item>
+      <Item>88</Item>
+      <Item>68</Item>
+      <Item>39</Item>
+      <Item>107</Item>
+      <Item>119</Item>
+      <Item>114</Item>
+      <Item>98</Item>
+      <Item>80</Item>
+      <Item>134</Item>
+      <Item>111</Item>
+      <Item>112</Item>
+      <Item>110</Item>
+      <Item>76</Item>
+      <Item>135</Item>
+      <Item>120</Item>
+      <Item>120</Item>
+      <Item>151</Item>
+      <Item>134</Item>
+      <Item>127</Item>
+      <Item>126</Item>
+      <Item>126</Item>
+      <Item>97</Item>
+      <Item>145</Item>
+      <Item>73</Item>
+      <Item>77</Item>
+      <Item>121</Item>
+      <Item>84</Item>
+      <Item>112</Item>
+      <Item>119</Item>
+      <Item>143</Item>
+      <Item>105</Item>
+      <Item>71</Item>
+      <Item>75</Item>
+      <Item>150</Item>
+      <Item>127</Item>
+      <Item>104</Item>
+      <Item>133</Item>
+      <Item>138</Item>
+      <Item>99</Item>
+      <Item>109</Item>
+      <Item>114</Item>
+      <Item>132</Item>
+      <Item>114</Item>
+      <Item>123</Item>
+      <Item>74</Item>
+      <Item>127</Item>
+      <Item>83</Item>
+      <Item>97</Item>
+      <Item>60</Item>
+      <Item>102</Item>
+      <Item>68</Item>
+      <Item>142</Item>
+      <Item>124</Item>
+      <Item>139</Item>
+      <Item>150</Item>
+      <Item>54</Item>
+      <Item>110</Item>
+      <Item>97</Item>
+      <Item>159</Item>
+      <Item>145</Item>
+      <Item>103</Item>
+      <Item>82</Item>
+      <Item>94</Item>
+      <Item>119</Item>
+      <Item>104</Item>
+      <Item>78</Item>
+      <Item>60</Item>
+      <Item>62</Item>
+      <Item>75</Item>
+      <Item>96</Item>
+      <Item>119</Item>
+      <Item>110</Item>
+      <Item>85</Item>
+      <Item>76</Item>
+      <Item>97</Item>
+      <Item>111</Item>
+      <Item>97</Item>
+      <Item>74</Item>
+      <Item>117</Item>
+      <Item>152</Item>
+      <Item>120</Item>
+      <Item>86</Item>
+      <Item>115</Item>
+      <Item>97</Item>
+      <Item>148</Item>
+      <Item>89</Item>
+      <Item>100</Item>
+      <Item>112</Item>
+      <Item>208</Item>
+      <Item>127</Item>
+      <Item>108</Item>
+      <Item>96</Item>
+      <Item>145</Item>
+      <Item>60</Item>
+      <Item>77</Item>
+      <Item>90</Item>
+      <Item>79</Item>
+      <Item>102</Item>
+      <Item>120</Item>
+      <Item>79</Item>
+      <Item>93</Item>
+      <Item>52</Item>
+      <Item>109</Item>
+      <Item>94</Item>
+      <Item>85</Item>
+      <Item>163</Item>
+      <Item>126</Item>
+      <Item>88</Item>
+      <Item>136</Item>
+      <Item>94</Item>
+      <Item>81</Item>
+      <Item>109</Item>
+      <Item>68</Item>
+      <Item>132</Item>
+      <Item>54</Item>
+      <Item>95</Item>
+      <Item>112</Item>
+      <Item>137</Item>
+      <Item>108</Item>
+      <Item>92</Item>
+      <Item>95</Item>
+      <Item>138</Item>
+      <Item>175</Item>
+      <Item>54</Item>
+      <Item>292</Item>
+      <Item>153</Item>
+      <Item>153</Item>
+      <Item>153</Item>
+      <Item>153</Item>
+      <Item>148</Item>
+      <Item>142</Item>
+      <Item>68</Item>
+      <Item>196</Item>
+      <Item>292</Item>
+      <Item>96</Item>
+      <Item>153</Item>
+      <Item>102</Item>
+      <Item>166</Item>
+      <Item>156</Item>
+      <Item>132</Item>
+      <Item>180</Item>
+      <Item>112</Item>
+      <Item>153</Item>
+      <Item>102</Item>
+      <Item>85</Item>
+      <Item>102</Item>
+      <Item>201</Item>
+      <Item>132</Item>
+      <Item>132</Item>
+      <Item>138</Item>
+      <Item>54</Item>
+      <Item>173</Item>
+      <Item>54</Item>
+      <Item>95</Item>
+      <Item>68</Item>
+      <Item>112</Item>
+      <Item>98</Item>
+      <Item>93</Item>
+      <Item>99</Item>
+      <Item>121</Item>
+      <Item>101</Item>
+      <Item>166</Item>
+      <Item>132</Item>
+      <Item>57</Item>
+      <Item>172</Item>
+      <Item>95</Item>
+      <Item>131</Item>
+      <Item>153</Item>
+      <Item>112</Item>
+      <Item>131</Item>
+      <Item>116</Item>
+      <Item>65</Item>
+      <Item>96</Item>
+      <Item>176</Item>
+      <Item>126</Item>
+      <Item>95</Item>
+      <Item>285</Item>
+      <Item>186</Item>
+      <Item>189</Item>
+      <Item>140</Item>
+      <Item>112</Item>
+      <Item>76</Item>
+      <Item>222</Item>
+      <Item>79</Item>
+      <Item>163</Item>
+      <Item>128</Item>
+      <Item>47</Item>
+      <Item>62</Item>
+      <Item>63</Item>
+      <Item>190</Item>
+      <Item>153</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>105</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>105</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>55</Item>
+      <Item>55</Item>
+      <Item>88</Item>
+      <Item>75</Item>
+      <Item>70</Item>
+      <Item>68</Item>
+      <Item>111</Item>
+      <Item>105</Item>
+      <Item>111</Item>
+      <Item>105</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>105</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>200</Item>
+      <Item>203</Item>
+      <Item>169</Item>
+      <Item>94</Item>
+      <Item>292</Item>
+      <Item>135</Item>
+      <Item>292</Item>
+      <Item>91</Item>
+      <Item>292</Item>
+      <Item>172</Item>
+      <Item>184</Item>
+      <Item>182</Item>
+      <Item>191</Item>
+      <Item>197</Item>
+      <Item>194</Item>
+      <Item>93</Item>
+      <Item>200</Item>
+      <Item>71</Item>
+      <Item>292</Item>
+      <Item>292</Item>
+      <Item>123</Item>
+      <Item>292</Item>
+      <Item>123</Item>
+      <Item>103</Item>
+      <Item>292</Item>
+      <Item>292</Item>
+      <Item>112</Item>
+      <Item>154</Item>
+      <Item>153</Item>
+      <Item>121</Item>
+      <Item>84</Item>
+      <Item>62</Item>
+      <Item>86</Item>
+      <Item>58</Item>
+      <Item>144</Item>
+      <Item>47</Item>
+      <Item>111</Item>
+      <Item>141</Item>
+      <Item>126</Item>
+      <Item>164</Item>
+      <Item>49</Item>
+      <Item>137</Item>
+      <Item>111</Item>
+      <Item>151</Item>
+      <Item>169</Item>
+      <Item>136</Item>
+      <Item>150</Item>
+      <Item>98</Item>
+      <Item>97</Item>
+      <Item>170</Item>
+      <Item>144</Item>
+      <Item>141</Item>
+      <Item>68</Item>
+      <Item>125</Item>
+      <Item>156</Item>
+      <Item>169</Item>
+      <Item>137</Item>
+      <Item>152</Item>
+      <Item>148</Item>
+      <Item>129</Item>
+      <Item>161</Item>
+      <Item>169</Item>
+      <Item>165</Item>
+      <Item>160</Item>
+      <Item>128</Item>
+      <Item>103</Item>
+      <Item>135</Item>
+      <Item>184</Item>
+      <Item>86</Item>
+      <Item>157</Item>
+      <Item>105</Item>
+      <Item>144</Item>
+      <Item>144</Item>
+      <Item>112</Item>
+      <Item>103</Item>
+      <Item>99</Item>
+      <Item>180</Item>
+      <Item>109</Item>
+      <Item>133</Item>
+      <Item>63</Item>
+      <Item>94</Item>
+      <Item>83</Item>
+      <Item>88</Item>
+      <Item>136</Item>
+      <Item>64</Item>
+      <Item>192</Item>
+      <Item>111</Item>
+      <Item>87</Item>
+      <Item>84</Item>
+      <Item>106</Item>
+      <Item>165</Item>
+      <Item>164</Item>
+      <Item>134</Item>
+      <Item>149</Item>
+      <Item>116</Item>
+      <Item>76</Item>
+      <Item>170</Item>
+      <Item>67</Item>
+      <Item>110</Item>
+      <Item>112</Item>
+      <Item>169</Item>
+      <Item>98</Item>
+      <Item>119</Item>
+      <Item>100</Item>
+      <Item>236</Item>
+      <Item>75</Item>
+      <Item>61</Item>
+      <Item>114</Item>
+      <Item>105</Item>
+      <Item>122</Item>
+      <Item>165</Item>
+      <Item>139</Item>
+      <Item>140</Item>
+      <Item>135</Item>
+      <Item>78</Item>
+      <Item>299</Item>
+      <Item>313</Item>
+      <Item>313</Item>
+      <Item>299</Item>
+      <Item>208</Item>
+      <Item>140</Item>
+      <Item>208</Item>
+      <Item>149</Item>
+      <Item>143</Item>
+      <Item>107</Item>
+      <Item>98</Item>
+      <Item>98</Item>
+      <Item>98</Item>
+      <Item>98</Item>
+      <Item>132</Item>
+      <Item>150</Item>
+      <Item>142</Item>
+      <Item>128</Item>
+      <Item>121</Item>
+      <Item>109</Item>
+      <Item>144</Item>
+      <Item>105</Item>
+      <Item>138</Item>
+      <Item>138</Item>
+      <Item>74</Item>
+      <Item>57</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>105</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>105</Item>
+      <Item>111</Item>
+      <Item>111</Item>
+      <Item>117</Item>
+      <Item>111</Item>
+      <Item>105</Item>
+      <Item>111</Item>
+      <Item>105</Item>
+      <Item>156</Item>
+      <Item>72</Item>
+      <Item>148</Item>
+      <Item>181</Item>
+      <Item>292</Item>
+      <Item>129</Item>
+      <Item>154</Item>
+      <Item>176</Item>
+      <Item>257</Item>
+      <Item>146</Item>
+      <Item>92</Item>
+      <Item>66</Item>
+      <Item>43</Item>
+      <Item>138</Item>
+      <Item>172</Item>
+      <Item>96</Item>
+      <Item>153</Item>
+      <Item>100</Item>
+      <Item>153</Item>
+      <Item>96</Item>
+      <Item>117</Item>
+      <Item>86</Item>
+      <Item>146</Item>
+      <Item>134</Item>
+      <Item>153</Item>
+      <Item>129</Item>
+      <Item>104</Item>
+      <Item>168</Item>
+      <Item>77</Item>
+      <Item>136</Item>
+      <Item>153</Item>
+      <Item>135</Item>
+      <Item>124</Item>
+      <Item>98</Item>
+      <Item>128</Item>
+      <Item>98</Item>
+      <Item>112</Item>
+      <Item>106</Item>
+      <Item>122</Item>
+      <Item>106</Item>
+      <Item>110</Item>
+      <Item>111</Item>
+      <Item>112</Item>
+      <Item>128</Item>
+      <Item>186</Item>
+      <Item>182</Item>
+      <Item>112</Item>
+      <Item>104</Item>
+      <Item>112</Item>
+      <Item>112</Item>
+      <Item>106</Item>
+      <Item>149</Item>
+      <Item>112</Item>
+      <Item>127</Item>
+      <Item>110</Item>
+      <Item>112</Item>
+      <Item>128</Item>
+      <Item>134</Item>
+      <Item>112</Item>
+      <Item>165</Item>
+      <Item>104</Item>
+      <Item>106</Item>
+      <Item>155</Item>
+      <Item>149</Item>
+      <Item>106</Item>
+      <Item>110</Item>
+      <Item>118</Item>
+      <Item>118</Item>
+      <Item>104</Item>
+      <Item>112</Item>
+      <Item>112</Item>
+      <Item>106</Item>
+      <Item>157</Item>
+      <Item>118</Item>
+      <Item>110</Item>
+      <Item>106</Item>
+      <Item>153</Item>
+      <Item>112</Item>
+      <Item>164</Item>
+      <Item>128</Item>
+      <Item>112</Item>
+      <Item>134</Item>
+      <Item>106</Item>
+      <Item>105</Item>
+      <Item>106</Item>
+      <Item>143</Item>
+      <Item>104</Item>
+      <Item>192</Item>
+      <Item>136</Item>
+      <Item>146</Item>
+      <Item>133</Item>
+      <Item>100</Item>
+      <Item>299</Item>
+      <Item>96</Item>
+      <Item>142</Item>
+      <Item>89</Item>
+      <Item>125</Item>
+      <Item>127</Item>
+      <Item>122</Item>
+      <Item>152</Item>
+      <Item>149</Item>
+      <Item>92</Item>
+      <Item>105</Item>
+      <Item>152</Item>
+      <Item>127</Item>
+      <Item>179</Item>
+      <Item>128</Item>
+      <Item>75</Item>
+      <Item>143</Item>
+      <Item>86</Item>
+      <Item>155</Item>
+      <Item>120</Item>
+      <Item>148</Item>
+      <Item>155</Item>
+      <Item>147</Item>
+      <Item>113</Item>
+      <Item>68</Item>
+      <Item>121</Item>
+      <Item>148</Item>
+      <Item>116</Item>
+      <Item>70</Item>
+      <Item>95</Item>
+      <Item>141</Item>
+      <Item>124</Item>
+      <Item>110</Item>
+      <Item>155</Item>
+      <Item>174</Item>
+      <Item>127</Item>
+      <Item>348</Item>
+      <Item>145</Item>
+      <Item>71</Item>
+      <Item>115</Item>
+      <Item>127</Item>
+      <Item>86</Item>
+      <Item>165</Item>
+      <Item>147</Item>
+      <Item>160</Item>
+      <Item>129</Item>
+      <Item>151</Item>
+      <Item>140</Item>
+      <Item>299</Item>
+      <Item>79</Item>
+      <Item>82</Item>
+      <Item>149</Item>
+      <Item>134</Item>
+      <Item>109</Item>
+      <Item>116</Item>
+      <Item>93</Item>
+      <Item>122</Item>
+      <Item>112</Item>
+      <Item>166</Item>
+      <Item>157</Item>
+      <Item>130</Item>
+      <Item>82</Item>
+      <Item>57</Item>
+      <Item>150</Item>
+      <Item>117</Item>
+      <Item>174</Item>
+      <Item>84</Item>
+      <Item>127</Item>
+      <Item>67</Item>
+      <Item>140</Item>
+      <Item>128</Item>
+      <Item>90</Item>
+      <Item>99</Item>
+      <Item>174</Item>
+      <Item>107</Item>
+      <Item>90</Item>
+      <Item>47</Item>
+      <Item>93</Item>
+      <Item>121</Item>
+      <Item>151</Item>
+      <Item>90</Item>
+      <Item>81</Item>
+      <Item>81</Item>
+      <Item>192</Item>
+      <Item>165</Item>
+      <Item>132</Item>
+      <Item>163</Item>
+      <Item>145</Item>
+      <Item>139</Item>
+      <Item>141</Item>
+      <Item>162</Item>
+      <Item>278</Item>
+      <Item>127</Item>
+      <Item>144</Item>
+      <Item>124</Item>
+      <Item>80</Item>
+      <Item>148</Item>
+      <Item>149</Item>
+      <Item>113</Item>
+      <Item>141</Item>
+      <Item>79</Item>
+      <Item>74</Item>
+      <Item>100</Item>
+      <Item>58</Item>
+      <Item>109</Item>
+      <Item>153</Item>
+      <Item>76</Item>
+      <Item>80</Item>
+      <Item>116</Item>
+      <Item>134</Item>
+      <Item>62</Item>
+      <Item>147</Item>
+      <Item>99</Item>
+      <Item>116</Item>
+      <Item>101</Item>
+      <Item>62</Item>
+      <Item>62</Item>
+      <Item>63</Item>
+      <Item>143</Item>
+      <Item>175</Item>
+      <Item>171</Item>
+      <Item>105</Item>
+      <Item>56</Item>
+      <Item>112</Item>
+      <Item>119</Item>
+      <Item>175</Item>
+      <Item>157</Item>
+      <Item>156</Item>
+      <Item>181</Item>
+      <Item>62</Item>
+      <Item>152</Item>
+      <Item>110</Item>
+      <Item>184</Item>
+      <Item>157</Item>
+      <Item>137</Item>
+      <Item>188</Item>
+      <Item>203</Item>
+      <Item>78</Item>
+      <Item>106</Item>
+      <Item>100</Item>
+      <Item>106</Item>
+      <Item>76</Item>
+      <Item>116</Item>
+      <Item>89</Item>
+      <Item>87</Item>
+      <Item>95</Item>
+      <Item>70</Item>
+      <Item>91</Item>
+      <Item>102</Item>
+      <Item>90</Item>
+      <Item>81</Item>
+      <Item>75</Item>
+      <Item>95</Item>
+      <Item>107</Item>
+      <Item>121</Item>
+      <Item>97</Item>
+      <Item>98</Item>
+      <Item>95</Item>
+      <Item>115</Item>
+      <Item>64</Item>
+      <Item>47</Item>
+      <Item>126</Item>
+      <Item>57</Item>
+      <Item>82</Item>
+      <Item>153</Item>
+      <Item>63</Item>
+      <Item>69</Item>
+      <Item>57</Item>
+      <Item>51</Item>
+      <Item>88</Item>
+      <Item>145</Item>
+      <Item>185</Item>
+      <Item>105</Item>
+      <Item>161</Item>
+      <Item>140</Item>
+      <Item>89</Item>
+      <Item>82</Item>
+      <Item>63</Item>
+      <Item>63</Item>
+      <Item>62</Item>
+      <Item>141</Item>
+      <Item>109</Item>
+      <Item>126</Item>
+      <Item>133</Item>
+      <Item>123</Item>
+      <Item>119</Item>
+      <Item>131</Item>
+      <Item>119</Item>
+      <Item>116</Item>
+      <Item>70</Item>
+      <Item>116</Item>
+      <Item>101</Item>
+      <Item>94</Item>
+      <Item>120</Item>
+      <Item>60</Item>
+      <Item>78</Item>
+      <Item>118</Item>
+      <Item>127</Item>
+      <Item>57</Item>
+      <Item>96</Item>
+      <Item>57</Item>
+      <Item>113</Item>
+      <Item>98</Item>
+      <Item>71</Item>
+      <Item>55</Item>
+      <Item>82</Item>
+      <Item>243</Item>
+      <Item>121</Item>
+      <Item>79</Item>
+      <Item>77</Item>
+      <Item>141</Item>
+      <Item>81</Item>
+      <Item>47</Item>
+      <Item>176</Item>
+      <Item>109</Item>
+      <Item>47</Item>
+      <Item>103</Item>
+      <Item>48</Item>
+      <Item>113</Item>
+      <Item>64</Item>
+      <Item>116</Item>
+      <Item>90</Item>
+      <Item>123</Item>
+      <Item>97</Item>
+      <Item>135</Item>
+      <Item>116</Item>
+      <Item>47</Item>
+      <Item>102</Item>
+      <Item>65</Item>
+      <Item>105</Item>
+      <Item>61</Item>
+      <Item>132</Item>
+      <Item>109</Item>
+      <Item>516</Item>
+      <Item>92</Item>
+      <Item>179</Item>
+      <Item>94</Item>
+      <Item>98</Item>
+      <Item>104</Item>
+      <Item>187</Item>
+      <Item>146</Item>
+      <Item>101</Item>
+      <Item>82</Item>
+      <Item>152</Item>
+      <Item>93</Item>
+      <Item>75</Item>
+      <Item>208</Item>
+      <Item>113</Item>
+      <Item>116</Item>
+      <Item>105</Item>
+      <Item>121</Item>
+      <Item>111</Item>
+      <Item>119</Item>
+      <Item>121</Item>
+      <Item>299</Item>
+      <Item>95</Item>
+      <Item>193</Item>
+      <Item>187</Item>
+      <Item>183</Item>
+      <Item>183</Item>
+      <Item>198</Item>
+      <Item>278</Item>
+      <Item>292</Item>
+      <Item>188</Item>
+      <Item>113</Item>
+      <Item>97</Item>
+      <Item>68</Item>
+      <Item>93</Item>
+      <Item>131</Item>
+      <Item>131</Item>
+      <Item>105</Item>
+      <Item>76</Item>
+      <Item>150</Item>
+      <Item>69</Item>
+      <Item>130</Item>
+      <Item>132</Item>
+      <Item>154</Item>
+      <Item>166</Item>
+      <Item>151</Item>
+      <Item>122</Item>
+      <Item>136</Item>
+      <Item>136</Item>
+      <Item>136</Item>
+      <Item>136</Item>
+      <Item>136</Item>
+      <Item>136</Item>
+      <Item>136</Item>
+      <Item>136</Item>
+      <Item>122</Item>
+      <Item>128</Item>
+      <Item>149</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_MIMIRSELECT *
+ FROM mimir.REPORTS partition (P_20170331)</uniqueName>
+</TableSettings>

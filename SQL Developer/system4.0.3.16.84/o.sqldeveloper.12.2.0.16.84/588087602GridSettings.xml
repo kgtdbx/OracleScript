@@ -1,0 +1,24 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">LE_LIMIT</Item>
+      <Item class="java.lang.String">GROUP_SSN</Item>
+      <Item class="java.lang.String">SSN</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>327</Item>
+      <Item>79</Item>
+      <Item>75</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item class="java.lang.String">2 asc</Item>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_KVASIRselect sum(nvl(vd.credit_risk_exposure,0))/157235917159 as le_limit, vd.group_ssn, vd.ssn 
+from mimir.V_CRD_LARGE_EXPOSURE_DETAIL  vd 
+where vd.the_date= date'2017-03-31' 
+and vd.ssn in ('0904664109', '1611623299', '2012653129', '2409662989', '4203697789', '4306100580', '4308050530', '4411100220', '4909112510', '5208043310', '5302071020', '5308022640', '5612993909', '6301692919', '6305131460', '7004070980') 
+
+group by vd.group_ssn, vd.ssn</uniqueName>
+</TableSettings>

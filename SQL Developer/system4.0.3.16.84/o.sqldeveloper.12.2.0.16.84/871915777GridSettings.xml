@@ -1,0 +1,187 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">REFERENCE_DATE</Item>
+      <Item class="java.lang.String">AGREEMENT_ID</Item>
+      <Item class="java.lang.String">HOST_AGREEMENT_NUM</Item>
+      <Item class="java.lang.String">AGREEMENT_NAME_TXT</Item>
+      <Item class="java.lang.String">SOURCE_SYSTEM_CD</Item>
+      <Item class="java.lang.String">FINANCIAL_AGREEMENT_TYPE_CD</Item>
+      <Item class="java.lang.String">FINANCIAL_AGREEMENT_SUBTYPE_CD</Item>
+      <Item class="java.lang.String">BINDING_FEATURE_CD</Item>
+      <Item class="java.lang.String">NOTICE_FEATURE_CD</Item>
+      <Item class="java.lang.String">BINDING_TIME_PERIOD_CD</Item>
+      <Item class="java.lang.String">BINDING_TIME_PERIOD_CNT</Item>
+      <Item class="java.lang.String">NOTICE_TIME_PERIOD_CD</Item>
+      <Item class="java.lang.String">NOTICE_TIME_PERIOD_CNT</Item>
+      <Item class="java.lang.String">LEGAL_COLLECTION_IND</Item>
+      <Item class="java.lang.String">PAWNED_IND</Item>
+      <Item class="java.lang.String">ACTIVE_IND</Item>
+      <Item class="java.lang.String">BRANCH_CD</Item>
+      <Item class="java.lang.String">PROFIT_CENTER_CD</Item>
+      <Item class="java.lang.String">VALUE_DT</Item>
+      <Item class="java.lang.String">OPEN_DT</Item>
+      <Item class="java.lang.String">CLOSE_DT</Item>
+      <Item class="java.lang.String">ORIGINAL_MATURITY_DT</Item>
+      <Item class="java.lang.String">OWNER_PARTY_ID</Item>
+      <Item class="java.lang.String">OWNER_PARTY_SSN</Item>
+      <Item class="java.lang.String">CURRENCY_CD</Item>
+      <Item class="java.lang.String">CURRENCY_RT</Item>
+      <Item class="java.lang.String">ISB_CURRENCY_RT</Item>
+      <Item class="java.lang.String">CURRENCY_TYPE_CD</Item>
+      <Item class="java.lang.String">HOST_PRODUCT_NUM</Item>
+      <Item class="java.lang.String">PRODUCT_ID</Item>
+      <Item class="java.lang.String">PRODUCT_NAME_TXT</Item>
+      <Item class="java.lang.String">DESIGNATED_ACCOUNT_NAME_TXT</Item>
+      <Item class="java.lang.String">PV_FEATURE_GROUP_ID</Item>
+      <Item class="java.lang.String">LOAN_TYPE</Item>
+      <Item class="java.lang.String">DAY_COUNT_BASIS_CD</Item>
+      <Item class="java.lang.String">VALUE_DATE_RULE_CD</Item>
+      <Item class="java.lang.String">PRICING_METHOD_SUBTYPE_CD</Item>
+      <Item class="java.lang.String">TIER_NO</Item>
+      <Item class="java.lang.String">DEPOSIT_INTEREST_RT</Item>
+      <Item class="java.lang.String">LOAN_INTEREST_RT</Item>
+      <Item class="java.lang.String">INTEREST_RT</Item>
+      <Item class="java.lang.String">BASE_RT</Item>
+      <Item class="java.lang.String">FUNDING_MARGIN_RT</Item>
+      <Item class="java.lang.String">BUSINESS_UNIT_MARGIN_RT</Item>
+      <Item class="java.lang.String">TOTAL_MARGIN_RT</Item>
+      <Item class="java.lang.String">INDEXATION_RT</Item>
+      <Item class="java.lang.String">INTEREST_FIX_FLO_CD</Item>
+      <Item class="java.lang.String">INTEREST_BEFORE_AFTER_CD</Item>
+      <Item class="java.lang.String">INT_COMPOUNDING_PERIOD_TYPE_CD</Item>
+      <Item class="java.lang.String">ACCRUED_DEPOSIT_INT_AMT</Item>
+      <Item class="java.lang.String">ACCRUED_DEPOSIT_INT_AC_AMT</Item>
+      <Item class="java.lang.String">ACCRUED_LOAN_INT_AMT</Item>
+      <Item class="java.lang.String">ACCRUED_LOAN_INT_AC_AMT</Item>
+      <Item class="java.lang.String">ACCRUED_INDEXATION_AC_AMT</Item>
+      <Item class="java.lang.String">ACCRUED_INDEXATION_AMT</Item>
+      <Item class="java.lang.String">BALANCE_SRC_AMT</Item>
+      <Item class="java.lang.String">BALANCE_SRC_AC_AMT</Item>
+      <Item class="java.lang.String">BALANCE_AMT</Item>
+      <Item class="java.lang.String">BALANCE_AC_AMT</Item>
+      <Item class="java.lang.String">IN_ARREARS_AC_AMT</Item>
+      <Item class="java.lang.String">IN_ARREARS_AMT</Item>
+      <Item class="java.lang.String">DAYS_IN_ARREARS_CNT</Item>
+      <Item class="java.lang.String">IN_ARREARS_DT</Item>
+      <Item class="java.lang.String">NSF_AC_AMT</Item>
+      <Item class="java.lang.String">NSF_AMT</Item>
+      <Item class="java.lang.String">NSF_COST_AC_AMT</Item>
+      <Item class="java.lang.String">NSF_COST_AMT</Item>
+      <Item class="java.lang.String">PENALTY_INTEREST_AC_AMT</Item>
+      <Item class="java.lang.String">PENALTY_INTEREST_AMT</Item>
+      <Item class="java.lang.String">OVERDRAFT_LIMIT_AMT</Item>
+      <Item class="java.lang.String">OVERDRAFT_LIMIT_AC_AMT</Item>
+      <Item class="java.lang.String">OVERDRAFT_LIMIT_END_DT</Item>
+      <Item class="java.lang.String">AVAILABLE_AMT</Item>
+      <Item class="java.lang.String">AVAILABLE_AC_AMT</Item>
+      <Item class="java.lang.String">DISPOSABLE_AMT</Item>
+      <Item class="java.lang.String">DISPOSABLE_AC_AMT</Item>
+      <Item class="java.lang.String">EXPOSURE_AMT</Item>
+      <Item class="java.lang.String">EXPOSURE_AC_AMT</Item>
+      <Item class="java.lang.String">LAST_TRANSACTION_DT</Item>
+      <Item class="java.lang.String">LATEST_MOVEMENT_DT</Item>
+      <Item class="java.lang.String">YTD_WITHDRAWAL_CNT</Item>
+      <Item class="java.lang.String">YTD_WITHDRAWAL_AC_AMT</Item>
+      <Item class="java.lang.String">YTD_DEPOSIT_CNT</Item>
+      <Item class="java.lang.String">YTD_DEPOSIT_TURNOVER_AC_AMT</Item>
+      <Item class="java.lang.String">LOAD_ID</Item>
+      <Item class="java.lang.String">LOAD_DATE</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>109</Item>
+      <Item>96</Item>
+      <Item>140</Item>
+      <Item>137</Item>
+      <Item>124</Item>
+      <Item>189</Item>
+      <Item>208</Item>
+      <Item>132</Item>
+      <Item>128</Item>
+      <Item>155</Item>
+      <Item>161</Item>
+      <Item>151</Item>
+      <Item>157</Item>
+      <Item>142</Item>
+      <Item>86</Item>
+      <Item>79</Item>
+      <Item>80</Item>
+      <Item>121</Item>
+      <Item>69</Item>
+      <Item>68</Item>
+      <Item>70</Item>
+      <Item>144</Item>
+      <Item>112</Item>
+      <Item>120</Item>
+      <Item>93</Item>
+      <Item>92</Item>
+      <Item>114</Item>
+      <Item>123</Item>
+      <Item>128</Item>
+      <Item>84</Item>
+      <Item>145</Item>
+      <Item>195</Item>
+      <Item>140</Item>
+      <Item>159</Item>
+      <Item>135</Item>
+      <Item>133</Item>
+      <Item>178</Item>
+      <Item>63</Item>
+      <Item>135</Item>
+      <Item>119</Item>
+      <Item>86</Item>
+      <Item>63</Item>
+      <Item>129</Item>
+      <Item>162</Item>
+      <Item>116</Item>
+      <Item>100</Item>
+      <Item>134</Item>
+      <Item>170</Item>
+      <Item>212</Item>
+      <Item>166</Item>
+      <Item>186</Item>
+      <Item>150</Item>
+      <Item>170</Item>
+      <Item>182</Item>
+      <Item>162</Item>
+      <Item>117</Item>
+      <Item>137</Item>
+      <Item>91</Item>
+      <Item>111</Item>
+      <Item>130</Item>
+      <Item>110</Item>
+      <Item>141</Item>
+      <Item>102</Item>
+      <Item>85</Item>
+      <Item>65</Item>
+      <Item>118</Item>
+      <Item>98</Item>
+      <Item>163</Item>
+      <Item>143</Item>
+      <Item>139</Item>
+      <Item>159</Item>
+      <Item>157</Item>
+      <Item>99</Item>
+      <Item>119</Item>
+      <Item>107</Item>
+      <Item>127</Item>
+      <Item>98</Item>
+      <Item>118</Item>
+      <Item>140</Item>
+      <Item>135</Item>
+      <Item>140</Item>
+      <Item>161</Item>
+      <Item>113</Item>
+      <Item>194</Item>
+      <Item>80</Item>
+      <Item>78</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGPROD_SERHIIBSELECT * 
+from bifrost.STG_DEPOSITS_AGREEMENTS_ARC agreement  
+where /*agreement.reference_date= date'2017-10-31' 
+and */agreement.AGREEMENT_ID in ('435922', '435923')</uniqueName>
+</TableSettings>

@@ -1,0 +1,79 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">INSTALLMENT</Item>
+      <Item class="java.lang.String">INSTALLMENT_ISK</Item>
+      <Item class="java.lang.String">INTEREST</Item>
+      <Item class="java.lang.String">INTEREST_ISK</Item>
+      <Item class="java.lang.String">INSTALLMENT_NUMBER</Item>
+      <Item class="java.lang.String">CURRENT_LOAN_BALANCE</Item>
+      <Item class="java.lang.String">INTEREST_PERCENTAGE</Item>
+      <Item class="java.lang.String">LOAD_ID</Item>
+      <Item class="java.lang.String">LOAD_DATE</Item>
+      <Item class="java.lang.String">ACTIVE</Item>
+      <Item class="java.lang.String">DISCOUNT</Item>
+      <Item class="java.lang.String">NOMINAL</Item>
+      <Item class="java.lang.String">THE_DATE</Item>
+      <Item class="java.lang.String">OLD_DIM_CUSTOMER</Item>
+      <Item class="java.lang.String">DIM_CURRENCY</Item>
+      <Item class="java.lang.String">DIM_LOAN_TYPE</Item>
+      <Item class="java.lang.String">DIM_INDUSTRY_SEGMENT</Item>
+      <Item class="java.lang.String">DIM_COUNTRY</Item>
+      <Item class="java.lang.String">DIM_TIME_TRANSACTION</Item>
+      <Item class="java.lang.String">DIM_TIME_STATUS</Item>
+      <Item class="java.lang.String">DIM_TIME_INTEREST_REVISION</Item>
+      <Item class="java.lang.String">DIM_GL_ACCOUNT</Item>
+      <Item class="java.lang.String">DIM_LOAN</Item>
+      <Item class="java.lang.String">OLD_DIM_CUSTOMER_OWNER</Item>
+      <Item class="java.lang.String">DIM_PRODUCT</Item>
+      <Item class="java.lang.String">ASSET_LIABILITY</Item>
+      <Item class="java.lang.String">DIM_CUSTOMER</Item>
+      <Item class="java.lang.String">DIM_CUSTOMER_OWNER</Item>
+      <Item class="java.lang.String">PARTY_ID</Item>
+      <Item class="java.lang.String">PARTY_ID_OWNER</Item>
+      <Item class="java.lang.String">AGREEMENT_ID</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>136</Item>
+      <Item>131</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_KVASIRselect *   
+FROM  valholl.fct_loan_cashflow cf 
+where cf.active = 'Y' 
+ and cf.the_date =date'2017-07-31' 
+and cf.installment_isk not in ('0','60996840') 
+and cf.dim_loan = '33026854793'</uniqueName>
+</TableSettings>

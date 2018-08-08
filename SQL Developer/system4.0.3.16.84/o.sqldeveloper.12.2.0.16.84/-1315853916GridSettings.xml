@@ -1,0 +1,87 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">010_code</Item>
+      <Item class="java.lang.String">020_group</Item>
+      <Item class="java.lang.String">030_underlying_asset</Item>
+      <Item class="java.lang.String">040_conn</Item>
+      <Item class="java.lang.String">050_original_exposure</Item>
+      <Item class="java.lang.String">060_defaulted</Item>
+      <Item class="java.lang.String">070_debt_instruments</Item>
+      <Item class="java.lang.String">080_equity</Item>
+      <Item class="java.lang.String">090_derivatives</Item>
+      <Item class="java.lang.String">100_loan_comm</Item>
+      <Item class="java.lang.String">110_guarantee</Item>
+      <Item class="java.lang.String">120_other</Item>
+      <Item class="java.lang.String">130_ind_debt_instruments</Item>
+      <Item class="java.lang.String">140_ind_equity</Item>
+      <Item class="java.lang.String">150_ind_derivatives</Item>
+      <Item class="java.lang.String">160_ind_loan_comm</Item>
+      <Item class="java.lang.String">170_ind_guarantees</Item>
+      <Item class="java.lang.String">180_ind_other</Item>
+      <Item class="java.lang.String">190_add_exp</Item>
+      <Item class="java.lang.String">200_value_adj</Item>
+      <Item class="java.lang.String">210_own_funds</Item>
+      <Item class="java.lang.String">220_exposure_value</Item>
+      <Item class="java.lang.String">230_trading_book</Item>
+      <Item class="java.lang.String">240_perc</Item>
+      <Item class="java.lang.String">250_sub_debt_instruments</Item>
+      <Item class="java.lang.String">260_sub_equity</Item>
+      <Item class="java.lang.String">270_sub_derivatives</Item>
+      <Item class="java.lang.String">280_sub_loan_comm</Item>
+      <Item class="java.lang.String">290_sub_guarantees</Item>
+      <Item class="java.lang.String">300_sub_other</Item>
+      <Item class="java.lang.String">310_sub_other_fund</Item>
+      <Item class="java.lang.String">320_real_est</Item>
+      <Item class="java.lang.String">330_exempted</Item>
+      <Item class="java.lang.String">340_total_after</Item>
+      <Item class="java.lang.String">350_non_trading</Item>
+      <Item class="java.lang.String">360_per_after</Item>
+      <Item class="java.lang.String">THE_DATE</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>125</Item>
+      <Item>131</Item>
+      <Item>128</Item>
+      <Item>89</Item>
+      <Item>127</Item>
+      <Item>73</Item>
+      <Item>96</Item>
+      <Item>96</Item>
+      <Item>93</Item>
+      <Item>69</Item>
+      <Item>147</Item>
+      <Item>93</Item>
+      <Item>116</Item>
+      <Item>116</Item>
+      <Item>118</Item>
+      <Item>89</Item>
+      <Item>85</Item>
+      <Item>90</Item>
+      <Item>96</Item>
+      <Item>120</Item>
+      <Item>106</Item>
+      <Item>64</Item>
+      <Item>150</Item>
+      <Item>96</Item>
+      <Item>119</Item>
+      <Item>119</Item>
+      <Item>121</Item>
+      <Item>92</Item>
+      <Item>120</Item>
+      <Item>82</Item>
+      <Item>96</Item>
+      <Item>95</Item>
+      <Item>101</Item>
+      <Item>89</Item>
+      <Item>75</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item class="java.lang.String">1 asc</Item>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23vhgstbclone_mimirselect * from V_CRD_LARGE_EXPOSURE_P_C29 p29 where p29.the_date = date'2017-03-31'</uniqueName>
+</TableSettings>

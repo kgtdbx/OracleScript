@@ -1,0 +1,64 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">GROUP_SSN</Item>
+      <Item class="java.lang.String">SSN</Item>
+      <Item class="java.lang.String">CR_LIMIT</Item>
+      <Item class="java.lang.String">WHAT</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>79</Item>
+      <Item>75</Item>
+      <Item>327</Item>
+      <Item>152</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23vhgstbclone_mimirWITH stmt_xbrl_dates AS 
+       (SELECT to_date(capital_date, 'DD.MM.YYYY')  AS capital_date, 
+               to_date(htv_date, 'DD.MM.YYYY')      AS htv_date 
+        FROM   xbrl_dates 
+       ), 
+     stmt_total_reg_cap AS 
+       (
+       SELECT total_regulatory_capital 
+       FROM   capital_info ci 
+       WHERE  ci.the_date = (SELECT capital_date FROM stmt_xbrl_dates) 
+       AND    ci.consolidate_parent = 'Móðurfélag' 
+       ), 
+     stmt_main AS 
+       (SELECT 
+              CASE 
+                     WHEN (GROUPING(vd.group_ssn) = 1) 
+                     THEN 'ALL' 
+                     ELSE COALESCE(vd.group_ssn, 'UNKNOWN') 
+              END AS group_ssn, 
+              CASE 
+                     WHEN (GROUPING(vd.ssn) = 1) 
+                     THEN 'ALL' 
+                     ELSE COALESCE(vd.ssn, 'UNKNOWN') 
+              END AS ssn, 
+              SUM(NVL(vd.credit_risk_exposure,0))/(SELECT total_regulatory_capital FROM stmt_total_reg_cap)  
+                  AS cr_limit, 
+              CASE 
+                     WHEN grouping_id(vd.group_ssn, vd.ssn) = 0 
+                     THEN '' 
+                     WHEN grouping_id(vd.group_ssn, vd.ssn) = 1 
+                     THEN 'Sum by group_ssn' 
+                     WHEN grouping_id(vd.group_ssn, vd.ssn) = 3 
+                     THEN 'Sum by group_ssn, ssn' 
+              END  AS what 
+       FROM   V_CRD_LARGE_EXPOSURE_DETAIL vd 
+       WHERE  vd.the_date= DATE'2017-03-31' 
+        
+        
+        
+       AND   vd.group_ssn IN ('5612993909', '6301692919') 
+       GROUP BY rollup (vd.group_ssn, vd.ssn) 
+       ORDER BY vd.group_ssn, vd.ssn 
+       ) 
+SELECT group_ssn, ssn, cr_limit, what 
+FROM   stmt_main</uniqueName>
+</TableSettings>

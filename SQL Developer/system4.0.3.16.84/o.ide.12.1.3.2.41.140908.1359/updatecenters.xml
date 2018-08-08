@@ -1,0 +1,27 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<updatecenters xmlns="http://xmlns.oracle.com/jdeveloper/110000/updatecenters">
+   <hash>
+      <value n="isEnabled" v="true"/>
+      <value n="isProtected" v="false"/>
+      <value n="masterId" v="oracle.sqldeveloper.webupdate.otncenter"/>
+      <value n="name" v="Oracle SQL Developer"/>
+      <value n="selectionDefault" v="true"/>
+      <value n="url" v="http://apex.oracle.com/pls/apex/dbtools/usage/cfu"/>
+   </hash>
+   <hash>
+      <value n="isEnabled" v="false"/>
+      <value n="isProtected" v="false"/>
+      <value n="masterId" v="oracle.ide.webupdate.webupdate.sqldevoracle"/>
+      <value n="name" v="Oracle Extensions"/>
+      <value n="selectionDefault" v="false"/>
+      <value n="url" v="http://www.oracle.com/ocom/groups/public/@otn/documents/webcontent/162031.xml"/>
+   </hash>
+   <hash>
+      <value n="isEnabled" v="false"/>
+      <value n="isProtected" v="false"/>
+      <value n="masterId" v="oracle.ide.webupdate.webupdate.sqldev3rdparty"/>
+      <value n="name" v="Third Party SQL Developer Extensions"/>
+      <value n="selectionDefault" v="false"/>
+      <value n="url" v="http://www.oracle.com/ocom/groups/public/@otn/documents/webcontent/162033.xml"/>
+   </hash>
+</updatecenters>

@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">REFERENCE_DATE</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>109</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item class="java.lang.String">1 asc</Item>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_BIFROSTselect unique reference_date 
+from bifrost.stg_deposits_agreements_arc partition for (to_date('30-11-2017','dd-mm-yyyy'))</uniqueName>
+</TableSettings>

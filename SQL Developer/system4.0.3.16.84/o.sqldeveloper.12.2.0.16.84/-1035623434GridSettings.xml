@@ -1,0 +1,29 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">CENTRAL_BANK_2014</Item>
+      <Item class="java.lang.String">ISB_INDUSTRY_SECTOR</Item>
+      <Item class="java.lang.String">SECTOR_ID</Item>
+      <Item class="java.lang.String">SEGMENT_ID</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>126</Item>
+      <Item>138</Item>
+      <Item>76</Item>
+      <Item>82</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23vhgstbclone_kvasirSELECT r.central_bank_2014, 
+       r.isb_industry_sector, 
+       r.sector_id, 
+       r.segment_id 
+ FROM mimir.REPORTS partition (P_20170331) r 
+ WHERE r.the_date =date'2017-03-31' 
+ 
+AND r.active = 'Y' 
+AND r.report_id = 423 
+AND r.ssn = '5402696459'</uniqueName>
+</TableSettings>

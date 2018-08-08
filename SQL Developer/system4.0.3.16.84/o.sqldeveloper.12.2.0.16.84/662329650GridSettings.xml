@@ -1,0 +1,24 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">INDEX_NAME</Item>
+      <Item class="java.lang.String">TABLE_NAME</Item>
+      <Item class="java.lang.String">MONITORING</Item>
+      <Item class="java.lang.String">USED</Item>
+      <Item class="java.lang.String">START_MONITORING</Item>
+      <Item class="java.lang.String">END_MONITORING</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>122</Item>
+      <Item>116</Item>
+      <Item>159</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_SERHIIBselect * from V$OBJECT_USAGE</uniqueName>
+</TableSettings>

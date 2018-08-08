@@ -1,0 +1,247 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">PARENT</Item>
+      <Item class="java.lang.String">SID</Item>
+      <Item class="java.lang.String">SERIAL#</Item>
+      <Item class="java.lang.String">BLOCKED_BY</Item>
+      <Item class="java.lang.String">USERNAME</Item>
+      <Item class="java.lang.String">OSUSER</Item>
+      <Item class="java.lang.String">MODULE</Item>
+      <Item class="java.lang.String">ACTION</Item>
+      <Item class="java.lang.String">CLIENT_INFO</Item>
+      <Item class="java.lang.String">COMMAND</Item>
+      <Item class="java.lang.String">PROGRAM</Item>
+      <Item class="java.lang.String">STATE</Item>
+      <Item class="java.lang.String">WAIT_CLASS</Item>
+      <Item class="java.lang.String">CURRENT_WAIT_SECS</Item>
+      <Item class="java.lang.String">SECS_SINCE_LAST_WAIT</Item>
+      <Item class="java.lang.String">CURRENT_WAIT</Item>
+      <Item class="java.lang.String">WAIT_OBJECT</Item>
+      <Item class="java.lang.String">LOCKWAIT</Item>
+      <Item class="java.lang.String">ENTRY_PROCEDURE</Item>
+      <Item class="java.lang.String">CURRENT_PROCEDURE</Item>
+      <Item class="java.lang.String">ROW_WAIT_OBJ#</Item>
+      <Item class="java.lang.String">LOGON_TIME</Item>
+      <Item class="java.lang.String">PDML_ENABLED</Item>
+      <Item class="java.lang.String">PDML_STATUS</Item>
+      <Item class="java.lang.String">PQ_STATUS</Item>
+      <Item class="java.lang.String">Parallel (Reqested)</Item>
+      <Item class="java.lang.String">CURRENT_QUEUE_DURATION</Item>
+      <Item class="java.lang.String">CLIENT_IDENTIFIER</Item>
+      <Item class="java.lang.String">SERVICE_NAME</Item>
+      <Item class="java.lang.String">SADDR</Item>
+      <Item class="java.lang.String">PADDR</Item>
+      <Item class="java.lang.String">AUDSID</Item>
+      <Item class="java.lang.String">TADDR</Item>
+      <Item class="java.lang.String">MACHINE</Item>
+      <Item class="java.lang.String">TERMINAL</Item>
+      <Item class="java.lang.String">SQL_ADDRESS</Item>
+      <Item class="java.lang.String">SQL_HASH_VALUE</Item>
+      <Item class="java.lang.String">SQL_ID</Item>
+      <Item class="java.lang.String">SQL_CHILD_NUMBER</Item>
+      <Item class="java.lang.String">PREV_SQL_ID</Item>
+      <Item class="java.lang.String">PREV_CHILD_NUMBER</Item>
+      <Item class="java.lang.String">USER#</Item>
+      <Item class="java.lang.String">CPU</Item>
+      <Item class="java.lang.String">PHYSICAL_READS</Item>
+      <Item class="java.lang.String">LOGICAL_READS</Item>
+      <Item class="java.lang.String">PGA_MEMORY_MB</Item>
+      <Item class="java.lang.String">HARD_PARSES</Item>
+      <Item class="java.lang.String">SOFT_PARSES</Item>
+      <Item class="java.lang.String">PHYSICAL_READ_PCT</Item>
+      <Item class="java.lang.String">LOGICAL_READ_PCT</Item>
+      <Item class="java.lang.String">TEMP_MB</Item>
+      <Item class="java.lang.String">RANK_BY_CPU</Item>
+      <Item class="java.lang.String">RANK_BY_PHYSICAL_READS</Item>
+      <Item class="java.lang.String">RANK_BY_LOGICAL_READS</Item>
+      <Item class="java.lang.String">RANK_BY_PGA</Item>
+      <Item class="java.lang.String">RANKS_COMBINED</Item>
+      <Item class="java.lang.String">INSTANCE</Item>
+      <Item class="java.lang.String">STATUS</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>58</Item>
+      <Item>36</Item>
+      <Item>62</Item>
+      <Item>82</Item>
+      <Item>73</Item>
+      <Item>75</Item>
+      <Item>117</Item>
+      <Item>58</Item>
+      <Item>85</Item>
+      <Item>71</Item>
+      <Item>306</Item>
+      <Item>124</Item>
+      <Item>83</Item>
+      <Item>130</Item>
+      <Item>143</Item>
+      <Item>166</Item>
+      <Item>166</Item>
+      <Item>72</Item>
+      <Item>215</Item>
+      <Item>133</Item>
+      <Item>110</Item>
+      <Item>84</Item>
+      <Item>95</Item>
+      <Item>89</Item>
+      <Item>77</Item>
+      <Item>110</Item>
+      <Item>165</Item>
+      <Item>117</Item>
+      <Item>95</Item>
+      <Item>117</Item>
+      <Item>117</Item>
+      <Item>68</Item>
+      <Item>117</Item>
+      <Item>187</Item>
+      <Item>96</Item>
+      <Item>117</Item>
+      <Item>108</Item>
+      <Item>96</Item>
+      <Item>121</Item>
+      <Item>96</Item>
+      <Item>127</Item>
+      <Item>53</Item>
+      <Item>40</Item>
+      <Item>106</Item>
+      <Item>101</Item>
+      <Item>108</Item>
+      <Item>91</Item>
+      <Item>89</Item>
+      <Item>125</Item>
+      <Item>120</Item>
+      <Item>65</Item>
+      <Item>90</Item>
+      <Item>157</Item>
+      <Item>152</Item>
+      <Item>90</Item>
+      <Item>111</Item>
+      <Item>69</Item>
+      <Item>57</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGDEV_BIFROSTselect pxs.qcsid as parent
+     , se.sid
+     , se.serial#
+     , se.blocking_session as blocked_by
+     , se.username
+     , se.osuser
+     , se.module
+     , se.action
+     , se.client_info
+     , ( select aa.name from
+                ( select action, name from audit_actions union select 189, 'MERGE' from dual ) aa
+         where aa.action = se.command + case when se.command &lt; 0 then 256 else 0 end) as command
+     , se.program
+     , se.state
+     , se.wait_class
+     -- From docs for v$session:
+     -- If WAIT_TIME = 0, then SECONDS_IN_WAIT is the seconds spent in the current wait condition.
+     -- If WAIT_TIME > 0, then SECONDS_IN_WAIT is the seconds since the start of the last wait, and SECONDS_IN_WAIT - WAIT_TIME / 100 is the active seconds since the last wait ended.
+     , case when se.wait_time = 0 then se.seconds_in_wait end as current_wait_secs
+     , case when se.wait_time > 0 then se.seconds_in_wait - se.wait_time / 100 end as secs_since_last_wait
+     , se.event as current_wait
+     , ( select rtrim(owner || '.' || object_name || '.' || o.subobject_name,'.') from dba_objects o
+         where  o.object_id = row_wait_obj# ) as wait_object
+     , se.lockwait
+     , ( select rtrim(pro_entry.object_name || '.' || pro_entry.procedure_name,'.')
+         from   dba_procedures pro_entry
+         where  pro_entry.object_id = se.plsql_entry_object_id
+         and    pro_entry.subprogram_id = se.plsql_entry_subprogram_id ) as entry_procedure
+     , ( select rtrim(pro_current.object_name || '.' || pro_current.procedure_name,'.')
+         from   dba_procedures pro_current
+         where  pro_current.object_id = se.plsql_object_id
+         and    pro_current.subprogram_id = se.plsql_subprogram_id ) as current_procedure
+     --, row_wait_file#, row_wait_block#, row_wait_row#
+     , se.row_wait_obj#  -- Needed for 'Current wait' detail query
+     , se.logon_time
+     --, last_call_et
+     , se.pdml_enabled
+     , se.pdml_status
+     --, pddl_status
+     , se.pq_status
+     , ltrim(pxs.req_degree || ' (' || pxs.req_degree || ')','() ') as "Parallel (Reqested)"
+     -- , resource_consumer_group  -- Uncomment if using Oracle Resource manager
+     , se.current_queue_duration
+     , se.client_identifier
+     , se.service_name
+     -- , sql_trace, sql_trace_waits, sql_trace_binds
+     , se.saddr
+     --, process  -- client process not normally useful
+     , se.paddr
+     , se.audsid
+     , se.taddr
+     , se.machine
+     , se.terminal
+     , se.sql_address
+     , se.sql_hash_value
+     , se.sql_id
+     , se.sql_child_number
+     --, se.sql_exec_id  -- 11g
+     --, se.sql_exec_start  -- 11g
+     --, se.prev_sql_addr
+     --, prev_hash_value
+     , prev_sql_id
+     , prev_child_number
+     --, failover_type, failover_method, failed_over
+     --, blocking_session_status, blocking_instance
+     --, server
+     , user#
+     , round(sm.cpu,1) as "CPU"
+     , sm.physical_reads
+     , sm.logical_reads
+     , round(sm.pga_memory/1048576,1) as pga_memory_mb
+     , sm.hard_parses, sm.soft_parses
+     , round(sm.physical_read_pct,1) as physical_read_pct
+     , round(sm.logical_read_pct,1)  as logical_read_pct
+
+     , ( select round(sum(tu.blocks) * ts.block_size / 1048576,1)
+         from   gv$tempseg_usage tu
+                join dba_tablespaces ts
+                on   ts.tablespace_name = tu.tablespace
+         where  tu.session_addr = se.saddr
+         and    tu.inst_id = se.inst_id
+         and    tu.session_addr = se.saddr
+         and    tu.session_num = se.serial#
+         group by ts.block_size ) as temp_mb
+
+     , row_number() over (order by sm.cpu desc nulls last) as rank_by_cpu
+     , row_number() over (order by sm.physical_reads desc nulls last) as rank_by_physical_reads
+     , row_number() over (order by sm.logical_reads desc nulls last) as rank_by_logical_reads
+     , row_number() over (order by sm.pga_memory desc nulls last) as rank_by_pga
+
+     , row_number() over (order by sm.cpu desc nulls last) +
+       row_number() over (order by sm.physical_reads desc nulls last) +
+       row_number() over (order by sm.logical_reads desc nulls last) +
+       row_number() over (order by sm.pga_memory desc nulls last) as ranks_combined
+
+     , se.inst_id as instance
+     , se.status
+
+from   gv$session se
+
+       left join gv$px_session pxs
+       on   pxs.sid = se.sid
+       and  pxs.serial# = se.serial#
+       and  pxs.inst_id = se.inst_id
+
+       left join gv$sessmetric sm
+       on   sm.session_id = se.sid
+       and  sm.serial_num = se.serial#
+       and  sm.inst_id = se.inst_id
+
+       left join v$transaction tr
+       on   tr.addr = se.taddr
+
+where  ( se.username is not null and 'ACTIVE' in (tr.status, se.status) and se.audsid != sys_context('USERENV','SESSIONID') )
+or     se.sid in
+       ( select blocking_session from v$session
+         union
+         select qcsid from gv$px_session )
+order by se.inst_id, pxs.qcsid, pxs.qcserial# nulls first  -- PQ controller appears without serial# in v$px_session
+      , se.sid, se.sid,se.serial#</uniqueName>
+</TableSettings>

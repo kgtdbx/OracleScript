@@ -1,0 +1,297 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">BP_MASTER_ID</Item>
+      <Item class="java.lang.String">SSN</Item>
+      <Item class="java.lang.String">SSN_ORIGIN</Item>
+      <Item class="java.lang.String">SSN_ORIGIN_TEXT</Item>
+      <Item class="java.lang.String">BP_TYPE</Item>
+      <Item class="java.lang.String">BP_TYPE_TEXT</Item>
+      <Item class="java.lang.String">NATIONALITY</Item>
+      <Item class="java.lang.String">NATIONALITY_TEXT</Item>
+      <Item class="java.lang.String">FULL_NAME</Item>
+      <Item class="java.lang.String">GENDER</Item>
+      <Item class="java.lang.String">GENDER_TEXT</Item>
+      <Item class="java.lang.String">BIRTH_DATE</Item>
+      <Item class="java.lang.String">MARITAL_STATUS</Item>
+      <Item class="java.lang.String">MARITAL_STATUS_TEXT</Item>
+      <Item class="java.lang.String">LEGAL_FORM</Item>
+      <Item class="java.lang.String">LEGAL_FORM_TEXT</Item>
+      <Item class="java.lang.String">LIQUIDATION_DATE</Item>
+      <Item class="java.lang.String">DOMESTIC_FOREIGN</Item>
+      <Item class="java.lang.String">DOMESTIC_FOREIGN_TEXT</Item>
+      <Item class="java.lang.String">FINANCIAL_INST_TYPE</Item>
+      <Item class="java.lang.String">FINANCIAL_INST_TYPE_TEXT</Item>
+      <Item class="java.lang.String">INTERNAL_RISK_SECTOR</Item>
+      <Item class="java.lang.String">INTERNAL_RISK_SECTOR_TEXT</Item>
+      <Item class="java.lang.String">DECEASED_DATE</Item>
+      <Item class="java.lang.String">FOUNDATION_DATE</Item>
+      <Item class="java.lang.String">DOMICILE_STREET</Item>
+      <Item class="java.lang.String">DOMICILE_POSTAL_CODE</Item>
+      <Item class="java.lang.String">DOMICILE_CITY</Item>
+      <Item class="java.lang.String">DOMICILE_COUNTRY</Item>
+      <Item class="java.lang.String">DOMICILE_COUNTRY_TEXT</Item>
+      <Item class="java.lang.String">EMAIL</Item>
+      <Item class="java.lang.String">HOME_PHONE</Item>
+      <Item class="java.lang.String">HOME_PHONE_COUNTRY_CODE</Item>
+      <Item class="java.lang.String">WORK_PHONE</Item>
+      <Item class="java.lang.String">WORK_PHONE_COUNTRY_CODE</Item>
+      <Item class="java.lang.String">MOBILE_PHONE</Item>
+      <Item class="java.lang.String">MOBILE_PHONE_COUNTRY_CODE</Item>
+      <Item class="java.lang.String">ISAT2008</Item>
+      <Item class="java.lang.String">ISAT2008_TEXT</Item>
+      <Item class="java.lang.String">ISAT2008_INTERNAL</Item>
+      <Item class="java.lang.String">ISAT2008_INTERNAL_TEXT</Item>
+      <Item class="java.lang.String">ISAT2008_APPROVED</Item>
+      <Item class="java.lang.String">ISAT2008_APPROVED_TEXT</Item>
+      <Item class="java.lang.String">INTERNAL_FINANCIAL_INSTITUTION</Item>
+      <Item class="java.lang.String">ACCOUNT_MANAGER_EMP_NR</Item>
+      <Item class="java.lang.String">ACCOUNT_MANAGER_NAME</Item>
+      <Item class="java.lang.String">ACCOUNT_MANAGER_SSN</Item>
+      <Item class="java.lang.String">CREDIT_MANAGER_EMP_NR</Item>
+      <Item class="java.lang.String">CREDIT_MANAGER_NAME</Item>
+      <Item class="java.lang.String">CREDIT_MANAGER_SSN</Item>
+      <Item class="java.lang.String">RESPONSIBLE_BRANCH</Item>
+      <Item class="java.lang.String">RESPONSIBLE_BRANCH_TEXT</Item>
+      <Item class="java.lang.String">INTERNAL_UNIT</Item>
+      <Item class="java.lang.String">MAIN_BRANCH</Item>
+      <Item class="java.lang.String">MAIN_BRANCH_TEXT</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_CLASSIFY</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_CLASSIFY_TEXT</Item>
+      <Item class="java.lang.String">FX_CLASSIFY_CATEGORY</Item>
+      <Item class="java.lang.String">FX_CLASSIFY_CATEGORY_TEXT</Item>
+      <Item class="java.lang.String">BASEL_OBLIGOR_TYPE_CD</Item>
+      <Item class="java.lang.String">RISK_CLASSIFICATION</Item>
+      <Item class="java.lang.String">RISK_CLASSIFICATION_TEXT</Item>
+      <Item class="java.lang.String">LOAD_ID</Item>
+      <Item class="java.lang.String">LOAD_DATE</Item>
+      <Item class="java.lang.String">REFERENCE_DATE</Item>
+      <Item class="java.lang.String">FX_PERCENTAGE</Item>
+      <Item class="java.lang.String">FX_VALID_TO</Item>
+      <Item class="java.lang.String">ISB_CONSOLIDATE</Item>
+      <Item class="java.lang.String">NATREG_NO_POST</Item>
+      <Item class="java.lang.String">SSN_ORIGIN_TEXT_EN</Item>
+      <Item class="java.lang.String">BP_TYPE_TEXT_EN</Item>
+      <Item class="java.lang.String">NATIONALITY_TEXT_EN</Item>
+      <Item class="java.lang.String">GENDER_TEXT_EN</Item>
+      <Item class="java.lang.String">MARITAL_STATUS_TEXT_EN</Item>
+      <Item class="java.lang.String">LEGAL_FORM_TEXT_EN</Item>
+      <Item class="java.lang.String">DOMESTIC_FOREIGN_TEXT_EN</Item>
+      <Item class="java.lang.String">FINANCIAL_INST_TYPE_TEXT_EN</Item>
+      <Item class="java.lang.String">INTERNAL_RISK_SECTOR_TEXT_EN</Item>
+      <Item class="java.lang.String">DOMICILE_C_O</Item>
+      <Item class="java.lang.String">DOMICILE_STREET_2</Item>
+      <Item class="java.lang.String">DOMICILE_COUNTRY_TEXT_EN</Item>
+      <Item class="java.lang.String">ISAT2008_TEXT_EN</Item>
+      <Item class="java.lang.String">ISAT2008_INTERNAL_TEXT_EN</Item>
+      <Item class="java.lang.String">ISAT2008_APPROVED_TEXT_EN</Item>
+      <Item class="java.lang.String">RESPONSIBLE_BRANCH_TEXT_EN</Item>
+      <Item class="java.lang.String">MAIN_BRANCH_TEXT_EN</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_CLASSIFY_TEXT_EN</Item>
+      <Item class="java.lang.String">FX_CLASSIFY_CATEGORY_TEXT_EN</Item>
+      <Item class="java.lang.String">BASEL_OBLIGOR_TYPE_EN_NAME</Item>
+      <Item class="java.lang.String">RISK_CLASSIFICATION_TEXT_EN</Item>
+      <Item class="java.lang.String">NATREG_STATE_CODE</Item>
+      <Item class="java.lang.String">NATREG_STATE_DATE</Item>
+      <Item class="java.lang.String">FAMILY_NR</Item>
+      <Item class="java.lang.String">NATREG_REPRESENTATIVE</Item>
+      <Item class="java.lang.String">SPOUSE_SSN</Item>
+      <Item class="java.lang.String">MAIL_SSN</Item>
+      <Item class="java.lang.String">VAT_NR</Item>
+      <Item class="java.lang.String">DOMICILE_MUNICIPALITY</Item>
+      <Item class="java.lang.String">POSTAL_ADDRESS_C_O</Item>
+      <Item class="java.lang.String">POSTAL_ADDRESS_STREET</Item>
+      <Item class="java.lang.String">POSTAL_ADDRESS_STREET_2</Item>
+      <Item class="java.lang.String">POSTAL_ADDRESS_POSTAL_CODE</Item>
+      <Item class="java.lang.String">POSTAL_ADDRESS_CITY</Item>
+      <Item class="java.lang.String">POSTAL_ADDRESS_COUNTRY</Item>
+      <Item class="java.lang.String">POSTAL_ADDRESS_COUNTRY_TEXT_IS</Item>
+      <Item class="java.lang.String">POSTAL_ADDRESS_COUNTRY_TEXT_EN</Item>
+      <Item class="java.lang.String">POSTAL_ADDRESS_MUNICIPALITY</Item>
+      <Item class="java.lang.String">LAST_CHANGED</Item>
+      <Item class="java.lang.String">CENTRAL_BLOCK</Item>
+      <Item class="java.lang.String">CENTRAL_BLOCK_TEXT_IS</Item>
+      <Item class="java.lang.String">CENTRAL_BLOCK_TEXT_EN</Item>
+      <Item class="java.lang.String">BASEL_OBLIGOR_SUBTYPE_CD</Item>
+      <Item class="java.lang.String">BASEL_OBLIGOR_SUBTYPE_EN_NAME</Item>
+      <Item class="java.lang.String">BASEL_OBLIGOR_SUBTYPE_IS_NAME</Item>
+      <Item class="java.lang.String">BASEL_OBLIGOR_TYPE_FROM_DT</Item>
+      <Item class="java.lang.String">BASEL_OBLIGOR_TYPE_TO_DT</Item>
+      <Item class="java.lang.String">BASEL_OBLIGOR_TYPE_ON_DT</Item>
+      <Item class="java.lang.String">TRADING_PARTNER</Item>
+      <Item class="java.lang.String">TRADING_PARTNER_NAME</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_2014</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_2014_TEXT_IS</Item>
+      <Item class="java.lang.String">CENTRAL_BANK_2014_TEXT_EN</Item>
+      <Item class="java.lang.String">OWNERSHIP_CATEGORY</Item>
+      <Item class="java.lang.String">OWNERSHIP_CATEGORY_TEXT_IS</Item>
+      <Item class="java.lang.String">OWNERSHIP_CATEGORY_TEXT_EN</Item>
+      <Item class="java.lang.String">TRADING_PARTNER_CURRENCY</Item>
+      <Item class="java.lang.String">BP_AGE</Item>
+      <Item class="java.lang.String">DOMICILE_POSTAL_CODE_IS</Item>
+      <Item class="java.lang.String">FME_SUPERVISION_CATEG</Item>
+      <Item class="java.lang.String">FME_SUPERVISION_CATEG_TEXT_IS</Item>
+      <Item class="java.lang.String">FME_SUPERVISION_CATEG_TEXT_EN</Item>
+      <Item class="java.lang.String">LCR_CATEGORY_TEXT_EN</Item>
+      <Item class="java.lang.String">LCR_CATEGORY_TEXT_IS</Item>
+      <Item class="java.lang.String">LCR_CATEGORY</Item>
+      <Item class="java.lang.String">RESP_BRANCH_AUTO_CD</Item>
+      <Item class="java.lang.String">RESP_BRANCH_AUTO_DT</Item>
+      <Item class="java.lang.String">RESP_BRANCH_AUTO_REASON_CD</Item>
+      <Item class="java.lang.String">RESP_BRANCH_MANUAL_CD</Item>
+      <Item class="java.lang.String">RESP_BRANCH_MANUAL_DT</Item>
+      <Item class="java.lang.String">RESP_BRANCH_MANUAL_REASON_DESC</Item>
+      <Item class="java.lang.String">IN_TOURISM</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>137</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+      <Item>75</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_KVASIRselect *  
+from bifrost.stg_sap_mdm_bp_dw_is_arc sa 
+where sa.load_date = date'2017-03-31' 
+and sa.gender is not null</uniqueName>
+</TableSettings>

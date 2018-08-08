@@ -1,0 +1,17 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">LOKAVARUD</Item>
+      <Item class="java.lang.String">SKULDBINDING_NUMER</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>164</Item>
+      <Item>133</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_KVASIRselect LOKAVARUD, skuldbinding_numer
+from STRUTUR.VARUD@isgogn_kvasir</uniqueName>
+</TableSettings>

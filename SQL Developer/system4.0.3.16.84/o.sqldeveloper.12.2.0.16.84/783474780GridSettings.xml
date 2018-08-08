@@ -1,0 +1,133 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">cust_full_name</Item>
+      <Item class="java.lang.String">010_code</Item>
+      <Item class="java.lang.String">020_group_code</Item>
+      <Item class="java.lang.String">'030_1'</Item>
+      <Item class="java.lang.String">'040_1_2'</Item>
+      <Item class="java.lang.String">'050_2_3'</Item>
+      <Item class="java.lang.String">'060_3_4'</Item>
+      <Item class="java.lang.String">'070_4_5'</Item>
+      <Item class="java.lang.String">'080_5_6'</Item>
+      <Item class="java.lang.String">'090_6_7'</Item>
+      <Item class="java.lang.String">'100_7_8'</Item>
+      <Item class="java.lang.String">'110_8_9'</Item>
+      <Item class="java.lang.String">'120_9_10'</Item>
+      <Item class="java.lang.String">'130_10_11'</Item>
+      <Item class="java.lang.String">'140_11_12'</Item>
+      <Item class="java.lang.String">'150_12_15'</Item>
+      <Item class="java.lang.String">'160_15_18'</Item>
+      <Item class="java.lang.String">'170_18_21'</Item>
+      <Item class="java.lang.String">'180_21_24'</Item>
+      <Item class="java.lang.String">'190_24_27'</Item>
+      <Item class="java.lang.String">'200_27_30'</Item>
+      <Item class="java.lang.String">'210_30_33'</Item>
+      <Item class="java.lang.String">'220_33_36'</Item>
+      <Item class="java.lang.String">'230_3_5'</Item>
+      <Item class="java.lang.String">'240_5_10'</Item>
+      <Item class="java.lang.String">'250_10'</Item>
+      <Item class="java.lang.String">'260_und'</Item>
+      <Item class="java.lang.String">credit_risk_exposure</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>222</Item>
+      <Item>75</Item>
+      <Item>100</Item>
+      <Item>75</Item>
+      <Item>65</Item>
+      <Item>65</Item>
+      <Item>65</Item>
+      <Item>65</Item>
+      <Item>65</Item>
+      <Item>65</Item>
+      <Item>65</Item>
+      <Item>65</Item>
+      <Item>71</Item>
+      <Item>77</Item>
+      <Item>77</Item>
+      <Item>77</Item>
+      <Item>77</Item>
+      <Item>77</Item>
+      <Item>77</Item>
+      <Item>77</Item>
+      <Item>77</Item>
+      <Item>77</Item>
+      <Item>77</Item>
+      <Item>65</Item>
+      <Item>71</Item>
+      <Item>59</Item>
+      <Item>65</Item>
+      <Item>119</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_VALHOLLwith stmt_xbrl_dates as  
+(select to_date(capital_date, 'DD.MM.YYYY') as capital_date,  
+        to_date(htv_date, 'DD.MM.YYYY')     as htv_date  
+  from  mimir.xbrl_dates) 
+
+,CF as 
+( 
+select * from 
+( 
+  select 
+  cf.cust_full_name            as "cust_full_name", 
+  x.code                       as "010_code", 
+  x.group_ssn                  as "020_group_code", 
+  cf.cf_inst_base_m1           as "'030_1'", 
+  cf.cf_inst_base_m2           as "'040_1_2'", 
+  cf.cf_inst_base_m3           as "'050_2_3'", 
+  cf.cf_inst_base_m4           as "'060_3_4'", 
+  cf.cf_inst_base_m5           as "'070_4_5'", 
+  cf.cf_inst_base_m6           as "'080_5_6'", 
+  cf.cf_inst_base_m7           as "'090_6_7'", 
+  cf.cf_inst_base_m8           as "'100_7_8'", 
+  cf.cf_inst_base_m9           as "'110_8_9'", 
+  cf.cf_inst_base_m10          as "'120_9_10'", 
+  cf.cf_inst_base_m11          as "'130_10_11'", 
+  cf.cf_inst_base_m12          as "'140_11_12'", 
+  cf.cf_inst_base_m12_15       as "'150_12_15'", 
+  cf.cf_inst_base_m15_18       as "'160_15_18'", 
+  cf.cf_inst_base_m18_21       as "'170_18_21'", 
+  cf.cf_inst_base_m21_24       as "'180_21_24'", 
+  cf.cf_inst_base_m24_27       as "'190_24_27'", 
+  cf.cf_inst_base_m27_30       as "'200_27_30'", 
+  cf.cf_inst_base_m30_33       as "'210_30_33'", 
+  cf.cf_inst_base_m33_36       as "'220_33_36'", 
+  cf.cf_inst_base_y3_5         as "'230_3_5'", 
+  cf.cf_inst_base_y5_10        as "'240_5_10'", 
+  cf.cf_inst_base_y10_over     as "'250_10'", 
+  cf.cf_inst_base_undefined    as "'260_und'", 
+  sum(cf.credit_risk_exposure) as "credit_risk_exposure" 
+  from 
+  mimir.v_crd_large_exposure_detail cf 
+  
+  inner join mimir.v_crd_large_exposure_c27 x on cf.ssn = x.code and x."Type" in ('I - Institutions','U - Unregulated financial entities') 
+  
+  
+  where 
+  cf.the_date = (select htv_date from stmt_xbrl_dates)  
+  and nvl(cf.asset_liability,0) &lt;> 'l' and cf.credit_risk_exposure > 0 
+  group by cf.cust_full_name, x.code, x.group_ssn, cf.cf_inst_base_m1, cf.cf_inst_base_m2, cf.cf_inst_base_m3, cf.cf_inst_base_m4, cf.cf_inst_base_m5, cf.cf_inst_base_m6, cf.cf_inst_base_m7, cf.cf_inst_base_m8, cf.cf_inst_base_m9, cf.cf_inst_base_m10, cf.cf_inst_base_m11, cf.cf_inst_base_m12, cf.cf_inst_base_m12_15, cf.cf_inst_base_m15_18, cf.cf_inst_base_m18_21, cf.cf_inst_base_m21_24, cf.cf_inst_base_m24_27, cf.cf_inst_base_m27_30, cf.cf_inst_base_m30_33, cf.cf_inst_base_m33_36, cf.cf_inst_base_y3_5, cf.cf_inst_base_y5_10, cf.cf_inst_base_y10_over, cf.cf_inst_base_undefined 
+ 
+) 
+) 
+select c."cust_full_name",c."010_code",c."020_group_code","'030_1'","'040_1_2'","'050_2_3'","'060_3_4'","'070_4_5'","'080_5_6'","'090_6_7'","'100_7_8'","'110_8_9'","'120_9_10'","'130_10_11'","'140_11_12'","'150_12_15'","'160_15_18'","'170_18_21'","'180_21_24'","'190_24_27'","'200_27_30'","'210_30_33'","'220_33_36'","'230_3_5'","'240_5_10'","'250_10'","'260_und'",c."credit_risk_exposure" from CF c 
+ 
+/* 
+full outer join  
+( 
+select a.cust_full_name,a.ssn,a.group_ssn,round(sum(credit_risk_exposure),0) credit_risk_exposure 
+from mimir.v_assets a 
+inner join XBRL_LE_CONS_C27_beta x on a.ssn = x.code and x."Type" in ('I - Institutions','U - Unregulated financial entities') 
+where 
+a.the_date = (SELECT HTV_DATE FROM XBRL_DATES)  
+and nvl(a.subsidiary_ssn,0) &lt;> 'D' 
+group by a.cust_full_name,a.ssn,a.group_ssn 
+) a on c."010_code" = a.ssn 
+order by group_ssn 
+*/</uniqueName>
+</TableSettings>

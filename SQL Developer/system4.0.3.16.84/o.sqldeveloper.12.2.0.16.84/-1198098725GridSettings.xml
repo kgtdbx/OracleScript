@@ -1,0 +1,41 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<TableSettings class="oracle.dbtools.raptor.controls.grid.RaptorGridPersistedSettings" xmlns="http://xmlns.oracle.com/jdeveloper/110000/Table-attributes">
+   <columnPositions class="java.util.ArrayList">
+      <Item class="java.lang.String">Query Plan</Item>
+      <Item class="java.lang.String">Rows</Item>
+      <Item class="java.lang.String">Rowsource Time(s)</Item>
+   </columnPositions>
+   <columnWidths>
+      <Item>1178</Item>
+      <Item>47</Item>
+      <Item>110</Item>
+   </columnWidths>
+   <searchParams class="java.util.ArrayList"/>
+   <sortClauses>
+      <Item/>
+   </sortClauses>
+   <uniqueName>IdeConnections%23VHGTEST_BIFROSTSELECT  LPAD('  ',4*(DEPTH-1))||operation||' '||options
+   ||' '||object_name
+   ||' '||DECODE(id, 0, 'Cost = '||position) "Query Plan",lpad(
+                        CASE
+                                WHEN cardinality > 1000000
+                                THEN to_char(trunc(cardinality/1000000)) || 'M'
+                                WHEN cardinality > 1000
+                                THEN to_char(trunc(cardinality/1000)) || 'K'
+                                ELSE cardinality || ' '
+                        END
+                ,       6
+                ,       ' '
+                ) AS "Rows",
+    nvl(entries,0) as "Rowsource Time(s)"
+   FROM v$sql_plan sp,(select sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value, count(*) entries
+from v$active_session_history where sql_id = :SQL_ID
+and sql_exec_id = (select sql_exec_id from v$active_session_history 
+                    where sql_id =  :SQL_ID and rownum=1)
+group by sql_id, sql_exec_id, sql_plan_line_id, sql_plan_hash_value
+) ash
+  WHERE sp.sql_id = :SQL_ID
+  AND ash.sql_id(+) = sp.sql_id
+  AND ash.sql_plan_line_id(+)= sp.id
+  ORDER by sp.plan_hash_value, sp.id</uniqueName>
+</TableSettings>

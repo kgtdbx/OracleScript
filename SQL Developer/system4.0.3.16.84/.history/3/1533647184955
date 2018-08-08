@@ -1,0 +1,51 @@
+--Task 235798:Get familiar with current/long term cards jobs in Bodi
+--https://tfs.isbank.is/tfs/DefaultCollection/HBL/_workitems/edit/235798
+
+
+/*--https://tfs.isbank.is/tfs/DefaultCollection/HBL/_workitems/edit/203628
+
+Today we are using a a old source for cards products in DW based on Upplys sources.
+
+We have been looking and working on moving to a new source but at the same time
+
+moving base data into Gladheimur and then populating Dim/Fct?s from there. (FSLDM standard way of doing things.)   
+The jobs/data flows are below marked as CURRENT and LONG TERM (bodi test).
+
+Now we are looking into starting with a short term solution using the new source in the current setup that is using/loading the new sources directly into the dimensional model 
+as we are doing in the current flows.   In this solution we would create new jobs/data-flows based on the main ones used in CURRENT solution. The main jobs are:
+
+dim_loan_mc_job ,dim_loan_visa_job,fct_loan_Balance_mc_job, fct_loan_balance_visa_job
+
+would be copied and changed to *_ns_* jobs/data flows.
+
+dim_loan_mc_job ->dim_loan_mc_ns_job
+
+dim_loan_visa_job-> dim_loan_visa_ns_job
+
+fct_loan_Balance_mc_job-> fct_loan_Balance_mc_ns_job
+
+fct_loan_balance_visa_job-> fct_loan_balance_visa_ns_job
+
+Main change  is that instead of using the main old data sources:
+
+stg_mc/visa_stg_upplys...
+
+we woold use 
+
+stg_cards_mv/visa_cards_tab/arc tables on bifrost.  
+
+The new source is currently stg/arc daily on test and prod and include f.ex. better data like agreement_id.  Using the new source we would get following benefits:
+
+The new source is ready earlier in the night, DW and RL would finish earlier.
+We woold be in sink with Sopra Provision (DW, TÞú and RL)
+The card jobs are slow (f.ex.lookup on agreement_id) and resource intensive so we can expect some performance gaines.
+Supports https://tfs.isbank.is/tfs/DefaultCollection/HBL/_workitems/edit/235328
+
+More details in the attached word document cards_skodun.
+
+*/
+
+
+
+
+

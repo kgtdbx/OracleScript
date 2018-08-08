@@ -19,6 +19,16 @@ powershell "gci C:\,D:\ -recurse -filter 'oraclient*.dll' -ErrorAction SilentlyC
 --get SID
 get-service -Name "OracleService*" | Where-Object {$_.status -eq "Running"} | ForEach {$_.name.Replace("OracleService","")}
 
+--get PATH
+(Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).Path
+
+
+--set
+$oldPath=(Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).Path
+
+$newPath=$oldPath+';C:\NewFolderToAddToTheList\'
+
+Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH –Value $newPath
 ---------------------------
 
 Open up a command prompt
@@ -53,7 +63,7 @@ Right-click My Computer > Properties.
 Click Advanced system settings > Environment Variables.
 Click New in the System Variables panel.
 Add the ORACLE_HOME variable to the New System Variable box, then click OK.
-For example: ORACLE_HOME=C:\app\Administrator\product\12.1.0\client_1
+For example: ORACLE_HOME=C:\app\oracle_account\product\12.1.0\dbhome_1
 
 Select the PATH variable in the System Variables panel, and click Edit.
 In the Edit System Variable box, add the path to ORACLE_HOME at the start of the PATH variable.

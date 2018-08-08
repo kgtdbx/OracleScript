@@ -1,0 +1,826 @@
+SQL trace, 10046, trcsess and tkprof in Oracle
+--https://oracle-base.com/articles/misc/sql-trace-10046-trcsess-and-tkprof
+
+The quickest way to capture the SQL being processed by a session is to switch on SQL trace or set the 10046 event for a representative period of time. The resulting trace files can be read in their raw state or translated using the tkprof utility. Explaining the contents of the trace file is beyond the scope of this article, but the following sections explain how trace files can be created and processed.
+
+Generating SQL Trace Files
+Tracing Individual SQL Statements
+Identifying Trace Files
+trcsess
+tkprof
+Trace Example
+Trace Analyzer
+Query Contents of Trace Files
+SQL Developer
+Related articles.
+
+DBMS_APPLICATION_INFO : For Code Instrumentation
+DBMS_SESSION : Managing Sessions From a Connection Pool in Oracle Databases
+Explain Plan Usage
+DBMS_XPLAN : Display Oracle Execution Plans
+Real-Time SQL Monitoring using DBMS_SQLTUNE
+Generating SQL Trace Files
+With the advent of Oracle 10g the SQL tracing options were centralized and extended using the DBMS_MONITOR package. The examples below show just a few possible variations for enabling and disabling SQL trace in Oracle 10g.
+
+-- Oracle 10g
+SQL> EXEC DBMS_MONITOR.session_trace_enable;
+SQL> EXEC DBMS_MONITOR.session_trace_enable(waits=>TRUE, binds=>FALSE);
+SQL> EXEC DBMS_MONITOR.session_trace_disable;
+
+SQL> EXEC DBMS_MONITOR.session_trace_enable(session_id=>1234, serial_num=>1234);
+SQL> EXEC DBMS_MONITOR.session_trace_enable(session_id =>1234, serial_num=>1234, waits=>TRUE, binds=>FALSE);
+SQL> EXEC DBMS_MONITOR.session_trace_disable(session_id=>1234, serial_num=>1234);
+
+SQL> EXEC DBMS_MONITOR.client_id_trace_enable(client_id=>'tim_hall');
+SQL> EXEC DBMS_MONITOR.client_id_trace_enable(client_id=>'tim_hall', waits=>TRUE, binds=>FALSE);
+SQL> EXEC DBMS_MONITOR.client_id_trace_disable(client_id=>'tim_hall');
+
+SQL> EXEC DBMS_MONITOR.serv_mod_act_trace_enable(service_name=>'db10g', module_name=>'test_api', action_name=>'running');
+SQL> EXEC DBMS_MONITOR.serv_mod_act_trace_enable(service_name=>'db10g', module_name=>'test_api', action_name=>'running', -
+> waits=>TRUE, binds=>FALSE);
+SQL> EXEC DBMS_MONITOR.serv_mod_act_trace_disable(service_name=>'db10g', module_name=>'test_api', action_name=>'running');
+The package provides the conventional session level tracing along with two new variations. First, tracing can be enabled on multiple sessions based on the value of the client_identifier column of the V$SESSION view, set using the DBMS_SESSION package. Second, trace can be activated for multiple sessions based on various combinations of the service_name, module, action columns in the V$SESSION view, set using the DBMS_APPLICATION_INFO package, along with the instance_name in RAC environments. With all the possible permutations and default values this provides a high degree of flexibility.
+
+Historically there have been numerous ways to enable, disable and vary the contents of this trace. The following methods have been available for several versions of the database.
+
+-- All versions.
+SQL> ALTER SESSION SET sql_trace=TRUE;
+SQL> ALTER SESSION SET sql_trace=FALSE;
+
+SQL> EXEC DBMS_SESSION.set_sql_trace(sql_trace => TRUE);
+SQL> EXEC DBMS_SESSION.set_sql_trace(sql_trace => FALSE);
+
+SQL> ALTER SESSION SET EVENTS '10046 trace name context forever, level 8';
+SQL> ALTER SESSION SET EVENTS '10046 trace name context off';
+
+SQL> EXEC DBMS_SYSTEM.set_sql_trace_in_session(sid=>123, serial#=>1234, sql_trace=>TRUE);
+SQL> EXEC DBMS_SYSTEM.set_sql_trace_in_session(sid=>123, serial#=>1234, sql_trace=>FALSE);
+
+SQL> EXEC DBMS_SYSTEM.set_ev(si=>123, se=>1234, ev=>10046, le=>8, nm=>'');
+SQL> EXEC DBMS_SYSTEM.set_ev(si=>123, se=>1234, ev=>10046, le=>0, nm=>'');
+
+-- Available from SQL*Plus since 8i (commandline utility prior to this.
+SQL> CONN sys/password AS SYSDBA;  -- User must have SYSDBA.
+SQL> ORADEBUG SETMYPID;            -- Debug current session.
+SQL> ORADEBUG SETOSPID 1234;       -- Debug session with the specified OS process.
+SQL> ORADEBUG SETORAPID 123456;    -- Debug session with the specified Oracle process ID.
+
+SQL> ORADEBUG EVENT 10046 TRACE NAME CONTEXT FOREVER, LEVEL 12;
+SQL> ORADEBUG TRACEFILE_NAME;      -- Display the current trace file.
+SQL> ORADEBUG EVENT 10046 TRACE NAME CONTEXT OFF;
+ 
+-- All versions, requires DBMS_SUPPORT package to be loaded.
+SQL> EXEC DBMS_SUPPORT.start_trace(waits=>TRUE, binds=>FALSE);
+SQL> EXEC DBMS_SUPPORT.stop_trace;
+
+SQL> EXEC DBMS_SUPPORT.start_trace_in_session(sid=>123, serial=>1234, waits=>TRUE, binds=>FALSE);
+SQL> EXEC DBMS_SUPPORT.stop_trace_in_session(sid=>123, serial=>1234);
+The DBMS_SUPPORT package is not present by default, but can be loaded as the SYS user by executing the "dbmssupp.sql" script.
+
+-- This.
+@$ORACLE_HOME/rdbms/admin/dbmssupp.sql
+
+-- Or this.
+@?/rdbms/admin/dbmssupp.sql
+For methods that require tracing levels the following are valid values.
+
+0 - No trace. Like switching sql_trace off.
+2 - The equivalent of regular sql_trace.
+4 - The same as 2, but with the addition of bind variable values.
+8 - The same as 2, but with the addition of wait events.
+12 - The same as 2, but with both bind variable values and wait events.
+The same combinations are possible for those methods with boolean parameters for waits and binds.
+
+Tracing Individual SQL Statements
+SQL trace can be initiated for an individual SQL statement by substituting the required SQL_ID into the following statement.
+
+SQL> -- SQL Trace (10046)
+SQL> ALTER SYSTEM SET EVENTS 'sql_trace [sql:&&sql_id] bind=true, wait=true';
+
+SQL> -- 10053
+SQL> ALTER SESSION SET EVENTS 'trace[rdbms.SQL_Optimizer.*][sql:sql_id]';
+The SQL_ID of a statement can be found in the V$SQL or V$SQLSTAT view for recent SQL, or from the DBA_HIST_SQLSTAT view from the AWR repository for historical statements.
+
+Identifying Trace Files
+Oracle allows you to set the TRACEFILE_IDENTIFIER parameter at session level, allowing you to include some recognizable text into the trace file name.
+
+ALTER SESSION SET TRACEFILE_IDENTIFIER = "MY_TEST_SESSION";
+Even without this, we can easily identify the trace file for the current session using the USER_DUMP_DEST value with the instance name and the session's process id. The identify_trace_file.sql script combines these values to produce the expected trace file name.
+
+SET LINESIZE 100
+COLUMN trace_file FORMAT A60
+
+SELECT s.sid,
+       s.serial#,
+       pa.value || '/' || LOWER(SYS_CONTEXT('userenv','instance_name')) ||    
+       '_ora_' || p.spid || '.trc' AS trace_file
+FROM   v$session s,
+       v$process p,
+       v$parameter pa
+WHERE  pa.name = 'user_dump_dest'
+AND    s.paddr = p.addr
+AND    s.audsid = SYS_CONTEXT('USERENV', 'SESSIONID');
+If you are using a windows environment you will need to alter the "/" to a "\" in the concatenated string.
+
+Identification of trace files is simpler in Oracle 11g due to the introduction of diagnostic views. The Oracle 11g version of the identify_trace_file.sql is shown below.
+
+SET LINESIZE 100
+COLUMN value FORMAT A60
+
+SELECT value
+FROM   v$diag_info
+WHERE  name = 'Default Trace File';
+You can identify the trace file for a specific session using the V$SESSION and V$PROCESS views.
+
+SELECT p.tracefile
+FROM   v$session s
+       JOIN v$process p ON s.paddr = p.addr
+WHERE  s.sid = 635;
+
+TRACEFILE
+------------------------------------------------------------------
+/u01/app/oracle/diag/rdbms/db11g/db11g/trace/db11g_ora_9699.trc
+
+SQL>
+In Oracle 12.2 the V$DIAG_TRACE_FILE and V$DIAG_TRACE_FILE_CONTENTS views make it even easier. The V$DIAG_TRACE_FILE view identifies all trace files currently under the instances ADR home.
+
+SELECT trace_filename
+FROM   v$diag_trace_file
+WHERE  con_id = 3;
+The V$DIAG_TRACE_FILE_CONTENTS allows you to query the contents of a trace file.
+
+SELECT payload
+FROM   v$diag_trace_file_contents
+WHERE  trace_filename = 'cdb1_j002_16830.trc'
+ORDER BY line_number;
+trcsess
+Activating trace on multiple sessions means that trace information is spread throughout many trace files. For this reason Oracle 10g introduced the trcsess utility, which allows trace information from multiple trace files to be identified and consolidated into a single trace file. The trcsess usage is listed below.
+
+trcsess [output=<output file name >]  [session=<session ID>] [clientid=<clientid>]
+        [service=<service name>] [action=<action name>] [module=<module name>] <trace file names>
+
+output=<output file name> output destination default being standard output.
+session=<session Id> session to be traced.
+Session id is a combination of session Index & session serial number e.g. 8.13.
+clientid=<clientid> clientid to be traced.
+service=<service name> service to be traced.
+action=<action name> action to be traced.
+module=<module name> module to be traced.
+<trace_file_names> Space separated list of trace files with wild card '*' supported.
+With all these options the consolidated trace file can be as broad or as specific as needed.
+
+tkprof
+The SQL trace files produced by the methods discussed previously can be read in their raw form, or they can be translated by the tkprof utility into a more human readable form. The output below lists the usage notes from the tkprof utility in Oracle 10g.
+
+$ tkprof
+Usage: tkprof tracefile outputfile [explain= ] [table= ]
+              [print= ] [insert= ] [sys= ] [sort= ]
+  table=schema.tablename   Use 'schema.tablename' with 'explain=' option.
+  explain=user/password    Connect to ORACLE and issue EXPLAIN PLAN.
+  print=integer    List only the first 'integer' SQL statements.
+  aggregate=yes|no
+  insert=filename  List SQL statements and data inside INSERT statements.
+  sys=no           TKPROF does not list SQL statements run as user SYS.
+  record=filename  Record non-recursive statements found in the trace file.
+  waits=yes|no     Record summary for any wait events found in the trace file.
+  sort=option      Set of zero or more of the following sort options:
+    prscnt  number of times parse was called
+    prscpu  cpu time parsing
+    prsela  elapsed time parsing
+    prsdsk  number of disk reads during parse
+    prsqry  number of buffers for consistent read during parse
+    prscu   number of buffers for current read during parse
+    prsmis  number of misses in library cache during parse
+    execnt  number of execute was called
+    execpu  cpu time spent executing
+    exeela  elapsed time executing
+    exedsk  number of disk reads during execute
+    exeqry  number of buffers for consistent read during execute
+    execu   number of buffers for current read during execute
+    exerow  number of rows processed during execute
+    exemis  number of library cache misses during execute
+    fchcnt  number of times fetch was called
+    fchcpu  cpu time spent fetching
+    fchela  elapsed time fetching
+    fchdsk  number of disk reads during fetch
+    fchqry  number of buffers for consistent read during fetch
+    fchcu   number of buffers for current read during fetch
+    fchrow  number of rows fetched
+    userid  userid of user that parsed the cursor
+
+$
+The waits parameter was only added in Oracle 9i, so prior to this version wait information had to be read from the raw trace file. The values of bind variables must be read from the raw files as they are not displayed in the tkprof output.
+
+The following section shows an example of gathering SQL trace for a session to give you an idea of the whole process.
+
+Trace Example
+The following script creates a test table and a procedure that populates it. This procedure will be the subject of our example trace.
+
+CREATE TABLE sql_trace_test (
+  id  NUMBER,
+  description  VARCHAR2(50)
+);
+
+EXEC DBMS_STATS.gather_table_stats('test', 'sql_trace_test');
+
+CREATE OR REPLACE PROCEDURE populate_sql_trace_test (p_loops  IN  NUMBER) AS
+  l_number  NUMBER;
+BEGIN
+  FOR i IN 1 .. p_loops LOOP
+    INSERT INTO sql_trace_test (id, description)
+    VALUES (i, 'Description for ' || i);
+  END LOOP;
+  
+  SELECT COUNT(*)
+  INTO   l_number
+  FROM   sql_trace_test;
+  
+  COMMIT;
+  
+  DBMS_OUTPUT.put_line(l_number || ' rows inserted.');
+END;
+/
+SHOW ERRORS
+Gathering the statistics on the empty table may seem odd, but this prevents any dynamic sampling being added to the trace file contents, which would only serve to complicate the file.
+
+Next, we identify the trace file for the current session.
+
+SQL> @identify_trace_file.sql
+
+       SID    SERIAL# TRACE_FILE
+---------- ---------- ------------------------------------------------------------
+       130      26739 /u01/app/oracle/admin/DEV/udump/dev1_ora_367660.trc
+
+1 row selected.
+
+SQL>
+Now we know the name of the trace file we can enable tracing, execute the procedure and disable tracing.
+
+SQL> ALTER SESSION SET EVENTS '10046 trace name context forever, level 8';
+
+Session altered.
+
+SQL> SET SERVEROUTPUT ON
+SQL> EXEC populate_sql_trace_test(p_loops => 5);
+5 rows inserted.
+
+PL/SQL procedure successfully completed.
+
+SQL> ALTER SESSION SET EVENTS '10046 trace name context off';
+
+Session altered.
+
+SQL>
+The contents of the file are listed below. The output looks a little confusing, but you can identify the individual statements and their associated waits and statistics.
+
+/u01/app/oracle/admin/DEV/udump/dev1_ora_367660.trc
+Oracle Database 10g Enterprise Edition Release 10.1.0.3.0 - Production
+With the Partitioning, Oracle Label Security, OLAP and Data Mining options
+ORACLE_HOME = /u01/app/oracle/product/10.1.0/db_1
+System name:	OSF1
+Node name:	dbserver.oracle-base.com
+Release:	V5.1
+Version:	2650
+Machine:	alpha
+Instance name: DEV1
+Redo thread mounted by this instance: 1
+Oracle process number: 16
+Unix process pid: 367660, image: oracleDEV1@dbserver.oracle-base.com
+
+*** 2005-04-05 09:46:51.499
+*** ACTION NAME:() 2005-04-05 09:46:51.499
+*** MODULE NAME:(SQL*Plus) 2005-04-05 09:46:51.499
+*** SERVICE NAME:(SYS$USERS) 2005-04-05 09:46:51.499
+*** SESSION ID:(130.26739) 2005-04-05 09:46:51.499
+=====================
+PARSING IN CURSOR #29 len=68 dep=0 uid=180 oct=42 lid=180 tim=11746409761792 hv=3847243385 ad='2bb57798'
+ALTER SESSION SET EVENTS '10046 trace name context forever, level 8'
+END OF STMT
+EXEC #29:c=0,e=1024,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,tim=11746409761792
+WAIT #29: nam='SQL*Net message to client' ela= 0 p1=1413697536 p2=1 p3=0
+WAIT #29: nam='SQL*Net message from client' ela= 7358464 p1=1413697536 p2=1 p3=0
+=====================
+PARSING IN CURSOR #4 len=36 dep=0 uid=180 oct=47 lid=180 tim=11746417122304 hv=3425213768 ad='2c631cd8'
+BEGIN DBMS_OUTPUT.ENABLE(2000); END;
+END OF STMT
+PARSE #4:c=0,e=1024,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,tim=11746417122304
+EXEC #4:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=1,dep=0,og=1,tim=11746417122304
+WAIT #4: nam='SQL*Net message to client' ela= 0 p1=1413697536 p2=1 p3=0
+WAIT #4: nam='SQL*Net message from client' ela= 6924288 p1=1413697536 p2=1 p3=0
+=====================
+PARSING IN CURSOR #18 len=51 dep=0 uid=180 oct=47 lid=180 tim=11746424051712 hv=2083693016 ad='27ecb338'
+BEGIN populate_sql_trace_test(p_loops => 5); END;
+END OF STMT
+PARSE #18:c=0,e=3072,p=0,cr=0,cu=0,mis=1,r=0,dep=0,og=1,tim=11746424051712
+=====================
+PARSING IN CURSOR #19 len=86 dep=1 uid=180 oct=2 lid=180 tim=11746424052736 hv=3247833140 ad='28fa57f8'
+INSERT INTO SQL_TRACE_TEST (ID, DESCRIPTION) VALUES (:B1 , 'Description for ' || :B1 )
+END OF STMT
+PARSE #19:c=0,e=1024,p=0,cr=0,cu=0,mis=1,r=0,dep=1,og=1,tim=11746424052736
+=====================
+PARSING IN CURSOR #23 len=69 dep=2 uid=0 oct=3 lid=0 tim=11746424053760 hv=1471956217 ad='2e7591f0'
+select con#,obj#,rcon#,enabled,nvl(defer,0) from cdef$ where robj#=:1
+END OF STMT
+PARSE #23:c=0,e=1024,p=0,cr=0,cu=0,mis=1,r=0,dep=2,og=4,tim=11746424053760
+EXEC #23:c=0,e=5120,p=0,cr=0,cu=0,mis=1,r=0,dep=2,og=4,tim=11746424059904
+FETCH #23:c=0,e=0,p=0,cr=2,cu=0,mis=0,r=0,dep=2,og=4,tim=11746424059904
+=====================
+PARSING IN CURSOR #25 len=146 dep=2 uid=0 oct=3 lid=0 tim=11746424065024 hv=2107929772 ad='2e7b4b08'
+select con#,type#,condlength,intcols,robj#,rcon#,match#,refact,nvl(enabled,0),rowid,cols,nvl(defer,0)
+,mtime,nvl(spare1,0) from cdef$ where obj#=:1
+END OF STMT
+PARSE #25:c=0,e=5120,p=0,cr=0,cu=0,mis=1,r=0,dep=2,og=4,tim=11746424065024
+=====================
+PARSING IN CURSOR #27 len=210 dep=3 uid=0 oct=3 lid=0 tim=11746424102912 hv=864012087 ad='2e351f08'
+select /*+ rule */ bucket_cnt, row_cnt, cache_cnt, null_cnt, timestamp#, sample_size, minimum, maximum,
+distcnt, lowval, hival, density, col#, spare1, spare2, avgcln from hist_head$ where obj#=:1 and intcol#=:2
+END OF STMT
+PARSE #27:c=50000,e=36864,p=0,cr=0,cu=0,mis=1,r=0,dep=3,og=3,tim=11746424102912
+EXEC #27:c=16667,e=4096,p=0,cr=0,cu=0,mis=1,r=0,dep=3,og=3,tim=11746424108032
+FETCH #27:c=0,e=1024,p=0,cr=3,cu=0,mis=0,r=1,dep=3,og=3,tim=11746424109056
+EXEC #27:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=3,og=3,tim=11746424109056
+FETCH #27:c=0,e=0,p=0,cr=3,cu=0,mis=0,r=1,dep=3,og=3,tim=11746424109056
+EXEC #27:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=3,og=3,tim=11746424110080
+FETCH #27:c=0,e=0,p=0,cr=3,cu=0,mis=0,r=1,dep=3,og=3,tim=11746424110080
+=====================
+PARSING IN CURSOR #28 len=121 dep=3 uid=0 oct=3 lid=0 tim=11746424119296 hv=3150898423 ad='2e347db8'
+select /*+ rule */ bucket, endpoint, col#, epvalue from histgrm$ where obj#=:1 and intcol#=:2 and row#=:3
+order by bucket
+END OF STMT
+PARSE #28:c=0,e=9216,p=0,cr=0,cu=0,mis=1,r=0,dep=3,og=3,tim=11746424119296
+EXEC #28:c=0,e=1024,p=0,cr=0,cu=0,mis=1,r=0,dep=3,og=3,tim=11746424121344
+FETCH #28:c=0,e=1024,p=0,cr=3,cu=0,mis=0,r=3,dep=3,og=3,tim=11746424122368
+EXEC #27:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=3,og=3,tim=11746424122368
+FETCH #27:c=0,e=0,p=0,cr=3,cu=0,mis=0,r=1,dep=3,og=3,tim=11746424122368
+EXEC #27:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=3,og=3,tim=11746424123392
+FETCH #27:c=0,e=0,p=0,cr=3,cu=0,mis=0,r=1,dep=3,og=3,tim=11746424123392
+EXEC #25:c=83334,e=61440,p=0,cr=18,cu=0,mis=1,r=0,dep=2,og=4,tim=11746424126464
+FETCH #25:c=0,e=0,p=0,cr=2,cu=0,mis=0,r=0,dep=2,og=4,tim=11746424126464
+=====================
+PARSING IN CURSOR #12 len=169 dep=2 uid=0 oct=3 lid=0 tim=11746424128512 hv=1173719687 ad='2e7c2c50'
+select col#, grantee#, privilege#,max(mod(nvl(option$,0),2)) from objauth$ where obj#=:1 and col# is not null
+group by privilege#, col#, grantee# order by col#, grantee#
+END OF STMT
+PARSE #12:c=0,e=1024,p=0,cr=0,cu=0,mis=1,r=0,dep=2,og=4,tim=11746424128512
+EXEC #12:c=0,e=3072,p=0,cr=0,cu=0,mis=1,r=0,dep=2,og=4,tim=11746424131584
+FETCH #12:c=0,e=0,p=0,cr=2,cu=0,mis=0,r=0,dep=2,og=4,tim=11746424131584
+=====================
+PARSING IN CURSOR #26 len=151 dep=2 uid=0 oct=3 lid=0 tim=11746424131584 hv=4139184264 ad='2e7cc608'
+select grantee#,privilege#,nvl(col#,0),max(mod(nvl(option$,0),2))from objauth$ where obj#=:1 group by grantee#,
+privilege#,nvl(col#,0) order by grantee#
+END OF STMT
+PARSE #26:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=2,og=4,tim=11746424131584
+EXEC #26:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=2,og=4,tim=11746424131584
+FETCH #26:c=0,e=1024,p=0,cr=2,cu=0,mis=0,r=0,dep=2,og=4,tim=11746424132608
+=====================
+PARSING IN CURSOR #7 len=175 dep=2 uid=0 oct=3 lid=0 tim=11746424132608 hv=1729330152 ad='2f3597a8'
+select u.name,o.name, t.update$, t.insert$, t.delete$, t.enabled  from obj$ o,user$ u,trigger$ t  where 
+t.baseobject=:1 and t.obj#=o.obj# and o.owner#=u.user#  order by o.obj#
+END OF STMT
+PARSE #7:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=2,og=4,tim=11746424132608
+EXEC #7:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=2,og=4,tim=11746424132608
+FETCH #7:c=0,e=0,p=0,cr=2,cu=0,mis=0,r=0,dep=2,og=4,tim=11746424132608
+STAT #7 id=1 cnt=0 pid=0 pos=1 obj=0 op='SORT ORDER BY (cr=2 pr=0 pw=0 time=0 us)'
+STAT #7 id=2 cnt=0 pid=1 pos=1 obj=0 op='NESTED LOOPS  (cr=2 pr=0 pw=0 time=0 us)'
+STAT #7 id=3 cnt=0 pid=2 pos=1 obj=0 op='NESTED LOOPS  (cr=2 pr=0 pw=0 time=0 us)'
+STAT #7 id=4 cnt=0 pid=3 pos=1 obj=84 op='TABLE ACCESS BY INDEX ROWID TRIGGER$ (cr=2 pr=0 pw=0 time=0 us)'
+STAT #7 id=5 cnt=0 pid=4 pos=1 obj=128 op='INDEX RANGE SCAN I_TRIGGER1 (cr=2 pr=0 pw=0 time=0 us)'
+STAT #7 id=6 cnt=0 pid=3 pos=2 obj=18 op='TABLE ACCESS BY INDEX ROWID OBJ$ (cr=0 pr=0 pw=0 time=0 us)'
+STAT #7 id=7 cnt=0 pid=6 pos=1 obj=36 op='INDEX UNIQUE SCAN I_OBJ1 (cr=0 pr=0 pw=0 time=0 us)'
+STAT #7 id=8 cnt=0 pid=2 pos=2 obj=22 op='TABLE ACCESS CLUSTER USER$ (cr=0 pr=0 pw=0 time=0 us)'
+STAT #7 id=9 cnt=0 pid=8 pos=1 obj=11 op='INDEX UNIQUE SCAN I_USER# (cr=0 pr=0 pw=0 time=0 us)'
+EXEC #19:c=83334,e=86016,p=0,cr=29,cu=21,mis=1,r=1,dep=1,og=1,tim=11746424138752
+EXEC #19:c=0,e=0,p=0,cr=0,cu=1,mis=0,r=1,dep=1,og=1,tim=11746424138752
+EXEC #19:c=0,e=0,p=0,cr=0,cu=1,mis=0,r=1,dep=1,og=1,tim=11746424138752
+EXEC #19:c=0,e=0,p=0,cr=0,cu=1,mis=0,r=1,dep=1,og=1,tim=11746424139776
+EXEC #19:c=0,e=0,p=0,cr=0,cu=1,mis=0,r=1,dep=1,og=1,tim=11746424139776
+=====================
+PARSING IN CURSOR #29 len=35 dep=1 uid=180 oct=3 lid=180 tim=11746424140800 hv=3788777626 ad='2c84eb58'
+SELECT COUNT(*) FROM SQL_TRACE_TEST
+END OF STMT
+PARSE #29:c=0,e=1024,p=0,cr=0,cu=0,mis=1,r=0,dep=1,og=1,tim=11746424140800
+EXEC #29:c=0,e=1024,p=0,cr=0,cu=0,mis=0,r=0,dep=1,og=1,tim=11746424141824
+FETCH #29:c=0,e=0,p=0,cr=7,cu=0,mis=0,r=1,dep=1,og=1,tim=11746424141824
+=====================
+PARSING IN CURSOR #4 len=6 dep=1 uid=180 oct=44 lid=180 tim=11746424141824 hv=255718823 ad='2e5363f0'
+COMMIT
+END OF STMT
+PARSE #4:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=1,og=1,tim=11746424141824
+XCTEND rlbk=0, rd_only=0
+EXEC #4:c=0,e=0,p=0,cr=0,cu=1,mis=0,r=0,dep=1,og=1,tim=11746424141824
+EXEC #18:c=83334,e=91136,p=0,cr=36,cu=26,mis=0,r=1,dep=0,og=1,tim=11746424142848
+WAIT #18: nam='SQL*Net message to client' ela= 0 p1=1413697536 p2=1 p3=0
+WAIT #18: nam='SQL*Net message from client' ela= 1024 p1=1413697536 p2=1 p3=0
+=====================
+PARSING IN CURSOR #7 len=52 dep=0 uid=180 oct=47 lid=180 tim=11746424143872 hv=1029988163 ad='2c2ec1b8'
+BEGIN DBMS_OUTPUT.GET_LINES(:LINES, :NUMLINES); END;
+END OF STMT
+PARSE #7:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,tim=11746424143872
+WAIT #7: nam='SQL*Net message to client' ela= 0 p1=1413697536 p2=1 p3=0
+EXEC #7:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=1,dep=0,og=1,tim=11746424144896
+WAIT #7: nam='SQL*Net message from client' ela= 8560640 p1=1413697536 p2=1 p3=0
+=====================
+PARSING IN CURSOR #12 len=55 dep=0 uid=180 oct=42 lid=180 tim=11746432706560 hv=2655499671 ad='2a24eab8'
+ALTER SESSION SET EVENTS '10046 trace name context off'
+END OF STMT
+PARSE #12:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,tim=11746432705536
+EXEC #12:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,tim=11746432706560
+The following command uses the tkprof utility to translate the trace file, placing the translated output in the translated.txt file.The explain and table parameters have been set to allow execution plans to be displayed and the sys parameter prevents recursive SQL being displayed.
+
+$ cd /u01/app/oracle/admin/DEV/udump/
+$ tkprof dev1_ora_367660.trc translated.txt explain=test/test table=sys.plan_table sys=no waits=yes
+
+TKPROF: Release 10.1.0.3.0 - Production on Tue Apr 5 09:22:43 2005
+
+Copyright (c) 1982, 2004, Oracle.  All rights reserved.
+
+
+$
+The contents of the translated file are displayed below.
+
+TKPROF: Release 10.1.0.3.0 - Production on Tue Apr 5 09:53:50 2005
+
+Copyright (c) 1982, 2004, Oracle.  All rights reserved.
+
+Trace file: dev1_ora_367660.trc
+Sort options: default
+
+********************************************************************************
+count    = number of times OCI procedure was executed
+cpu      = cpu time in seconds executing 
+elapsed  = elapsed time in seconds executing
+disk     = number of physical reads of buffers from disk
+query    = number of buffers gotten for consistent read
+current  = number of buffers gotten in current mode (usually for update)
+rows     = number of rows processed by the fetch or execute call
+********************************************************************************
+
+ALTER SESSION SET EVENTS '10046 trace name context forever, level 8'
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        0      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           0
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        1      0.00       0.00          0          0          0           0
+
+Misses in library cache during parse: 0
+Optimizer mode: ALL_ROWS
+Parsing user id: 180  (TEST)
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  SQL*Net message to client                       1        0.00          0.00
+  SQL*Net message from client                     1        7.35          7.35
+********************************************************************************
+
+BEGIN DBMS_OUTPUT.ENABLE(2000); END;
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           1
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        2      0.00       0.00          0          0          0           1
+
+Misses in library cache during parse: 0
+Optimizer mode: ALL_ROWS
+Parsing user id: 180  (TEST)
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  SQL*Net message to client                       1        0.00          0.00
+  SQL*Net message from client                     1        6.92          6.92
+********************************************************************************
+
+BEGIN populate_sql_trace_test(p_loops => 5); END;
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           1
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        2      0.00       0.00          0          0          0           1
+
+Misses in library cache during parse: 1
+Optimizer mode: ALL_ROWS
+Parsing user id: 180  (TEST)
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  SQL*Net message to client                       1        0.00          0.00
+  SQL*Net message from client                     1        0.00          0.00
+********************************************************************************
+
+INSERT INTO SQL_TRACE_TEST (ID, DESCRIPTION) 
+VALUES
+ (:B1 , 'Description for ' || :B1 )
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      5      0.00       0.00          0          1         25           5
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        6      0.00       0.00          0          1         25           5
+
+Misses in library cache during parse: 1
+Misses in library cache during execute: 1
+Optimizer mode: ALL_ROWS
+Parsing user id: 180  (TEST)   (recursive depth: 1)
+
+Rows     Execution Plan
+-------  ---------------------------------------------------
+      0  INSERT STATEMENT   MODE: ALL_ROWS
+
+********************************************************************************
+
+SELECT COUNT(*) 
+FROM
+ SQL_TRACE_TEST
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           0
+Fetch        1      0.00       0.00          0          7          0           1
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        3      0.00       0.00          0          7          0           1
+
+Misses in library cache during parse: 1
+Optimizer mode: ALL_ROWS
+Parsing user id: 180  (TEST)   (recursive depth: 1)
+
+Rows     Execution Plan
+-------  ---------------------------------------------------
+      0  SELECT STATEMENT   MODE: ALL_ROWS
+      0   SORT (AGGREGATE)
+      0    TABLE ACCESS   MODE: ANALYZED (FULL) OF 'SQL_TRACE_TEST' 
+               (TABLE)
+
+********************************************************************************
+
+COMMIT
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          1           0
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        2      0.00       0.00          0          0          1           0
+
+Misses in library cache during parse: 0
+Optimizer mode: ALL_ROWS
+Parsing user id: 180  (TEST)   (recursive depth: 1)
+********************************************************************************
+
+BEGIN DBMS_OUTPUT.GET_LINES(:LINES, :NUMLINES); END;
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           1
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        2      0.00       0.00          0          0          0           1
+
+Misses in library cache during parse: 0
+Optimizer mode: ALL_ROWS
+Parsing user id: 180  (TEST)
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  SQL*Net message to client                       1        0.00          0.00
+  SQL*Net message from client                     1        8.56          8.56
+********************************************************************************
+
+ALTER SESSION SET EVENTS '10046 trace name context off'
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           0
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        2      0.00       0.00          0          0          0           0
+
+Misses in library cache during parse: 0
+Optimizer mode: ALL_ROWS
+Parsing user id: 180  (TEST)
+
+
+
+********************************************************************************
+
+OVERALL TOTALS FOR ALL NON-RECURSIVE STATEMENTS
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        4      0.00       0.00          0          0          0           0
+Execute      5      0.00       0.00          0          0          0           3
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        9      0.00       0.00          0          0          0           3
+
+Misses in library cache during parse: 1
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  SQL*Net message to client                       4        0.00          0.00
+  SQL*Net message from client                     4        8.56         22.84
+
+
+OVERALL TOTALS FOR ALL RECURSIVE STATEMENTS
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse       10      0.05       0.05          0          0          0           0
+Execute     18      0.03       0.03          0          1         26           5
+Fetch       12      0.00       0.00          0         35          0           9
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total       40      0.08       0.08          0         36         26          14
+
+Misses in library cache during parse: 7
+Misses in library cache during execute: 6
+
+    8  user  SQL statements in session.
+    7  internal SQL statements in session.
+   15  SQL statements in session.
+    2  statements EXPLAINed in this session.
+********************************************************************************
+Trace file: dev1_ora_367660.trc
+Trace file compatibility: 10.01.00
+Sort options: default
+
+       1  session in tracefile.
+       8  user  SQL statements in trace file.
+       7  internal SQL statements in trace file.
+      15  SQL statements in trace file.
+      15  unique SQL statements in trace file.
+       2  SQL statements EXPLAINed using schema:
+           sys.plan_table
+             Schema was specified.
+             Existing table was used.
+     146  lines in trace file.
+      22  elapsed seconds in trace file.
+For each statement executed by the session, the file contains a record of the parse, execute and fetch statistics, an execution plan where necessary and a list of session waits.
+
+Trace Analyzer
+In addition to TKPROF, Oracle provide another tool for analyzing SQL trace files called Trace Analyzer. This is available for download from Metalink and can be installed on any version of the database server from Oracle8i upwards.
+
+Trace Analyzer reads a raw SQL Trace file generated by standard SQL Trace or by EVENT 10046 (Level 4, 8 or 12), and generates a comprehensive HTML report with performance related details: time summary, call summary (parse, execute, fetch), identification of top SQL, row source plan, explain plan, CBO statistics, wait events, values of bind variables, I/O summary per schema object, latches, hot blocks, etc.
+
+The HTML report includes all the details found on TKPROF, plus additional information normally requested and used for a transaction performance analysis.
+
+Query Contents of Trace Files
+There are a number of ways to make trace files available to developers, but one simple way is to allow them query the contents of a trace file from SQL*Plus and spool it to a file on their local PC.
+
+The following example creates a locked user with the necessary code to read the contents of specified trace files. This code is then made accessible to public and a directory object pointing to the trace location is created.
+
+CONN / AS SYSDBA
+
+-- Create locked user to hold code.
+CREATE USER trace_user IDENTIFIED BY trace_user ACCOUNT LOCK;
+
+-- Create a type and pipelined table function to read the specified trace file.
+CREATE TYPE trace_user.t_trace_tab AS TABLE OF VARCHAR2(32767);
+/
+
+CREATE OR REPLACE FUNCTION trace_user.get_trace_file (p_trace_file IN VARCHAR2)
+  RETURN trace_user.t_trace_tab PIPELINED
+AS
+  l_file UTL_FILE.file_type; 
+  l_text VARCHAR2(32767);
+BEGIN
+  l_file := UTL_FILE.fopen('TRACE_DIR', p_trace_file, 'r', 32767);
+  BEGIN
+    LOOP
+      UTL_FILE.get_line(l_file, l_text);
+      PIPE ROW (l_text);
+    END LOOP;
+  EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      NULL;
+  END;
+  UTL_FILE.fclose(l_file);
+  RETURN;
+EXCEPTION
+  WHEN OTHERS THEN
+    PIPE ROW ('ERROR: ' || SQLERRM);
+    IF UTL_FILE.is_open(l_file) THEN
+      UTL_FILE.fclose(l_file);
+    END IF;
+    RETURN;
+END;
+/
+
+-- Make the code accessible to PUBLIC.
+GRANT EXECUTE ON trace_user.t_trace_tab TO PUBLIC;
+GRANT EXECUTE ON trace_user.get_trace_file TO PUBLIC;
+CREATE PUBLIC SYNONYM get_trace_file FOR trace_user.get_trace_file;
+
+-- Create a directory object to the trace location.
+CREATE OR REPLACE DIRECTORY trace_dir AS '/u01/app/oracle/diag/rdbms/db11g/DB11G/trace/';
+GRANT READ ON DIRECTORY trace_dir TO trace_user;
+With that in place we can see how a developer would create and return a trace file to their local PC.
+
+-- Make sure the user has access to DBMS_MONITOR.
+CONN / AS SYSDBA
+GRANT EXECUTE ON dbms_monitor TO hr;
+
+CONN hr/hr
+
+-- Identify the current trace file.
+SELECT value
+FROM   v$diag_info
+WHERE  name = 'Default Trace File';
+
+VALUE
+--------------------------------------------------------------------------------
+/u01/app/oracle/diag/rdbms/db11g/DB11G/trace/DB11G_ora_6309.trc
+
+SQL>
+
+-- Turn on tracing.
+EXEC DBMS_MONITOR.session_trace_enable(waits=>TRUE, binds=>FALSE);
+
+-- Do something you wish to trace.
+SET LINESIZE 100
+COLUMN employee_name FORMAT A30
+COLUMN department_name FORMAT A20
+COLUMN manager_name FORMAT A30
+
+SELECT e.first_name || ' '  || e.last_name AS employee_name,
+       d.department_name,
+       e2.first_name || ' ' || e2.last_name AS manager_name
+FROM   employees e
+       JOIN departments d ON e.department_id = d.department_id
+       JOIN employees e2 ON e.manager_id = e2.employee_id
+WHERE  d.department_name = 'Finance'
+ORDER BY d.department_name;
+
+EMPLOYEE_NAME                  DEPARTMENT_NAME      MANAGER_NAME
+------------------------------ -------------------- ------------------------------
+Nancy Greenberg                Finance              Neena Kochhar
+Luis Popp                      Finance              Nancy Greenberg
+Jose Manuel Urman              Finance              Nancy Greenberg
+Ismael Sciarra                 Finance              Nancy Greenberg
+John Chen                      Finance              Nancy Greenberg
+Daniel Faviet                  Finance              Nancy Greenberg
+
+6 rows selected.
+
+SQL> 
+
+-- Turn off tracing.
+EXEC DBMS_MONITOR.session_trace_disable;
+
+-- Spool the contents of the relevant trace file to a local file.
+SET PAGESIZE 0 FEEDBACK OFF TRIMSPOOL ON TAB OFF
+SPOOL C:\tracefile.trc
+
+SELECT *
+FROM   TABLE(get_trace_file('DB11G_ora_6309.trc'));
+
+SPOOL OFF
+SET PAGESIZE 14 FEEDBACK ON
+The developer can now use a local installation of TKPROF or SQL Developer to translate the trace file.
+
+SQL Developer
+SQL Developer will automatically format trace files opened using the "File > Open" menu or the "Open" toolbar button. On the resulting screen, select the "NonRecursive" or "All" filter option to show the formatted output. The image below shows the formatted trace file opened using SQL Developer.
+
+SQL Developer Trace
+
+For more information see:
+
+DBMS_APPLICATION_INFO : For Code Instrumentation
+DBMS_SESSION : Managing Sessions From a Connection Pool in Oracle Databases
+TKProf Interpretation (9i and above) [ID 760786.1]
+Using Application Tracing Tools
+DBMS_MONITOR
+How to set trace... by Pete Finnigan
+TRCANLZR (TRCA): SQL_TRACE/Event 10046 Trace File Analyzer - Tool for Interpreting Raw SQL Traces [ID 224270.1]
+Interpreting TKPROF Output
+Explain Plan Usage
+DBMS_XPLAN : Display Oracle Execution Plans
+Real-Time SQL Monitoring using DBMS_SQLTUNE
+Hope this helps. Regards Tim...
+
+Back to the Top.

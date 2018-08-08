@@ -1,0 +1,509 @@
+https://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:1112673450743
+
+You Asked
+Tom 
+
+right now every time I trace my session Iam having to ask my dba to email my trace file and the tkprof outputfile to me, as I dont have access to the files on the database server (os-unix,a nd my client is on windows 2000) side. 
+
+is there anyway I can srite a unix shell script or any other way, in which all files traced by my session go to a partcular folder, or get copied to a particualr folder automatically, on which I can be given access. 
+
+
+While doing query tuning, how can v$sqlarea, v$SQLTEXT AND V$SQL be useful to me. 
+
+
+
+and we said...
+Well, if your DBA is willing, they can add: 
+
+utl_file_dir = /path/to/the/user/dump/destination 
+
+in the init.ora. You can write a stored procedure that then uses UTL_FILE to read the trace file and put it into a temporary table that looks like: 
+
+create global temporary table trace ( id int primary key, text varchar2(4000) ); 
+
+Then, using this query: 
+
+select c.value || '/' || instance || '_ora_' || 
+ltrim(to_char(a.spid,'fm99999')) || '.trc' 
+from v$process a, v$session b, v$parameter c, v$thread c 
+where a.addr = b.paddr 
+and b.audsid = userenv('sessionid') 
+and c.name = 'user_dump_dest' 
+
+you can get your sessions trace filename. You would disconnect and log back in -- run this stored procedure giving it that file name and then you can "spool" the trace file from the temporary table to your local file system. 
+
+
+Other then that - they must give you access to all trace files (or none). Trace files are written to a fixed location (user_dump_dest). Everyone writes to the same location. 
+
+
+
+As for v$sqlarea, v$sqltext, v$sql -- I use them for one thing myself -- finding statements that don't use bind variables! Beyond that, I use them indirectly with statspack to get the "top N" SQL statements by IO and such.... 
+
+
+
+
+----------------------
+You made the load program far too complex.  You must be corrupting the trace file in some fashion.  You just want to read a line, insert a line.  Don't bother trying to glue them together into a big line 32k at a time. 
+
+Here is a complete example showing this at work:
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> create global temporary table trace_tab
+  2  ( seqno int primary key,
+  3    text     varchar2(4000)
+  4  )
+  5  on commit delete rows
+  6  /
+Table created.
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> create or replace procedure load_file( p_dir    in varchar2 ,
+  2                                         p_filename  in varchar2 )
+  3  is
+  4      l_input         utl_file.file_type;
+  5      l_buffer        long;
+  6      l_comments      long;
+  7      l_id            number;
+  8      l_cnt            number default 0;
+  9  begin
+ 10      l_input := utl_file.fopen( p_dir, p_filename, 'r', 4000 );
+ 11      for recno in 1 .. 1000000
+ 12      loop
+ 13          begin
+ 14              utl_file.get_line( l_input, l_buffer );
+ 15          exception
+ 16              when no_data_found then exit;
+ 17          end;
+ 18              insert into trace_tab values ( recno, l_buffer );
+ 19       end loop;
+ 20      utl_file.fclose( l_input );
+ 21  end;
+ 22  /
+
+Procedure created.
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> column path new_value path
+ops$tkyte@ORA817DEV.US.ORACLE.COM> column file_name new_value file_name
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> select c.value path,
+  2         instance || '_ora_' ||
+  3         ltrim(to_char(a.spid,'fm99999')) || '.trc' file_name
+  4    from v$process a, v$session b, v$parameter c, v$thread c
+  5   where a.addr = b.paddr
+  6     and b.audsid = userenv('sessionid')
+  7     and c.name = 'user_dump_dest'
+  8  /
+
+PATH
+-----------------------------------------------------------------------------------------------------------------------------------
+FILE_NAME
+------------------------------
+/export/home/ora817/admin/ora817dev/udump
+ora817dev_ora_27318.trc
+
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> alter session set sql_trace=true;
+Session altered.
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> select * from dual;
+
+D
+-
+X
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> select count(*) from scott.emp;
+
+  COUNT(*)
+----------
+        14
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> disconnect
+Disconnected from Oracle8i Enterprise Edition Release 8.1.7.2.0 - Production
+With the Partitioning option
+JServer Release 8.1.7.2.0 - Production
+
+
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> connect /
+Connected.
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> exec load_file( '&path', '&file_name' );
+PL/SQL procedure successfully completed.
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> set heading off
+ops$tkyte@ORA817DEV.US.ORACLE.COM> set feedback off
+ops$tkyte@ORA817DEV.US.ORACLE.COM> set trimspool on
+ops$tkyte@ORA817DEV.US.ORACLE.COM> set linesize 255
+ops$tkyte@ORA817DEV.US.ORACLE.COM> set embedded on
+ops$tkyte@ORA817DEV.US.ORACLE.COM> spool &file_name
+<b>you should be a SET TERMOUT OFF here as well -- so you don't have to watch the tracefile go by...</b>
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> select text from trace_tab order by seqno;
+Dump file /export/home/ora817/admin/ora817dev/udump/ora817dev_ora_27318.trc
+Oracle8i Enterprise Edition Release 8.1.7.2.0 - Production
+With the Partitioning option
+JServer Release 8.1.7.2.0 - Production
+ORACLE_HOME = /export/home/ora817
+System name:    SunOS
+Node name:      aria-dev
+Release:        5.7
+Version:        Generic_106541-19
+Machine:        sun4u
+Instance name: ora817dev
+Redo thread mounted by this instance: 1
+Oracle process number: 8
+Unix process pid: 27318, image: oracle@aria-dev (TNS V1-V3)
+
+*** SESSION ID:(18.400) 2002-04-08 08:41:09.366
+APPNAME mod='01@ test.sql' mh=2821176787 act='' ah=4029777240
+=====================
+PARSING IN CURSOR #1 len=33 dep=0 uid=216 oct=42 lid=216 tim=3042719131 hv=3732290820 ad='81c0d8e4'
+alter session set sql_trace=true
+END OF STMT
+EXEC #1:c=0,e=3,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=4,tim=3042719131
+=====================
+PARSING IN CURSOR #1 len=19 dep=0 uid=216 oct=3 lid=216 tim=3042719131 hv=3499509676 ad='81409b80'
+select * from dual
+END OF STMT
+PARSE #1:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=4,tim=3042719131
+EXEC #1:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=4,tim=3042719131
+FETCH #1:c=0,e=0,p=0,cr=1,cu=4,mis=0,r=1,dep=0,og=4,tim=3042719131
+FETCH #1:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=0,tim=3042719131
+STAT #1 id=1 cnt=1 pid=0 pos=0 obj=195 op='TABLE ACCESS FULL DUAL '
+=====================
+PARSING IN CURSOR #1 len=31 dep=0 uid=216 oct=3 lid=216 tim=3042719131 hv=3580614502 ad='813f2f44'
+select count(*) from scott.emp
+END OF STMT
+PARSE #1:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=4,tim=3042719131
+EXEC #1:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=4,tim=3042719131
+FETCH #1:c=0,e=0,p=0,cr=1,cu=4,mis=0,r=1,dep=0,og=4,tim=3042719131
+FETCH #1:c=0,e=0,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=0,tim=3042719131
+STAT #1 id=1 cnt=1 pid=0 pos=0 obj=0 op='SORT AGGREGATE '
+STAT #1 id=2 cnt=14 pid=1 pos=1 obj=28771 op='TABLE ACCESS FULL EMP '
+XCTEND rlbk=0, rd_only=1
+ops$tkyte@ORA817DEV.US.ORACLE.COM> spool off
+
+<b>now, to show it works:</b>
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> host tkprof &file_name x.txt
+
+TKPROF: Release 8.1.7.2.0 - Production on Mon Apr 8 08:41:20 2002
+
+(c) Copyright 2000 Oracle Corporation.  All rights reserved.
+
+
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> host cat x.txt
+
+TKPROF: Release 8.1.7.2.0 - Production on Mon Apr 8 08:41:20 2002
+
+(c) Copyright 2000 Oracle Corporation.  All rights reserved.
+
+Trace file: ora817dev_ora_27318.trc
+Sort options: default
+
+********************************************************************************
+count    = number of times OCI procedure was executed
+cpu      = cpu time in seconds executing 
+elapsed  = elapsed time in seconds executing
+disk     = number of physical reads of buffers from disk
+query    = number of buffers gotten for consistent read
+current  = number of buffers gotten in current mode (usually for update)
+rows     = number of rows processed by the fetch or execute call
+********************************************************************************
+
+alter session set sql_trace=true
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        0      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.03          0          0          0           0
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        1      0.00       0.03          0          0          0           0
+
+Misses in library cache during parse: 0
+Optimizer goal: CHOOSE
+Parsing user id: 216  
+********************************************************************************
+
+select * 
+from
+ dual
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           0
+Fetch        2      0.00       0.00          0          1          4           1
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        4      0.00       0.00          0          1          4           1
+
+Misses in library cache during parse: 0
+Optimizer goal: CHOOSE
+Parsing user id: 216  
+
+Rows     Row Source Operation
+-------  ---------------------------------------------------
+      1  TABLE ACCESS FULL DUAL 
+
+********************************************************************************
+
+select count(*) 
+from
+ scott.emp
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           0
+Fetch        2      0.00       0.00          0          1          4           1
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        4      0.00       0.00          0          1          4           1
+
+Misses in library cache during parse: 0
+Optimizer goal: CHOOSE
+Parsing user id: 216  
+
+Rows     Row Source Operation
+-------  ---------------------------------------------------
+      1  SORT AGGREGATE 
+     14   TABLE ACCESS FULL EMP 
+
+
+
+
+********************************************************************************
+
+OVERALL TOTALS FOR ALL NON-RECURSIVE STATEMENTS
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        2      0.00       0.00          0          0          0           0
+Execute      3      0.00       0.03          0          0          0           0
+Fetch        4      0.00       0.00          0          2          8           2
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        9      0.00       0.03          0          2          8           2
+
+Misses in library cache during parse: 0
+
+
+OVERALL TOTALS FOR ALL RECURSIVE STATEMENTS
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        0      0.00       0.00          0          0          0           0
+Execute      0      0.00       0.00          0          0          0           0
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        0      0.00       0.00          0          0          0           0
+
+Misses in library cache during parse: 0
+
+    3  user  SQL statements in session.
+    0  internal SQL statements in session.
+    3  SQL statements in session.
+********************************************************************************
+Trace file: ora817dev_ora_27318.trc
+Trace file compatibility: 8.00.04
+Sort options: default
+
+       1  session in tracefile.
+       3  user  SQL statements in trace file.
+       0  internal SQL statements in trace file.
+       3  SQL statements in trace file.
+       3  unique SQL statements in trace file.
+      44  lines in trace file.
+
+
+<b>and that is it, tkprof without ever leaving sqlplus and without getting on the server</b>. 
+
+
+--------------------
+
+Tom, when I try to put the SQL you provided into a stored function, the compiler complains about the TO_CHAR, I have 
+seen this before, what gives ? 
+
+select c.value || '/' || instance || '_ora_' || 
+ltrim(to_char(a.spid,'fm99999')) || '.trc' 
+INTO l_return 
+...<snip> 
+
+PLS-00307 too many declarations of 'to_char' match this call 
+
+
+Tom Kyte
+Followup  
+
+November 14, 2002 - 7:28 pm UTC 
+
+ops$tkyte@ORA817DEV.US.ORACLE.COM> begin
+  2  for x in ( select c.value || '/' || instance || '_ora_' ||
+  3         ltrim(to_char(<b>to_number(a.spid)</b>,'fm99999')) || '.trc'
+  4    from v$process a, v$session b, v$parameter c, v$thread c
+  5   where a.addr = b.paddr
+  6     and b.audsid = userenv('sessionid')
+  7     and c.name = 'user_dump_dest' )
+  8     loop
+  9     null;
+ 10          end loop;
+ 11  end;
+ 12  /
+
+PL/SQL procedure successfully completed.
+
+
+
+
+--########################################################################################################################--
+hen the client is quite simply preventing you from doing the job they hired you to do??? 
+
+Here is a solution that I'm proposing in my next book I'm working on, I'll let you peek at it. 
+This is the 817 way using global temp tables -- there is an easier way using pipelined functions in 9i. 
+We'll give client sessions -- regardless of platform or access to the database servers filesystem -- access to THEIR trace files via sqlplus. you'll set up a user: 
+
+create user trace_files identified by trace_files default tablespace users quota unlimited on users; 
+
+grant create any directory, /* to read user dump dest */ 
+create session , /* to log on in the first place */ 
+create table , /* used to hold users -> trace files */ 
+create view , /* used so users can see what traces they have */ 
+create procedure , /* to create the function that returns the trace data */ 
+create trigger , /* to capture trace file names upon logoff */ 
+administer database trigger /* to create the logoff trigger */ 
+to trace_files; 
+
+/* these are needed to find the trace file name */ 
+grant select on v_$process to trace_files; 
+grant select on v_$session to trace_files; 
+grant select on v_$instance to trace_files; 
+
+
+
+in that user, you'll execute: 
+
+create view session_trace_file_name 
+as 
+select d.instance_name || '_ora_' || ltrim(to_char(a.spid)) || '.trc' filename 
+from v$process a, v$session b, v$instance d 
+where a.addr = b.paddr 
+and b.audsid = userenv('sessionid') 
+/ 
+
+create table avail_trace_files 
+( username varchar2(30) default user, 
+filename varchar2(512), 
+dt date default sysdate, 
+constraint avail_trace_files_pk primary key(username,filename) 
+) 
+organization index 
+/ 
+
+create view user_avail_trace_files 
+as 
+select * from avail_trace_files where username = user; 
+
+grant select on user_avail_trace_files to public; 
+
+create global temporary table trace_file_text 
+( id number primary key, 
+text varchar(4000) 
+) 
+/ 
+grant select on trace_file_text to public 
+/ 
+
+create or replace directory UDUMP_DIR 
+as '/export/home/ora817/admin/ora817dev/udump' 
+/ 
+note -- that is MY user dump dest, use the right one for you of course 
+
+create or replace trigger capture_trace_files 
+before logoff on database 
+begin 
+for x in ( select * from session_trace_file_name ) 
+loop 
+if ( dbms_lob.fileexists( bfilename('UDUMP_DIR', x.filename ) ) = 1 ) 
+then 
+insert into avail_trace_files (filename) values (x.filename); 
+end if; 
+end loop; 
+end; 
+/ 
+
+create or replace procedure trace_file_contents( p_filename in varchar2 ) 
+as 
+l_bfile bfile := bfilename('UDUMP_DIR',p_filename); 
+l_last number := 1; 
+l_current number; 
+begin 
+select rownum into l_current 
+from user_avail_trace_files 
+where filename = p_filename; 
+
+delete from trace_file_text; 
+dbms_lob.fileopen( l_bfile ); 
+loop 
+l_current := dbms_lob.instr( l_bfile, '0A', l_last, 1 ); 
+exit when (nvl(l_current,0) = 0); 
+insert into trace_file_text (id,text) 
+values (l_last, utl_raw.cast_to_varchar2( 
+dbms_lob.substr( l_bfile, l_current-l_last+1, 
+l_last ) ) 
+); 
+l_last := l_current+1; 
+end loop; 
+dbms_lob.fileclose(l_bfile); 
+end; 
+/ 
+grant execute on trace_file_contents to public 
+/ 
+
+
+
+Now, a developer can use a script like this (i called it tklast) 
+
+column filename new_val f 
+select filename 
+from trace_files.user_avail_trace_files 
+where dt = ( select max(dt) 
+from trace_files.user_avail_trace_files 
+) 
+/ 
+
+exec trace_files.trace_file_contents('&f') 
+set termout off 
+set heading off 
+set feedback off 
+set embedded on 
+set linesize 4000 
+set trimspool on 
+set verify off 
+spool &f 
+select text from trace_files.trace_file_text order by id; 
+spool off 
+set verify on 
+set feedback on 
+set heading on 
+set termout on 
+host tkprof &f tk.prf 
+edit tk.prf 
+
+
+
+and have a session like this: 
+
+
+SQL> alter session set sql_trace=true; 
+SQL> run some sql 
+SQL> connect user/password (to log out and log in) 
+SQL> @tklast 
+
+
+there you go -- that'll trace THEIR last session. You can modify tklast to suite your needs but thats the idea. 
+
+
+Now access to the servers file system is moot, you do not need it 
+
+TKPROF for the masses! 

@@ -1,0 +1,1463 @@
+Managing Optimizer Statistics
+This chapter explains why statistics are important for the query optimizer and how to gather and use optimizer statistics with the DBMS_STATS package.
+
+The chapter contains the following sections:
+
+Overview of Optimizer Statistics
+
+Managing Automatic Optimizer Statistics Collection
+
+Gathering Statistics Manually
+
+System Statistics
+
+Managing Statistics
+
+Estimating Statistics with Dynamic Sampling
+
+Viewing Statistics
+
+13.1 Overview of Optimizer Statistics
+Optimizer statistics describe details about the database and the objects in the database. The query optimizer uses these statistics to choose the best execution plan for each SQL statement.
+
+Optimizer statistics include the following:
+
+Table statistics
+
+Number of rows
+
+Number of blocks
+
+Average row length
+
+Column statistics
+
+Number of distinct values (NDV) in column
+
+Number of nulls in column
+
+Data distribution (histogram)
+
+Extended statistics
+
+Index statistics
+
+Number of leaf blocks
+
+Levels
+
+Clustering factor
+
+System statistics
+
+I/O performance and utilization
+
+CPU performance and utilization
+
+Note:
+
+Do not confuse optimizer statistics with performance statistics visible through V$ views.
+The database stores optimizer statistics in the data dictionary. You can access these statistics using data dictionary views.
+
+Because objects in a database can change constantly, you must update statistics regularly so that they accurately describe these objects. Oracle Database automatically maintains optimizer statistics.
+
+You can maintain optimizer statistics manually using the DBMS_STATS package. For example, you can save and restore copies of statistics. 
+You can export statistics from one database and import those statistics into another database. For example, you can export statistics from a production system to a test system. 
+You can also lock statistics to prevent them from changing.
+
+See Also:
+
+"Viewing Statistics"
+
+"Managing Automatic Optimizer Statistics Collection" or "Gathering Statistics Manually"
+
+"Locking Statistics for a Table or Schema"
+
+13.2 Managing Automatic Optimizer Statistics Collection
+Oracle recommends that you enable automatic optimizer statistics collection. In this case, the database automatically collects optimizer statistics for tables with absent or stale statistics. 
+If fresh statistics are required for a table, then the database collects them both for the table and associated indexes.
+
+Automatic collection eliminates many manual tasks associated with managing the optimizer. 
+It also significantly reduces the risks of generating poor execution plans because of missing or stale statistics.
+
+Automatic optimizer statistics collection calls the DBMS_STATS.GATHER_DATABASE_STATS_JOB_PROC procedure. This internal procedure operates similarly to the DBMS_STATS.GATHER_DATABASE_STATS procedure using the GATHER AUTO option. 
+The main difference is that GATHER_DATABASE_STATS_JOB_PROC prioritizes database objects that require statistics, so that objects that most need updated statistics are processed first, before the maintenance window closes.
+
+This section contains the following topics:
+
+Enabling and Disabling Automatic Optimizer Statistics Collection
+
+Considerations When Gathering Statistics
+
+13.2.1 Enabling and Disabling Automatic Optimizer Statistics Collection
+The automated maintenance tasks infrastructure (known as AutoTask) schedules tasks to run automatically in Oracle Scheduler windows known as maintenance windows. By default, one window is scheduled for each day of the week. 
+Automatic optimizer statistics collection runs as part of AutoTask and is enabled by default to run in all predefined maintenance windows.
+
+If for some reason automatic optimizer statistics collection is disabled, then you can enable it using the ENABLE procedure in the DBMS_AUTO_TASK_ADMIN package:
+
+BEGIN
+  DBMS_AUTO_TASK_ADMIN.ENABLE(
+    client_name => 'auto optimizer stats collection', 
+    operation => NULL, 
+    window_name => NULL);
+END;
+/
+When you want to disable automatic optimizer statistics collection, you can disable it using the DISABLE procedure in the DBMS_AUTO_TASK_ADMIN package:
+
+BEGIN
+  DBMS_AUTO_TASK_ADMIN.DISABLE(
+    client_name => 'auto optimizer stats collection', 
+    operation => NULL, 
+    window_name => NULL);
+END;
+/
+Automatic optimizer statistics collection relies on the modification monitoring feature, described in "Determining Stale Statistics". 
+If this feature is disabled, then the automatic optimizer statistics collection job cannot detect stale statistics. This feature is enabled when the STATISTICS_LEVEL parameter is set to TYPICAL or ALL. 
+TYPICAL is the default value.
+
+See Also:
+
+Oracle Database Administrator's Guide for information about the AutoTask infrastructure
+
+Oracle Database PL/SQL Packages and Types Reference for information about the DBMS_AUTO_TASK_ADMIN package
+
+13.2.2 Considerations When Gathering Statistics
+This section discusses:
+
+When to Use Manual Statistics
+
+Restoring Previous Versions of Statistics
+
+Locking Statistics
+
+13.2.2.1 When to Use Manual Statistics
+Automatic optimizer statistics collection should be sufficient for most database objects being modified at a moderate speed. However, in some cases the collection may not be adequate. 
+Because the collection runs during maintenance windows, the statistics on tables that are significantly modified throughout the day may become stale. There are typically two types of such objects:
+
+Volatile tables that are deleted or truncated and rebuilt during the course of the day.
+
+Objects that are the target of large bulk loads which add 10% or more to the object's total size.
+
+For highly volatile tables, there are two approaches:
+
+The statistics on these tables can be null. When Oracle Database encounters a table with no statistics, the database dynamically gathers the necessary statistics as part of query optimization. 
+The OPTIMIZER_DYNAMIC_SAMPLING parameter controls this dynamic sampling feature. Set this parameter to a value of 2 (default) or higher. You can set the statistics to null by deleting and then locking the statistics:
+
+BEGIN
+  DBMS_STATS.DELETE_TABLE_STATS('OE','ORDERS');
+  DBMS_STATS.LOCK_TABLE_STATS('OE','ORDERS');
+END;
+/
+See "Dynamic Sampling Levels" for information about the sampling levels that you can set.
+
+The statistics on these tables can be set to values that represent the typical state of the table. You should gather statistics on the table when the tables has a representative number of rows, and then lock the statistics.
+
+This may be more effective than automatic optimizer statistic collection, because any statistics generated on the table during the overnight batch window may not be the most appropriate statistics for the daytime workload.
+
+For tables that are bulk-loaded, run the statistics-gathering procedures on the tables immediately following the load process. Preferably, run the procedures as part of the same script or job that is running the bulk load.
+
+The database can collect statistics for external tables in the following ways:
+
+GATHER_TABLE_STATS procedure
+
+GATHER_SCHEMA_STATS procedure
+
+GATHER_DATABASE_STATS procedure
+
+Automatic optimizer statistics collection processing
+
+If you are using GATHER_TABLE_STATS, then explicitly set the ESTIMATE_PERCENT option to NULL, 100, or AUTO_SAMPLE because sampling on external tables is not supported. 
+Because the database does not permit data manipulation against external tables, the database never marks statistics on external tables as stale. 
+If new statistics are required for an external table, for example, because the underlying data files change, then drop the existing statistics and regather them.
+
+If the monitoring feature is disabled by setting STATISTICS_LEVEL to BASIC, then automatic optimizer statistics collection cannot detect stale statistics. In this case, you must manually gather statistics. 
+See "Determining Stale Statistics" to learn about the automatic monitoring facility.
+
+System statistics are another type of statistic that you must gather manually. The database does not gather these statistics automatically. See "System Statistics" for more information.
+
+You must manually collect statistics on fixed objects, such as the dynamic performance tables, using GATHER_FIXED_OBJECTS_STATS procedure. Fixed objects record current database activity. 
+You should gather statistics when the database has representative activity.
+
+13.2.2.2 Restoring Previous Versions of Statistics
+Whenever statistics in dictionary are modified, old versions of statistics are saved automatically for future restoring. You can restore statistics using RESTORE procedures of DBMS_STATS package. 
+See "Restoring Previous Versions of Statistics" for more information.
+
+13.2.2.3 Locking Statistics
+In some cases, you may want to prevent any new statistics from being gathered on a table or schema by the DBMS_STATS_JOB process, such as highly volatile tables discussed in "When to Use Manual Statistics". 
+In those cases, the DBMS_STATS package provides procedures for locking the statistics for a table or schema. See "Locking Statistics for a Table or Schema" for more information.
+
+13.3 Gathering Statistics Manually
+If you do not use automatic optimizer statistics collection, then you must run DBMS_STATS to manually collect statistics in all schemas, including system schemas. 
+If the database content changes regularly, then you must also gather statistics regularly to ensure that the statistics accurately represent characteristics of database objects.
+
+This section contains the following topics:
+
+Gathering Statistics with DBMS_STATS Procedures
+
+Setting Preferences for Manual Statistics Gathering
+
+When to Gather Statistics
+
+Comparing Statistics with DBMS_STATS Functions
+
+13.3.1 Gathering Statistics with DBMS_STATS Procedures
+You can gather statistics with the DBMS_STATS package. This PL/SQL package is also used to modify, view, export, import, and delete statistics.
+
+Note:
+
+Do not use the COMPUTE and ESTIMATE clauses of ANALYZE statement to collect optimizer statistics. These clauses are supported solely for backward compatibility and may be removed in a future release. 
+The DBMS_STATS package collects a broader, more accurate set of statistics, and gathers statistics more efficiently.
+You may continue to use ANALYZE statement for other purposes not related to optimizer statistics collection:
+
+To use the VALIDATE or LIST CHAINED ROWS clauses
+
+To collect information on free list blocks
+
+The DBMS_STATS package can gather statistics on table and indexes and individual columns and partitions of tables. It does not gather cluster statistics. 
+However, you can use DBMS_STATS to gather statistics on individual tables instead of the whole cluster.
+
+If you generate statistics for a table, column, or index, and if the data dictionary contains statistics for the object, then Oracle Database updates the existing statistics. 
+The older statistics are saved. You can restore them later if necessary. See "Restoring Previous Versions of Statistics".
+
+When gathering statistics on system schemas, you can use the procedure DBMS_STATS.GATHER_DICTIONARY_STATS. 
+This procedure gathers statistics for all system schemas, including SYS and SYSTEM, and other optional schemas, such as CTXSYS and DRSYS.
+
+When statistics are updated for a database object, Oracle Database invalidates any currently parsed SQL statements that access the object. 
+The next time such a statement executes, the statement is re-parsed and the optimizer automatically chooses a new execution plan based on the new statistics. 
+Distributed statements accessing objects with new statistics on remote databases are not invalidated. The new statistics take effect the next time the SQL statement is parsed.
+
+Table 13-1 lists the procedures in the DBMS_STATS package for gathering statistics on database objects.
+
+Table 13-1 Statistics Gathering Procedures in the DBMS_STATS Package
+
+Procedure	Collects
+GATHER_INDEX_STATS
+
+Index statistics
+
+GATHER_TABLE_STATS
+
+Table, column, and index statistics
+
+GATHER_SCHEMA_STATS
+
+Statistics for all objects in a schema
+
+GATHER_DICTIONARY_STATS
+
+Statistics for all dictionary objects
+
+GATHER_DATABASE_STATS
+
+Statistics for all objects in a database
+
+
+See Also:
+
+Oracle Database PL/SQL Packages and Types Reference for syntax and examples of all DBMS_STATS procedures
+When using any of these procedures, there are several important considerations for statistics gathering:
+
+Statistics Gathering Using Sampling
+
+Parallel Statistics Gathering
+
+Statistics on Partitioned Objects
+
+Column Statistics and Histograms
+
+Extended Statistics
+
+Determining Stale Statistics
+
+User-Defined Statistics
+
+13.3.1.1 Statistics Gathering Using Sampling
+The statistics-gathering operations can utilize sampling to estimate statistics. Sampling is an important technique for gathering statistics. 
+Gathering statistics without sampling requires full table scans and sorts of entire tables. Sampling minimizes the resources necessary to gather statistics.
+
+Sampling is specified using the ESTIMATE_PERCENT argument to the DBMS_STATS procedures. 
+While you can set the sampling percentage to any value, Oracle recommends setting the ESTIMATE_PERCENT parameter of the DBMS_STATS gathering procedures to DBMS_STATS.AUTO_SAMPLE_SIZE to maximize performance gains 
+while achieving necessary statistical accuracy. AUTO_SAMPLE_SIZE lets Oracle Database determine the best sample size necessary for good statistics, based on the statistical property of the object. 
+Because each type of statistics has different requirements, the size of the actual sample taken may not be the same across the table, columns, or indexes. 
+For example, to collect table and column statistics for all tables in the OE schema with auto-sampling, you could use:
+
+EXECUTE DBMS_STATS.GATHER_SCHEMA_STATS('OE',DBMS_STATS.AUTO_SAMPLE_SIZE);
+When the ESTIMATE_PERCENT parameter is manually specified, the DBMS_STATS gathering procedures may automatically increase the sampling percentage if the specified percentage did not produce a large enough sample. 
+This ensures the stability of the estimated values by reducing fluctuations.
+
+13.3.1.2 Parallel Statistics Gathering
+The statistics-gathering operations can run either serially or in parallel. You can specify the degree of parallelism with the DEGREE argument to the DBMS_STATS gathering procedures. 
+The database can use parallel statistics gathering in conjunction with sampling. Oracle recommends setting the DEGREE parameter to DBMS_STATS.AUTO_DEGREE. 
+This setting allows Oracle Database to choose an appropriate degree of parallelism based on the size of the object and the settings for the parallel-related init.ora parameters.
+
+Note that certain types of index statistics are not gathered in parallel, including cluster indexes, domain indexes, and bitmap join indexes.
+
+13.3.1.3 Statistics on Partitioned Objects
+For partitioned tables and indexes, DBMS_STATS can gather separate statistics for each partition and global statistics for the entire table or index. Similarly, for composite partitioning, 
+DBMS_STATS can gather separate statistics for subpartitions, partitions, and the entire table or index.
+
+13.3.1.3.1 Granularity of Statistics Gathering
+Depending on the SQL statement undergoing optimization, the optimizer can choose to use partition, subpartition, or global statistics. 
+Both global and partition statistics are important for most applications.
+
+You determine the type of partitioning statistics to be gathered using the GRANULARITY argument to the DBMS_STATS procedures. 
+Oracle recommends setting GRANULARITY to AUTO to gather subpartition, partition, or global statistics depending on the partition type. 
+The ALL setting always gathers all types of statistics.
+
+See Also:
+
+Oracle Database PL/SQL Packages and Types Reference to learn more about DBMS_STATS
+13.3.1.3.2 Incremental Statistics Gathering
+With partitioned tables, you typically add new data into a new partition. As you add new partitions and load data, you must gather statistics on the new partition and keep global statistics up to date.
+
+You can use INCREMENTAL to decide whether the database performs a full table scan to maintain the global statistics of a partitioned table. You can use the DBMS_STATS.SET_TABLE_PREF procedure to change the INCREMENTAL value.
+
+When INCREMENTAL=false (default), the database always uses a full table scan to maintain global statistics. This is a highly resource-intensive and time-consuming operation for large tables. 
+An alternative to mandatory full table scans is gathering incremental statistics. When the following criteria are met, the database updates global statistics incrementally by scanning only the partitions that have changed:
+
+The INCREMENTAL value for the partitioned table is true.
+
+The PUBLISH value for the partitioned table is true.
+
+The user specifies AUTO_SAMPLE_SIZE for ESTIMATE_PERCENT and AUTO for GRANULARITY when gathering statistics on the table.
+
+Gathering table statistics incrementally has the following consequences:
+
+The SYSAUX tablespace consumes additional space to maintain global statistics for partitioned tables.
+
+If a table uses composite partitioning, then the database only gathers statistics for modified subpartitions. The database does not gather statistics at the subpartition level for unmodified subpartitions. 
+In this way, the database reduces work by skipping unmodified partitions.
+
+If a table uses incremental statistics, and if this table has a locally partitioned index, then the database gathers index statistics at the global level and for modified (not unmodified) index partitions. 
+The database does not generate global index statistics from the partition-level index statistics. Rather, the database gathers global index statistics by performing a full index scan.
+
+See Also:
+
+Oracle Database PL/SQL Packages and Types Reference to learn more about DBMS_STATS
+13.3.1.4 Column Statistics and Histograms
+When gathering statistics on a table, DBMS_STATS gathers information about the data distribution of the columns within the table. 
+The most basic information about the data distribution is the maximum value and minimum value of the column. 
+However, this level of statistics may be insufficient for the optimizer's needs if the data within the column is skewed. 
+For skewed data distributions, histograms can also be created as part of the column statistics to describe the data distribution of a given column. Histograms are described in more details in "Viewing Histograms".
+
+Histograms are specified using the METHOD_OPT argument of the DBMS_STATS gathering procedures. 
+Oracle recommends setting the METHOD_OPT to FOR ALL COLUMNS SIZE AUTO. With this setting, Oracle Database automatically determines which columns require histograms and the number of buckets (size) of each histogram. 
+You can also manually specify which columns should have histograms and the size of each histogram.
+
+Note:
+
+If you need to remove all rows from a table when using DBMS_STATS, use TRUNCATE instead of dropping and re-creating the same table. When you drop a table, 
+workload information used by the auto-histogram gathering feature and saved statistics history used by the RESTORE_*_STATS procedures is lost. Without this data, these features do not function properly.
+13.3.1.5 Extended Statistics
+Oracle Database can also gather statistics on a group of columns within a table or an expression on a column. For more details on these, refer to:
+
+MultiColumn Statistics
+
+Expression Statistics
+
+13.3.1.6 MultiColumn Statistics
+When the WHERE clause of a query specifies multiple columns from a single table (multiple single column predicates), the relationship between the columns can strongly affect the combined selectivity for the column group.
+
+For example, consider the customers table in the SH schema. The columns cust_state_province and country_id are related, with cust_state_province determining the country_id for each customer. 
+Suppose you query the customers table where the cust_state_province is California:
+
+SELECT COUNT(*)
+FROM   sh.customers 
+WHERE  cust_state_province = 'CA';
+The preceding query returns the following value:
+
+COUNT(*)
+----------
+    3341
+Adding an extra predicate on the country_id column does not change the result when the country_id is 52790 (United States of America). Assume that you run the following query:
+
+SELECT COUNT(*) 
+FROM   customers 
+WHERE  cust_state_province = 'CA' 
+AND    country_id=52790;
+The preceding query returns the same value as the previous query:
+
+COUNT(*)
+----------
+    3341
+Assume that the country_id has a different value, such as 52775 (Brazil), as in the following query:
+
+SELECT COUNT(*) 
+FROM   customers 
+WHERE  cust_state_province = 'CA' 
+AND    country_id=52775;
+In this case the returned value is as follows:
+
+COUNT(*)
+----------
+       0
+With individual column statistics, the optimizer has no way of knowing that the cust_state_province and the country_id columns are related. By gathering statistics on these columns as a group (column group), 
+the optimizer has a more accurate selectivity value for the group, instead of having to generate the value based on the individual column statistics.
+
+You can create column groups manually by using the DBMS_STATS package. You can use this package to create a column group, get the name of a column group, or delete a column group from a table.
+
+13.3.1.6.1 Creating a Column Group
+Use the create_extended_statistics function to create a column group. The create_extended_statistics function returns the system-generated name of the newly created column group. 
+Table 13-2 lists the input parameters for this function.
+
+Table 13-2 Parameters for the create_extended_statistics Function
+
+Parameter	Description
+owner
+
+Schema owner. NULL indicates current schema.
+
+tab_name
+
+Name of the table to which the column group is added.
+
+extension
+
+Columns in the column group.
+
+
+For example, to add a column group consisting of the cust_state_province and country_id columns to the customers table in SH schema, run the following PL/SQL block:
+
+DECLARE
+  cg_name varchar2(30);
+BEGIN
+  cg_name := dbms_stats.create_extended_stats(null,'customers',  
+             '(cust_state_province,country_id)');
+END;
+/
+13.3.1.6.2 Getting a Column Group
+Use the show_extended_stats_name function to obtain the name of the column group for a given set of columns. Table 13-3 lists the input parameters for this function.
+
+Table 13-3 Parameters for the show_extended_stats_name Function
+
+Parameter	Description
+owner
+
+Schema owner. NULL indicates current schema.
+
+tab_name
+
+Name of the table to which the column group belongs.
+
+extension
+
+Name of the column group.
+
+
+For example, use the following query to obtain the column group name for a set of columns on the customers table:
+
+select sys.dbms_stats.show_extended_stats_name('sh','customers',
+       '(cust_state_province,country_id)') col_group_name 
+from dual;
+The output is similar to the following:
+
+COL_GROUP_NAME
+----------------
+SYS_STU#S#WF25Z#QAHIHE#MOFFMM
+13.3.1.6.3 Dropping a Column Group
+Use the drop_extended_stats function to delete a column group from a table. Table 13-4 lists the input parameters for this function:
+
+Table 13-4 Parameters for the drop_extended_stats Function
+
+Parameter	Description
+owner
+
+Schema owner. NULL indicates current schema.
+
+tab_name
+
+Name of the table to which the column group belongs.
+
+extension
+
+Name of the column group to be deleted.
+
+
+For example, the following statement deletes a column group from the customers table:
+
+exec dbms_stats.drop_extended_stats('sh','customers','(cust_state_province,country_id)');
+13.3.1.6.4 Monitoring Column Groups
+Use the dictionary table user_stat_extensions to obtain information about MultiColumn statistics:
+
+Select extension_name, extension 
+from user_stat_extensions 
+where table_name='CUSTOMERS';
+EXTENSION_NAME                     EXTENSION
+-------------------------------------------------------------------------
+SYS_STU#S#WF25Z#QAHIHE#MOFFMM_     ("CUST_STATE_PROVINCE","COUNTRY_ID")
+Use the following query to find the number of distinct values and find whether a histogram has been created for a column group:
+
+select e.extension col_group, t.num_distinct, t.histogram
+  2  from user_stat_extensions e, user_tab_col_statistics t
+  3  where e.extension_name=t.column_name
+  4  and e.table_name=t.table_name
+  5  and t.table_name='CUSTOMERS';
+COL_GROUP                             NUM_DISTINCT        HISTOGRAM
+-------------------------------------------------------------------------------
+("COUNTRY_ID","CUST_STATE_PROVINCE")  145                 FREQUENCY
+13.3.1.6.5 Gathering Statistics on Column Groups
+The METHOD_OPT argument of the DBMS_STATS package enables you to gather statistics on column groups. 
+If you set the value of this argument to FOR ALL COLUMNS SIZE AUTO, then the optimizer gathers statistics on all existing column groups. To collect statistics on a new column group, specify the group using FOR COLUMNS. 
+The column group is automatically created as part of statistic gathering.
+
+For example, the following statement creates a new column group for the customers table on the columns cust_state_province, country_id and gathers statistics (including histograms) on the entire table and the new column group:
+
+EXEC DBMS_STATS.GATHER_TABLE_STATS('SH','CUSTOMERS',METHOD_OPT =>
+'FOR ALL COLUMNS SIZE SKEWONLY 
+FOR COLUMNS (CUST_STATE_PROVINCE,COUNTRY_ID) SIZE SKEWONLY');
+Note:
+
+The optimizer only uses MultiColumn statistics with equality predicates.
+13.3.1.7 Expression Statistics
+When a function is applied to a column in the where clause of a query (function(col1)=constant), the optimizer has no way of knowing how that function affects the selectivity of the column. 
+By gathering expression statistics on the expression function(col1), the optimizer obtains a more accurate selectivity value.
+
+An example of such a function is:
+
+SELECT COUNT(*)
+FROM   CUSTOMERS
+WHERE  LOWER(CUST_STATE_PROVINCE)='CA';
+13.3.1.7.1 Creating Expression Statistics
+You can create statistics on an expression as part of the gather_table_stats procedure:
+
+exec dbms_stats.gather_table_stats('sh','customers', method_opt =>
+'for all columns size skewonly 
+ for columns (lower(cust_state_province)) size skewonly');
+You can also use the create_extended_statistics function to accomplish this:
+
+select 
+dbms_stats.create_extended_stats(null,'customers','(lower(cust_state_province))') 
+from dual;
+13.3.1.7.2 Monitoring Expression Statistics
+Use the dictionary table user_stat_extensions to obtain information about expression statistics:
+
+Select extension_name, extension 
+from user_stat_extensions 
+where table_name='CUSTOMERS';
+EXTENSION_NAME                    EXTENSION
+------------------------------------------------------------------------
+SYS_STUBPHJSBRKOIK9O2YV3W8HOUE    (LOWER("CUST_STATE_PROVINCE"))
+Use the following query to find the number of distinct values and find whether a histogram has been created:
+
+select e.extension col_group, t.num_distinct, t.histogram
+  2  from user_stat_extensions e, user_tab_col_statistics t
+  3  where e.extension_name=t.column_name
+  4  and t.table_name='CUSTOMERS';
+COL_GROUP                        NUM_DISTINCT          HISTOGRAM
+------------------------------------------------------------------------
+(LOWER("CUST_STATE_PROVINCE"))   145                   FREQUENCY
+13.3.1.7.3 Dropping Expression Statistics
+Use the drop_extended_stats function to delete expression statistics from a table:
+
+exec dbms_stats.drop_extended_stats(null,'customers','(lower(country_id))');
+13.3.1.8 Determining Stale Statistics
+You must regularly gather statistics on database objects as these database objects are modified over time. 
+To determine whether a given database object needs new database statistics, Oracle Database provides a table monitoring facility. 
+This monitoring is enabled by default when STATISTICS_LEVEL is set to TYPICAL or ALL.
+
+Monitoring tracks the approximate number of INSERTs, UPDATEs, and DELETEs for that table and whether the table has been truncated since the last time statistics were gathered. 
+You can access information about changes of tables in the USER_TAB_MODIFICATIONS view. Following a data-modification, there may be a few minutes delay while Oracle Database propagates the information to this view. 
+Use the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO procedure to immediately reflect the outstanding monitored information kept in the memory.
+
+The GATHER_DATABASE_STATS or GATHER_SCHEMA_STATS procedures gather new statistics for tables with stale statistics when the OPTIONS parameter is set to GATHER STALE or GATHER AUTO. 
+If a monitored table has been modified more than 10%, then these statistics are considered stale and gathered again.
+
+13.3.1.9 User-Defined Statistics
+You can create user-defined optimizer statistics to support user-defined indexes and functions. 
+When you associate a statistics type with a column or domain index, Oracle Database calls the statistics collection method in the statistics type whenever statistics are gathered for database objects.
+
+You should gather new column statistics on a table after creating a function-based index to allow Oracle Database to collect column statistics equivalent information for the expression. 
+You can perform this task by calling the statistics-gathering procedure with the METHOD_OPT argument set to FOR ALL HIDDEN COLUMNS.
+
+13.3.2 Setting Preferences for Manual Statistics Gathering
+You can use the DBMS_STATS.SET_*_PREFS procedures to set the default values for parameters used by the DBMS_STATS procedures that gather statistics. 
+You can set a preference for each parameter at a table, schema, database, and global level, thus providing a fine granularity of control.
+
+Note:
+
+In previous releases, you used the DBMS_STATS.SET_PARM procedure to set the default parameter values. The scope of these changes was all operations that occurred after running SET_PARM. 
+In Oracle Database 11g, SET_PARM is deprecated.
+You can use the DBMS_STATS.SET_*_PREFS procedures to change the following parameters:
+
+AUTOSTATS_TARGET (SET_GLOBAL_PREFS only)
+
+CASCADE
+
+DEGREE
+
+ESTIMATE_PERCENT
+
+GRANULARITY
+
+INCREMENTAL
+
+METHOD_OPT
+
+NO_INVALIDATE
+
+PUBLISH
+
+STALE_PERCENT
+
+Table 13-5 lists the DBMS_STATS procedures for setting preferences. Parameter values set in the DBMS_STAT.GATHER_*_STATS procedures overrule other settings. 
+If a parameter has not been set, then the database checks for a table-level preference. If no table preference exists, then the database uses the GLOBAL preference.
+
+Table 13-5 Setting Preferences for Gathering Statistics
+
+Procedure	Purpose
+SET_TABLE_PREFS
+
+Enables you to change the default values of the parameters used by the DBMS_STATS.GATHER_*_STATS procedures for the specified table only.
+
+SET_SCHEMA_PREFS
+
+Enables you to change the default values of the parameters used by the DBMS_STATS.GATHER_*_STATS procedures for all existing objects in the specified schema.
+
+This procedure calls SET_TABLE_PREFS for each of the tables in the specified schema. Because it uses SET_TABLE_PREFS, calling SET_SCHEMA_PREFS does not affect any new objects created after it has been run. 
+New objects use the GLOBAL_PREF values for all parameters.
+
+SET_DATABASE_PREFS
+
+Enables you to change the default values of the parameters used by the DBMS_STATS.GATHER_*_STATS procedures for all user-defined schemas in the database. 
+You can include system-owned schemas such as SYS and SYSTEM by setting the ADD_SYS parameter to TRUE.
+
+This procedure calls SET_TABLE_PREFS for each table in the specified schema. Because it uses SET_TABLE_PREFS, calling SET_SCHEMA_PREFS does not affect any new objects created after it has been run. 
+New objects use the GLOBAL_PREF values for all parameters.
+
+SET_GLOBAL_PREFS
+
+Enables you to change the default values of the parameters used by the DBMS_STATS.GATHER_*_STATS procedures for any object in the database that does not have an existing table preference.
+
+All parameters default to the global setting unless a table preference is set or the parameter is explicitly set in the DBMS_STATS.GATHER_*_STATS command. 
+Changes made by this procedure will affect any new objects created after it has been run. New objects use the GLOBAL_PREF values for all parameters.
+
+With GLOBAL_PREFS, you can set a default value for the parameter AUTOSTAT_TARGET. This additional parameter controls which objects the automatic statistic gathering job running in the nightly maintenance window looks after. 
+Possible values for this parameter are ALL, ORACLE, and AUTO (default).
+
+
+See Also:
+
+Oracle Database PL/SQL Packages and Types Reference for syntax and examples of all DBMS_STATS procedures
+13.3.3 When to Gather Statistics
+When gathering statistics manually, you not only need to determine how to gather statistics, but also when and how often to gather new statistics.
+
+For an application in which tables are incrementally modified, you may only need to gather new statistics every week or every month. 
+The simplest way to gather statistics in these environments is to use a script or job scheduling tool to regularly run the GATHER_SCHEMA_STATS and GATHER_DATABASE_STATS procedures. 
+The frequency of collection intervals should balance the task of providing accurate statistics for the optimizer against the processing overhead incurred by the statistics collection process.
+
+For tables that are substantially modified in batch operations, such as with bulk loads, gather statistics on these tables as part of the batch operation. 
+Call the DBMS_STATS procedure as soon as the load operation completes.
+
+Sometimes only a single partition is modified. In such cases, you can gather statistics only on the modified partitions rather than on the entire table. 
+However, gathering global statistics for the partitioned table may still be necessary.
+
+See Also:
+
+Oracle Database PL/SQL Packages and Types Reference for more information about the GATHER_SCHEMA_STATS and GATHER_DATABASE_STATS procedures in the DBMS_STATS package
+13.3.4 Comparing Statistics with DBMS_STATS Functions
+DBMS_STATS enables you to compare statistics for a table from two different sources. Table 13-6 lists the functions in the DBMS_STATS package for comparing statistics.
+
+Table 13-6 Functions That Compare Statistics in the DBMS_STATS Package
+
+Procedure	Compares
+DIFF_TABLE_STATS_IN_PENDING
+
+Pending statistics and statistics as of a timestamp or statistics from dictionary
+
+DIFF_TABLE_STATS_IN_STATTAB
+
+Statistics for a table from two different sources
+
+DIFF_TABLE_STATS_IN_HISTORY
+
+Statistics for a table from two timestamps in past and statistics as of that timestamp
+
+
+The functions in Table 13-6 also compare the statistics of dependent objects such as indexes, columns, and partitions. 
+They display statistics of the objects from both sources if the difference between those statistics exceeds a certain threshold. 
+You can specify the threshold as an argument to the function, with a default of 10%. Oracle Database uses the statistics corresponding to the first source as basis for computing the differential percentage.
+
+See Also:
+
+Oracle Database PL/SQL Packages and Types Reference for more information about the DIFF_TABLE_STATS_* functions in the DBMS_STATS package
+13.4 System Statistics
+System statistics describe the system's hardware characteristics, such as I/O and CPU performance and utilization, to the query optimizer. 
+When choosing an execution plan, the optimizer estimates the I/O and CPU resources required for each query. 
+System statistics enable the query optimizer to more accurately estimate I/O and CPU costs, enabling the query optimizer to choose a better execution plan.
+
+When Oracle Database gathers system statistics, it analyzes system activity in a specified time period (workload statistics) or simulates a workload (noworkload statistics). 
+The statistics are collected using the DBMS_STATS.GATHER_SYSTEM_STATS procedure. Oracle highly recommends that you gather system statistics.
+
+Note:
+
+You must have DBA privileges or GATHER_SYSTEM_STATISTICS role to update dictionary system statistics.
+Table 13-7 lists the optimizer system statistics gathered by the DBMS_STATS package and the options for gathering or manually setting specific system statistics.
+
+Table 13-7 Optimizer System Statistics in the DBMS_STAT Package
+
+Parameter Name	Description	Initialization	Options for Gathering or Setting Statistics	Unit
+cpuspeedNW
+
+Represents noworkload CPU speed. CPU speed is the average number of CPU cycles in each second.
+
+At system startup
+
+Set gathering_mode = NOWORKLOAD or set statistics manually.
+
+Millions/sec.
+
+ioseektim
+
+I/O seek time equals seek time + latency time + operating system overhead time.
+
+At system startup
+
+10 (default)
+
+Set gathering_mode = NOWORKLOAD or set statistics manually.
+
+ms
+
+iotfrspeed
+
+I/O transfer speed is the rate at which an Oracle database can read data in the single read request.
+
+At system startup
+
+4096 (default)
+
+Set gathering_mode = NOWORKLOAD or set statistics manually.
+
+Bytes/ms
+
+cpuspeed
+
+Represents workload CPU speed. CPU speed is the average number of CPU cycles in each second.
+
+None
+
+Set gathering_mode = NOWORKLOAD, INTERVAL, or START|STOP, or set statistics manually.
+
+Millions/sec.
+
+maxthr
+
+Maximum I/O throughput is the maximum throughput that the I/O subsystem can deliver.
+
+None
+
+Set gathering_mode = NOWORKLOAD, INTERVAL, or START|STOP, or set statistics manually.
+
+Bytes/sec.
+
+slavethr
+
+Slave I/O throughput is the average parallel slave I/O throughput.
+
+None
+
+Set gathering_mode = INTERVAL or START|STOP, or set statistics manually.
+
+Bytes/sec.
+
+sreadtim
+
+Single block read time is the average time to read a single block randomly.
+
+None
+
+Set gathering_mode = INTERVAL or START|STOP, or set statistics manually.
+
+ms
+
+mreadtim
+
+Multiblock read is the average time to read a multiblock sequentially.
+
+None
+
+Set gathering_mode = INTERVAL or START|STOP, or set statistics manually.
+
+ms
+
+mbrc
+
+Multiblock count is the average multiblock read count sequentially.
+
+None
+
+Set gathering_mode = INTERVAL or START|STOP, or set statistics manually.
+
+blocks
+
+
+Unlike table, index, or column statistics, Oracle Database does not invalidate parsed SQL statements when system statistics are updated. All new SQL statements are parsed using new statistics.
+
+Oracle Database offers two options for gathering system statistics:
+
+Workload Statistics
+
+Noworkload Statistics
+
+These options better facilitate the gathering process to the physical database and workload: when workload system statistics are gathered, noworkload system statistics are ignored. 
+Noworkload system statistics are initialized to default values at the first database startup.
+
+See Also:
+
+Oracle Database PL/SQL Packages and Types Reference for detailed information on the procedures in the DBMS_STATS package for implementing system statistics
+13.4.1 Workload Statistics
+Workload statistics include the following:
+
+Single and multiblock read times
+
+mbrc
+
+CPU speed (cpuspeed)
+
+Maximum system throughput
+
+Average slave throughput
+
+single and multiblock read times, mbrc, CPU speed (cpuspeed), maximum system throughput, and average slave throughput. 
+The database computes sreadtim, mreadtim, and mbrc by comparing the number of physical sequential and random reads between two points in time from the beginning to the end of a workload. 
+The database implements these values through counters that change when the buffer cache completes synchronous read requests.
+
+Because the counters are in the buffer cache, they include not only I/O delays, but also waits related to latch contention and task switching. 
+Workload statistics thus depend on the activity the system had during the workload window. 
+If system is I/O bound (both latch contention and I/O throughput), then the statistics reflect this situation and therefore promotes a less I/O-intensive plan after the database uses the statistics. 
+Furthermore, workload statistics gathering does not generate additional overhead.
+
+13.4.1.1 Gathering Workload Statistics
+To gather workload statistics, perform either of the following tasks:
+
+Run the DBMS_STATS.GATHER_SYSTEM_STATS('start') procedure at the beginning of the workload window, then the DBMS_STATS.GATHER_SYSTEM_STATS('stop') procedure at the end of the workload window.
+
+Run DBMS_STATS.GATHER_SYSTEM_STATS('interval', interval=>N) where N is the number of minutes when statistics gathering is stopped automatically.
+
+To delete system statistics, run dbms_stats.delete_system_stats(). Workload statistics are deleted and reset to the default noworkload statistics.
+
+13.4.1.2 Multiblock Read Count
+If you gather workload statistics, then the mbrc value gathered as part of the workload statistics is used to estimate the cost of a full table scan. 
+However, during the gathering process of workload statistics, Oracle Database may not gather the mbrc and mreadtim values if no table scans are performed during serial workloads, as is often the case with OLTP systems. 
+However, full table scans occur frequently on DSS systems but may run parallel and bypass the buffer cache. 
+In such cases, Oracle Database still gathers the sreadtim value because the database performs index lookup using the buffer cache.
+
+If Oracle Database cannot gather or validate gathered mbrc or mreadtim values, but has gathered sreadtim and cpuspeed values, then the database uses only the sreadtim and cpuspeed values for costing. 
+In this case, the optimizer uses the value of the initialization parameter DB_FILE_MULTIBLOCK_READ_COUNT to cost a full table scan. 
+However, if DB_FILE_MULTIBLOCK_READ_COUNT is not set or is set to 0 (zero), then the optimizer uses a value of 8 for costing.
+
+13.4.2 Noworkload Statistics
+Noworkload statistics consist of I/O transfer speed, I/O seek time, and CPU speed (cpuspeednw). The major difference between workload statistics and noworkload statistics lies in the gathering method.
+
+Noworkload statistics gather data by submitting random reads against all data files, while workload statistics uses counters updated when database activity occurs. 
+ioseektim represents the time it takes to position the disk head to read data. Its value usually varies from 5 ms to 15 ms, depending on disk rotation speed and the disk or RAID specification. 
+The I/O transfer speed represents the speed at which one operating system process can read data from the I/O subsystem. Its value varies greatly, from a few MBs per second to hundreds of MBs per second. 
+Oracle Database uses relatively conservative default settings for I/O transfer speed.
+
+In Oracle Database 10g, Oracle Database uses noworkload statistics and the CPU cost model by default. The values of noworkload statistics are initialized to defaults at the first instance startup:
+
+ioseektim = 10ms
+iotrfspeed = 4096 bytes/ms
+cpuspeednw = gathered value, varies based on system
+If workload statistics are gathered, then Oracle Database ignores noworkload statistics and uses workload statistics instead.
+
+13.4.2.1 Gathering Noworkload Statistics
+To gather noworkload statistics, run DBMS_STATS.GATHER_SYSTEM_STATS() with no arguments. There is an overhead on the I/O system during the gathering process of noworkload statistics. 
+The gathering process may take from a few seconds to several minutes, depending on I/O performance and database size.
+
+The information is analyzed and verified for consistency. In some cases, the value of noworkload statistics may remain its default value. 
+In such cases, repeat the statistics gathering process or set the value manually to values that the I/O system has according to its specifications by using the DBMS_STATS.SET_SYSTEM_STATS procedure.
+
+13.5 Managing Statistics
+This section includes the following topics:
+
+Pending Statistics
+
+Restoring Previous Versions of Statistics
+
+Exporting and Importing Statistics
+
+Restoring Statistics Versus Importing or Exporting Statistics
+
+Locking Statistics for a Table or Schema
+
+Setting Statistics
+
+Handling Missing Statistics
+
+13.5.1 Pending Statistics
+Starting with Oracle Database 11g Release 2 (11.2), you have the following options when gathering statistics:
+
+Publish the statistics automatically at the end of the gather operation (default behavior)
+
+Save the new statistics saved as pending
+
+Saving the new statistics as pending allows you to validate the new statistics and publish them only if they are satisfactory.
+
+To check whether the statistics will be automatically published as soon as they are gathered, use the DBMS_STATS package as follows:
+
+SELECT DBMS_STATS.GET_PREFS('PUBLISH') PUBLISH FROM DUAL;
+The preceding query returns either TRUE or FALSE. TRUE indicates that the statistics will be published as and when they are gathered, while FALSE indicates that the statistics will be kept pending.
+
+Note:
+
+The database stores published statistics in data dictionary views such as USER_TAB_STATISTICS and USER_IND_STATISTICS. The database stores pending statistics in views such as USER_TAB_PENDING_STATS and USER_IND_PENDING_STATS.
+You can change the PUBLISH setting at either the schema or the table level. For example, to change the PUBLISH setting for the customers table in the SH schema, execute the statement:
+
+Exec dbms_stats.set_table_prefs('SH', 'CUSTOMERS', 'PUBLISH', 'false');
+Subsequently, when you gather statistics on the customers table, the statistics will not be automatically published when the gather job completes. 
+Instead, the database stores the newly gathered statistics in the USER_TAB_PENDING_STATS table.
+
+By default, the optimizer uses the published statistics stored in the data dictionary views. 
+If you want the optimizer to use the newly collected pending statistics, then set the initialization parameter OPTIMIZER_USE_PENDING_STATISTICS to TRUE (the default value is FALSE), and run a workload against the table or schema:
+
+alter session set optimizer_use_pending_statistics = TRUE;
+The optimizer will use the pending statistics instead of the published statistics when compiling SQL statements. If the pending statistics are valid, then you can make them public by executing the following statement:
+
+Exec dbms_stats.publish_pending_stats(null, null);
+You can also publish the pending statistics for a specific database object. For example, by using the following statement:
+
+Exec dbms_stats.publish_pending_stats('SH','CUSTOMERS');
+If you do not want to publish the pending statistics, delete them by executing the following statement:
+
+Exec dbms_stats.delete_pending_stats('SH','CUSTOMERS');
+You can export pending statistics using dbms_stats.export_pending_stats function. Exporting pending statistics to a test system enables you to run a full workload against the new statistics.
+
+13.5.2 Restoring Previous Versions of Statistics
+Whenever statistics in dictionary are modified, old versions of statistics are saved automatically for future restoration. You can restore statistics using RESTORE procedures of DBMS_STATS package. 
+These procedures use a time stamp as an argument and restore statistics as of that time stamp. 
+This is useful in case newly collected statistics leads to some sub-optimal execution plans and the administrator wants to revert to the previous set of statistics.
+
+There are dictionary views that display the time of statistics modifications. These views are useful in determining the time stamp to be used for statistics restoration.
+
+Catalog view DBA_OPTSTAT_OPERATIONS contain history of statistics operations performed at schema and database level using DBMS_STATS.
+
+The views *_TAB_STATS_HISTORY views (ALL, DBA, or USER) contain a history of table statistics modifications.
+
+The database purges old statistics automatically at regular intervals based on the statistics history retention setting and the time of the recent analysis of the system. 
+You can configure retention using the ALTER_STATS_HISTORY_RETENTION procedure of DBMS_STATS. The default value is 31 days, which means that you would be able to restore the optimizer statistics to any time in last 31 days.
+
+Automatic purging is enabled when STATISTICS_LEVEL parameter is set to TYPICAL or ALL. If automatic purging is disabled, then you must purge the old versions of statistics manually using the PURGE_STATS procedure.
+
+The other DBMS_STATS procedures related to restoring and purging statistics include:
+
+PURGE_STATS: This procedure can manually purge old versions beyond a time stamp.
+
+GET_STATS_HISTORY_RETENTION: This function can get the current statistics history retention value.
+
+GET_STATS_HISTORY_AVAILABILITY: This function gets the oldest time stamp where statistics history is available. Users cannot restore statistics to a time stamp older than the oldest time stamp.
+
+When restoring previous versions of statistics, the following limitations apply:
+
+RESTORE procedures cannot restore user-defined statistics.
+
+Old versions of statistics are not stored when the ANALYZE command has been used for collecting statistics.
+
+Note:
+
+To remove all rows from a table when using DBMS_STATS, use TRUNCATE instead of dropping and re-creating the same table. 
+When you drop a table, workload information used by the auto-histogram gathering feature and saved statistics history used by the RESTORE_*_STATS procedures is lost. 
+Without this data, these features do not function properly.
+13.5.3 Exporting and Importing Statistics
+You can export and import statistics from the data dictionary to user-owned tables, enabling you to create multiple versions of statistics for the same schema. 
+You can also copy statistics from one database to another database. You may want to do this to copy the statistics from a production database to a scaled-down test database.
+
+Note:
+
+Exporting and importing statistics is a distinct concept from the Data Pump Export and Import utilities.
+Before exporting statistics, you first need to create a table for holding the statistics. The procedure DBMS_STATS.CREATE_STAT_TABLE creates the statistics table. 
+After table creation, you can export statistics from the data dictionary into the statistics table using the DBMS_STATS.EXPORT_*_STATS procedures. You can then import statistics using the DBMS_STATS.IMPORT_*_STATS procedures.
+
+Note that the optimizer does not use statistics stored in a user-owned table. The only statistics used by the optimizer are the statistics stored in the data dictionary. 
+To have the optimizer use the statistics in a user-owned tables, you must import those statistics into the data dictionary using the statistics import procedures.
+
+To move statistics from one database to another, you must first export the statistics on the first database, then copy the statistics table to the second database, 
+using the Data Pump Export and Import utilities or other mechanisms, and finally import the statistics into the second database.
+
+Note:
+
+The Data Pump Export and Import utilities export and import optimizer statistics from the database along with the table. 
+When a column has system-generated names, Original Export does not export statistics with the data, but this restriction does not apply to Data Pump Export.
+13.5.4 Restoring Statistics Versus Importing or Exporting Statistics
+The functionality for restoring statistics is similar in some respects to the functionality of importing and exporting statistics. In general, use the restore capability when:
+
+You want to recover older versions of the statistics. For example, to restore the optimizer behavior to an earlier date.
+
+You want the database to manage the retention and purging of statistics histories.
+
+You should use EXPORT/IMPORT_*_STATS procedures when:
+
+You want to experiment with multiple sets of statistics and change the values back and forth.
+
+You want to move the statistics from one database to another database. For example, moving statistics from a production system to a test system.
+
+You want to preserve a known set of statistics for a longer period than the desired retention date for restoring statistics.
+
+13.5.5 Locking Statistics for a Table or Schema
+Statistics for a table or schema can be locked. After statistics are locked, you can make no modifications to the statistics until the statistics have been unlocked. 
+Locking procedures are useful in a static environment in which you want to guarantee that the statistics never change.
+
+The DBMS_STATS package provides two procedures for locking (LOCK_SCHEMA_STATS and LOCK_TABLE_STATS) and two procedures for unlocking statistics (UNLOCK_SCHEMA_STATS and UNLOCK_TABLE_STATS).
+
+13.5.6 Setting Statistics
+You can set table, column, index, and system statistics using the SET_*_STATISTICS procedures. Setting statistics in the manner is not recommended, because inaccurate or inconsistent statistics can lead to poor performance.
+
+13.5.7 Handling Missing Statistics
+When Oracle Database encounters a table with missing statistics, the database dynamically gathers the necessary statistics needed by the optimizer. 
+However, for certain types of tables, Oracle Database does not perform dynamic sampling. These include remote tables and external tables. 
+In those cases and also when dynamic sampling has been disabled, the optimizer uses default values for its statistics, shown in Table 13-8 and Table 13-9.
+
+Table 13-8 Default Table Values When Statistics Are Missing
+
+Table Statistic	Default Value Used by Optimizer
+Cardinality
+
+num_of_blocks * (block_size - cache_layer) / avg_row_len
+
+Average row length
+
+100 bytes
+
+Number of blocks
+
+100 or actual value based on the extent map
+
+Remote cardinality
+
+2000 rows
+
+Remote average row length
+
+100 bytes
+
+
+Table 13-9 Default Index Values When Statistics Are Missing
+
+Index Statistic	Default Value Used by Optimizer
+Levels
+
+1
+
+Leaf blocks
+
+25
+
+Leaf blocks/key
+
+1
+
+Data blocks/key
+
+1
+
+Distinct keys
+
+100
+
+Clustering factor
+
+800
+
+
+13.6 Estimating Statistics with Dynamic Sampling
+With dynamic sampling, the database augments statistics by issuing recursive SQL to scan a small random sample of table blocks.
+
+This section contains the following topics:
+
+Purpose of Dynamic Sampling
+
+Dynamic Sampling Concepts
+
+Setting Dynamic Sampling Levels
+
+13.6.1 Purpose of Dynamic Sampling
+Dynamic sampling augments missing or insufficient optimizer statistics. Using dynamic sampling the optimizer can improve plans by making better estimates for predicate selectivity. 
+Dynamic sampling can supplement statistics such as table block counts, applicable index block counts, table cardinalities (estimated number of rows), and relevant join column statistics.
+
+13.6.2 Dynamic Sampling Concepts
+Dynamic sampling is enabled in the database by default. You can disable the feature by setting the initialization parameter OPTIMIZER_DYNAMIC_SAMPLING=0.
+
+13.6.2.1 Dynamic Sampling Levels
+The dynamic sampling level controls both when dynamic sampling is triggered, and the size of the sample that the optimizer uses to gather the statistics. 
+You can set the dynamic sampling level using either the OPTIMIZER_DYNAMIC_SAMPLING initialization parameter or a SQL statement hint.
+
+Table 13-10 describes the levels. The default level is 2.
+
+Table 13-10 Dynamic Sampling Levels
+
+Level	When the Optimizer Uses Dynamic Sampling	Sample Size (Blocks)
+0
+
+Do not use dynamic sampling
+
+n/a
+
+1
+
+Use dynamic sampling for all tables that have not been analyzed, but only if the following criteria are met:
+
+There is at least 1 unanalyzed, nonpartitioned table in the query.
+
+This unanalyzed table has no indexes.
+
+This unanalyzed table has more blocks than the number of blocks that would be used for dynamic sampling of this table.
+
+32
+
+2
+
+Use dynamic sampling if least one table in the statement has no statistics.
+
+64
+
+3
+
+Use dynamic sampling if any of the following conditions is true:
+
+The statement meets level 2 criteria.
+
+The statement has one or more expressions used in the where clause predicates, for example, WHERE SUBSTR(CUSTLASTNAME,1,3).
+
+64
+
+4
+
+Use dynamic sampling if any of the following conditions is true:
+
+The statement meets level 3 criteria.
+
+The statement uses complex predicates (an OR or AND operator between multiple predicates on the same table).
+
+64
+
+5
+
+Use dynamic sampling if the statement meets level 4 criteria.
+
+128
+
+6
+
+Use dynamic sampling if the statement meets level 4 criteria.
+
+256
+
+7
+
+Use dynamic sampling if the statement meets level 4 criteria.
+
+512
+
+8
+
+Use dynamic sampling if the statement meets level 4 criteria.
+
+1024
+
+9
+
+Use dynamic sampling if the statement meets level 4 criteria.
+
+4086
+
+10
+
+Use dynamic sampling for all statements.
+
+All blocks
+
+
+See Also:
+
+Oracle Database SQL Language Reference to learn about setting the sampling levels with the DYNAMIC_SAMPLING hint
+13.6.2.2 When the Optimizer Uses Dynamic Sampling
+During compilation, the optimizer decides whether to use dynamic sampling based on a number of factors, including whether the statements use parallel processing or serial processing.
+
+For parallel statements, the optimizer automatically decides whether to use dynamic sampling and which level to use. The decision depends on the size of the tables and the complexity of the predicates. 
+The optimizer expects parallel statements to be resource-intensive, so the additional overhead at compile time is worth it to ensure the best plan. 
+The database ignores the OPTIMIZER_DYNAMIC_SAMPLING setting unless set to a nondefault value, in which case the value is honored.
+
+For serially processed SQL statements, the dynamic sampling level depends on the value of the OPTIMIZER_DYNAMIC_SAMPLING parameter and is not triggered automatically by the optimizer. 
+Serial statements are typically short-running, so that any overhead at compile time could have a huge impact on their performance.
+
+In both the serial and parallel cases, the database performs dynamic sampling when existing statistics are not sufficient:
+
+Missing statistics
+
+When one or more of the tables in the query do not have statistics, the optimizer gathers basic statistics on these tables before optimization. 
+In this case, the statistics are not as high-quality or as complete as the statistics gathered using the DBMS_STATS package. This tradeoff is made to limit the impact on the compile time of the statement.
+
+Collected statistics cannot be used or are likely to lead to poor estimates
+
+For example, a statement may contain a complex predicate expression, but extended statistics are not available (see "Extended Statistics"). 
+Extended statistics help the optimizer get good quality cardinality estimates for complex predicate expressions. Dynamic sampling can compensate for the lack of extended statistics.
+
+Note:
+
+The database does not use dynamic sampling for queries that contain the AS OF clause.
+If no rows have been inserted, deleted, or updated in the table being sampled, then dynamic sampling is repeatable. 
+This means that the optimizer generates the same statistics each time you run dynamic sampling against the table.
+
+See Also:
+
+Oracle Database Reference for details about the OPTIMIZER_DYNAMIC_SAMPLING initialization parameter
+13.6.3 Setting Dynamic Sampling Levels
+In general, the best practice is not to incur the cost of dynamic sampling for queries whose compile times must be as fast as possible, for example, unrepeated OLTP queries. 
+Dynamic sampling can be beneficial under any of the following conditions:
+
+You know you are getting a bad execution plan because of complex predicates.
+
+The sampling time is a small fraction of total execution time for the query.
+
+The query is executed many times.
+
+When setting the dynamic sampling level, the best practice is to use an ALTER SESSION statement to set the value for OPTIMIZER_DYNAMIC_SAMPLING parameter. 
+Determining a system-wide setting that would be beneficial to all SQL statements can be difficult.
+
+Assumptions
+
+The following tutorial assumes the following:
+
+You want correct selectivity estimates for the following query, which has WHERE clause predicates on two correlated columns:
+
+SELECT *
+  FROM   sh.customers
+  WHERE  cust_city='Los Angeles'
+  AND    cust_state_province='CA';
+The preceding query uses serial processing.
+
+The sh.customers table contains 932 rows that meet the conditions in the query.
+
+You have gathered statistics on the sh.customers table.
+
+You created an index on the cust_city and cust_state_province columns.
+
+The OPTIMIZER_DYNAMIC_SAMPLING initialization parameter is set to the default level of 2.
+
+To set the dynamic sampling level: 
+
+You explain the plan for the query as follows:
+
+EXPLAIN PLAN FOR
+  SELECT *
+  FROM   sh.customers
+  WHERE  cust_city='Los Angeles'
+  AND    cust_state_province='CA';
+The table contains 932 rows that meet the conditions, but the optimizer estimates 53, as shown in the explained plan:
+
+-------------------------------------------------------------------------------
+| Id  | Operation        | Name            | Rows  | Bytes | Cost (%CPU)| Time|
+-------------------------------------------------------------------------------
+| 0| SELECT STATEMENT            |                   | 53| 9593|53(0)|00:00:01|
+| 1|  TABLE ACCESS BY INDEX ROWID|CUSTOMERS          | 53| 9593|53(0)|00:00:01|
+|*2|   INDEX RANGE SCAN          |CUST_CITY_STATE_IND| 53| 9593| 3(0)|00:00:01|
+-------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - access("CUST_CITY"='Los Angeles' AND "CUST_STATE_PROVINCE"='CA')
+If dynamic sampling had been used, the plan output would have indicated this fact in a note. The optimizer did not use sampling because standard statistics exist and the dynamic sampling level is 2.
+
+You set dynamic sampling to level 4 in the session using the following statement:
+
+ALTER SESSION SET OPTIMIZER_DYNAMIC_SAMPLING=4;
+You explain the plan again:
+
+EXPLAIN PLAN FOR
+  SELECT *
+  FROM   sh.customers
+  WHERE  cust_city='Los Angeles'
+  AND    cust_state_province='CA';
+The new plan shows a better estimate of the number of rows:
+
+PLAN_TABLE_OUTPUT
+-------------------------------------------------------------------------------
+Plan hash value: 2008213504
+ 
+-------------------------------------------------------------------------------
+| Id  | Operation         | Name      | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |           |   932 |   271K|   406   (1)| 00:00:05 |
+|*  1 |  TABLE ACCESS FULL| CUSTOMERS |   932 |   271K|   406   (1)| 00:00:05 |
+-------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   1 - filter("CUST_CITY"='Los Angeles' AND "CUST_STATE_PROVINCE"='CA')
+ 
+Note
+-----
+   - dynamic sampling used for this statement (level=4)
+The note at the bottom of the plan indicates that the sampling level is 4. The use of the additional statistics leads the optimizer to produce a better estimate for the number of rows: 932 rather than 53.
+
+13.7 Viewing Statistics
+This section discusses:
+
+Statistics on Tables, Indexes and Columns
+
+Viewing Histograms
+
+13.7.1 Statistics on Tables, Indexes and Columns
+The database stores statistics on tables, indexes, and columns in the data dictionary. To view statistics in the data dictionary, query the appropriate data dictionary view (USER, ALL, or DBA). 
+These views include the following:
+
+DBA_TABLES and DBA_OBJECT_TABLES
+
+DBA_TAB_STATISTICS and DBA_TAB_COL_STATISTICS
+
+DBA_TAB_HISTOGRAMS
+
+DBA_TAB_COLS
+
+DBA_COL_GROUP_COLUMNS
+
+DBA_INDEXES and DBA_IND_STATISTICS
+
+DBA_CLUSTERS
+
+DBA_TAB_PARTITIONS and DBA_TAB_SUBPARTITIONS
+
+DBA_IND_PARTITIONS and DBA_IND_SUBPARTITIONS
+
+DBA_PART_COL_STATISTICS
+
+DBA_PART_HISTOGRAMS
+
+DBA_SUBPART_COL_STATISTICS
+
+DBA_SUBPART_HISTOGRAMS
+
+See Also:
+
+Oracle Database Reference to learn about the statistics in these views
+13.7.2 Viewing Histograms
+You can store column statistics as histograms. These histograms provide accurate estimates of the distribution of column data. 
+Histograms provide improved selectivity estimates in the presence of data skew, resulting in optimal execution plans with nonuniform data distributions.
+
+Oracle Database uses the following types of histograms for column statistics:
+
+Height-Balanced Histograms
+
+Frequency Histograms
+
+The database stores this type of histogram in the HISTOGRAM column of the *TAB_COL_STATISTICS views (USER and DBA). This column can have values of HEIGHT BALANCED, FREQUENCY, or NONE.
+
+13.7.2.1 Height-Balanced Histograms
+In a height-balanced histogram, the column values are divided into buckets so that each bucket contains approximately the same number of rows. 
+The histogram shows where the endpoints fall in the range of values.
+
+Consider a column my_col with values between 1 and 100 and a histogram with 10 buckets. If the data in my_col is uniformly distributed, then the histogram looks similar to Figure 13-1, where the numbers are the endpoint values. 
+For example, the 7th bucket has rows with values between 60 and 70.
+
+Figure 13-1 Height-Balanced Histogram with Uniform Distribution
+
+Description of Figure 13-1 follows
+Description of "Figure 13-1 Height-Balanced Histogram with Uniform Distribution"
+
+The number of rows in each bucket is 10% the total number of rows. In this example of uniform distribution, 40% of the rows have values between 60 and 100.
+
+If the data is not uniformly distributed, then the histogram may look like Figure 13-2. In this case, most of the rows have the value 5 for the column. 
+Only 10% of the rows have values between 60 and 100.
+
+Figure 13-2 Height-Balanced Histogram with Non-Uniform Distribution
+
+Description of Figure 13-2 follows
+Description of "Figure 13-2 Height-Balanced Histogram with Non-Uniform Distribution"
+
+You can view height-balanced histograms using the USER_TAB_HISTOGRAMS table, as shown in .
+
+Example 13-1 Viewing Height-Balanced Histogram Statistics
+
+BEGIN
+  DBMS_STATS.GATHER_table_STATS ( 
+    OWNNAME    => 'OE', 
+    TABNAME    => 'INVENTORIES', 
+    METHOD_OPT => 'FOR COLUMNS SIZE 10 quantity_on_hand' );
+END;
+/
+
+SELECT COLUMN_NAME, NUM_DISTINCT, NUM_BUCKETS, HISTOGRAM 
+FROM   USER_TAB_COL_STATISTICS
+WHERE  TABLE_NAME = 'INVENTORIES' AND COLUMN_NAME = 'QUANTITY_ON_HAND';
+
+COLUMN_NAME                    NUM_DISTINCT NUM_BUCKETS HISTOGRAM
+------------------------------ ------------ ----------- ---------------
+QUANTITY_ON_HAND                        237          10 HEIGHT BALANCED
+
+SELECT ENDPOINT_NUMBER, ENDPOINT_VALUE 
+FROM   USER_TAB_HISTOGRAMS
+WHERE  TABLE_NAME = 'INVENTORIES' AND COLUMN_NAME = 'QUANTITY_ON_HAND'
+ORDER BY ENDPOINT_NUMBER;
+
+ENDPOINT_NUMBER ENDPOINT_VALUE
+--------------- --------------
+              0              0
+              1             27
+              2             42
+              3             57
+              4             74
+              5             98
+              6            123
+              7            149
+              8            175
+              9            202
+             10            353
+In the query output, one row (1-10) corresponds to each bucket in the histogram. 
+Oracle Database added a special 0th bucket to this histogram because the value in the 1st bucket (27) is not the minimum value for the quantity_on_hand column. 
+The 0th bucket holds the minimum value of 0 for quantity_on_hand.
+
+13.7.2.2 Frequency Histograms
+In a frequency histogram, each value of the column corresponds to a single bucket of the histogram. Each bucket contains the number of occurrences of this single value. 
+For example, suppose that 36 rows contain the value 1 for column warehouse_id. The endpoint value 1 has an endpoint number 36.
+
+The database automatically creates frequency histograms instead of height-balanced histograms under the following conditions:
+
+The number of distinct values is less than or equal to the number of histogram buckets specified (up to 254).
+
+It is not true that each column value repeats only once.
+
+You can view frequency histograms using the USER_TAB_HISTOGRAMS view, as shown in .
+
+Example 13-2 Viewing Frequency Histogram Statistics
+
+BEGIN
+  DBMS_STATS.GATHER_TABLE_STATS ( 
+    OWNNAME    => 'OE', 
+    TABNAME    => 'INVENTORIES', 
+    METHOD_OPT => 'FOR COLUMNS SIZE 20 warehouse_id' );
+END;
+/
+
+SELECT COLUMN_NAME, NUM_DISTINCT, NUM_BUCKETS, HISTOGRAM 
+FROM   USER_TAB_COL_STATISTICS
+WHERE  TABLE_NAME = 'INVENTORIES' AND COLUMN_NAME = 'WAREHOUSE_ID';
+
+COLUMN_NAME                    NUM_DISTINCT NUM_BUCKETS HISTOGRAM
+------------------------------ ------------ ----------- ---------------
+WAREHOUSE_ID                              9           9 FREQUENCY
+
+SELECT   ENDPOINT_NUMBER, ENDPOINT_VALUE 
+FROM     USER_TAB_HISTOGRAMS
+WHERE    TABLE_NAME = 'INVENTORIES' AND COLUMN_NAME = 'WAREHOUSE_ID'
+ORDER BY ENDPOINT_NUMBER;
+
+ENDPOINT_NUMBER ENDPOINT_VALUE
+--------------- --------------
+             36              1
+            213              2
+            261              3
+            370              4
+            484              5
+            692              6
+            798              7
+            984              8
+           1112              9
+In , the first bucket is for the warehouse_id of 1. The value appears 36 times in the table, as confirmed by the following query:
+
+oe@PROD> SELECT COUNT(*) FROM inventories WHERE warehouse_id = 1;
+ 
+  COUNT(*)
+----------
+        36

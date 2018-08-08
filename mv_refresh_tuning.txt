@@ -1,0 +1,58 @@
+Materialized Views Refresh Tuning
+http://www.dba-oracle.com/t_materialized_views_refreshing_performance.htm
+Oracle Database Tips by Donald Burleson
+
+
+Also see my important general notes on tuning materialized views(http://www.dba-oracle.com/t_materialized_views_tuning.htm).
+
+Materialized Views are a wonderful tool for reducing repetitive I/O and they are a true silver bullet under certain circumstances.  The problem is keeping the materialized view refreshed, and refreshing materialized views has always been resource-intensive and problematic.
+
+Without materialized views you may see unnecessary repeating large-table full-table scans, as summaries are computed, over and over:
+
+
+
+The problem with materialized view for pre-joined tables is keeping them current with the refresh mechanism.  Because the materialized view is built from many tables, and changes to the base tables require an update to the materialized view (via a snapshot refresh or full refresh).
+
+See my notes on tuning materialized views:
+
+Oracle materialized view performance and partitioning(http://www.dba-oracle.com/t_materialized_view_refresh_method_benchmark.htm)
+
+Materialized Views in Oracle Warehouse Builder OWB(http://www.dba-oracle.com/t_materialized_views_owb_warehouse_builder.htm)
+
+Speeding up materialized view refreshes
+Time takes time, and the Oracle "fast refresh" mechanism is already optimized by Oracle.  So, what can you do to speed-up a materialized view refresh on a high DML system.  There are several options:
+
+- Partition the base tables - See notes below on hoe partition pruning makes materialized view refreshes run faster.
+
+- Use parallel DML - Oracle author Michael Armstrong Smith notes "I've done parallel materialized view refreshing on tables recently and improved the load times considerably. Rather than having one load which took 2 hours, I run 4 parallel loads, one for each partition. The length of time for the whole process is now determined by how long the biggest partition takes to load. In my case, this is 40 minutes, with two 30 minute loads and one 20 minute load.  Overall I am saving 1 hour 20 minutes. I can now add further partitions and do the same thing. My only limitation is the parallel loads because I don't have unlimited processing power.
+
+- Use super-fast solid-state disks - The easiest and most reliable way is to speed-up a materialized view refresh is to move the target tables and MV's to SSD. SSD runs several hundred times faster than platter disk, and it plops right in, just a few hours to install.
+
+ 
+
+Other materialized view fast refresh tips:
+
+David Aldridge, a well-respected data warehouse consultant,  notes that materialized view refreshes are a one-size-fits-all solution and that a customized refreshing solution may run many times faster:
+
+The materialized view fast refresh mechanism is a one-size-fits-all solution, and is probably not efficient for 99% of summary table maintenance operations. 
+ 
+The join of the aggregated change data to the MV is function-based, as the columns of both relations are wrapped in the Sys_Op_Map_NonNull()(http://oraclesponge.blogspot.com/2005/11/optimizing-materialized-views-part-iii.html) 
+function that allows "null = null" joins. I think that it is extremely unlikely that anyone has nullable attribute columns in their fact or summary tables, so this (and the composite function-based index required to support it) are a waste of resources. 
+ 
+Because of the nature of the join it seems to be extremely unlikely that partition pruning(http://www.blogger.com/posts.g?blogID=11995638) of the summary table could take place. 
+ 
+The join mechanism promotes nested loop joins, where a hash join is probably more efficient (that's technically an outer join in the merge, of course).
+ 
+The refresh mechanism assumes that a merge will be required, when sometimes an insert is not only possible but is very much more efficient.
+If performance (and robustness, IMHO) are an issue for you then I would advise that you do the following:
+ 
+Use materialized views only for enabling query rewrite (which means creating them on a prebuilt summary table, and unless you are loading to the summary by partition exchange then you have to drop the MV, refresh the summary table, and recreate the MV). 
+In 10g it is much more easy to use the DBMS_Advanced_Rewrite(http://download-west.oracle.com/docs/cd/B19306_01/appdev.102/b14258/d_advrwr.htm#i999507) package instead of MV's. 
+ 
+Write your own refresh code, based on the usual principles of writing good SQL. If you don't need a merge then don't use it. If you don't need to join to dimension tables to get higher attributes then don't do it.
+ 
+Leverage different levels of aggregation to help produce higher levels. For a series of hierarchical summaries, multi-level aggregations can be extremely beneficial.
+ 
+Consider storing the refresh and MV definition SQL in CLOB columns of a summary management table, so they can be tuned and edited without needing to open up package code to do so. 
+ 
+Consider using a complete refresh, either through MV's or manually, for higher aggregation levels, particularly when you can reference another summary table to do so.

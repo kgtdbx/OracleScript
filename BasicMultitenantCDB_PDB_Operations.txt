@@ -1,0 +1,82 @@
+Basic Multitenant CDB / PDB Operations
+Posted on 2017/09/14 by Vincent
+
+Here is a FAQ on Multitenant basic CDB / PDB Operations.
+
+How do I know if my database is Multitenant or not?
+select NAME, DECODE(CDB, ‘YES’, ‘Multitenant Option enabled’, ‘Regular 12c Database: ‘) “Multitenant Option ?” , OPEN_MODE, CON_ID from V$DATABASE;
+
+ 
+What Pluggable databases do I have in this container database?
+select CON_ID, NAME, OPEN_MODE from V$PDBS;
+
+or
+
+show pdbs
+
+
+How do I connect to my Pluggable Database PDB1?
+CONNECTED AS SYSDBA IN THE CDB:
+alter session set container = pdb1;
+
+WITH A TNSNAMES ALIAS:
+pdb1 =
+(DESCRIPTION =
+(ADDRESS_LIST =
+(ADDRESS = (COMMUNITY = tcp.world)
+(PROTOCOL = TCP)
+(Host = my-host)
+(Port = 1521))
+)
+(CONNECT_DATA =
+(SERVICE_NAME = PDB1)
+)
+)
+
+USING EASY CONNECT
+Format: CONNECT username/password@host[:port][/service_name][:server][/instance_name]
+$ sqlplus scott/tiger@//localhost:1521/pdb1
+$ sqlplus scott/tiger@//my-server-name:1525/pdb1
+
+To switch back to the main container:
+ALTER SESSION SET CONTAINER = CDB$ROOT;
+
+WHERE AM I CONNECTED?
+SQL> show con_name
+CON_NAME
+———
+PDB1
+
+
+How to stop a PDB in Oracle RAC?
+On the current node [or on all the nodes]:
+(connected on the CDB) ALTER PLUGGABLE DATABASE PDB1 CLOSE IMMEDIATE [Instances=all];
+(connected on the PDB) ALTER PLUGGABLE DATABASE CLOSE IMMEDIATE [Instances=all];
+
+This will stop the associated service too.
+Manually stopping the associated service will not close the PDB. You have to use the SQL command.
+
+
+How to start and stop a PDB in Oracle RAC?
+On the current node [or on all the nodes]:
+(connected on the CDB) ALTER PLUGGABLE DATABASE PDB1 OPEN [Instances=all;]
+(connected on the PDB) ALTER PLUGGABLE DATABASE OPEN [Instances=all;]
+
+You can also start the PDB with the associated service (srvctl start service -d my-db_unique_name -s pdb1)
+This will NOT start the other service(s) associated with this PDB.
+
+ 
+
+Pluggable Database not open automatically
+From 12.1.0.2 you can save the state of a PDB once it’s open: next time the database starts, it will automatically start the pdbs opened previously
+
+— 1 pdb save
+alter pluggable database pdb_name save state;
+
+— All pdbs
+alter pluggable database all save state;
+
+— All except
+alter pluggable database all except pdb1, pdb2 save state;
+
+Author: Vincent Fenoll – Oracle DBA Montreal

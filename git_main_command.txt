@@ -100,6 +100,10 @@ git add *
 --or
 git add --all 
 
+--add folder with all files  "git add --all folder/"
+git add --all utl_call_stack/
+
+
 
 /*
 usage: git checkout [<options>] <branch>
@@ -144,7 +148,7 @@ To commit changes and automatically add modified files (doesn't add new files)
 git commit -am "commit message"
 */
 
-git commit -am "update from IS 20180621"
+git commit -am "update from IS 20180810"
 
 --pull the changes from remote repo
 git pull OracleScript master
@@ -269,7 +273,7 @@ git add --all folder/ worked better for me than me than git add folder/* – Alex 
 if you want add folder to existing repo ..then add folder to local project code
 
 git rm --cached ./folderName
- git add ./folderName
+git add ./folderName
 after that
 
 git status

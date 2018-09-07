@@ -2337,8 +2337,8 @@
             <Item class="java.lang.String">oracle/dmt/dataminer/accelerators.xml</Item>
             <Item class="java.lang.String">oracle/ideimpl/vcscore/nav/accelerators.xml</Item>
             <Item class="java.lang.String">oracle/dbtools/spatial/accelerators.xml</Item>
-            <Item class="java.lang.String">oracle/dbtools/worksheet/accelerators.xml</Item>
             <Item class="java.lang.String">oracle/dbtools/worksheet/commands/dbmsoutput/accelerators.xml</Item>
+            <Item class="java.lang.String">oracle/dbtools/worksheet/accelerators.xml</Item>
          </registeredContexts>
       </Value>
    </Item>

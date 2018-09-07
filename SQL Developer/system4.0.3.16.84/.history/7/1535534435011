@@ -1,0 +1,359 @@
+--Task 237952:Cretae and test fct_loan_balance_visa_ns_job
+--https://tfs.isbank.is/tfs/DefaultCollection/HBL/_workitems/edit/237952
+
+/*
+
+New job fct_loan_balance_visa_ns_job,
+with new data flow and new work flow.
+
+The data flow from the old job can be copied and used with minor adjustments:
+
+New source table bifrost.stg2_cards_visa_cards_tab instead of STG_VISA_STG_UPPLYS_VISA_S.
+
+For each Query Transform:
+1) QT Q_the_date is redundant, assign value to the_date later on.
+2) QT Q_set_nulls_for_unmapped_columns, and its content, it is not necessary. 
+3) QT Q_Get_validDt_Records: Eliminate nvl() from the where-condition, it is obsolete.
+4) QT Q_lookups: Agreement_id is in the source table so no lookup is needed for that.
+5) QT Q_join: Use reference_date instead of BANKING_DAY.TRANSACTION_DATE in the mapping for in_arrears.
+6) QT Q_join: Use reference_date instead of the_date in the mapping for days_in_arrears.
+
+In job, set Monitor sample rate to 300 seconds.
+
+*/
+
+
+
+--old job FCT_LOAN_BALANCE_VISA_JOB
+Source: STG_VISA_STG_UPPLYS_VISA_S(BIFROST.BIFROST) in the datastore:(BIFROST) (BODI  spec);
+Target: FCT_LOAN_BALANCE(VALHOLL.VALHOLL)
+
+
+
+--#####################FCT_LOAN_BALANCE_VISA_NS_JOB##############################--
+
+--bifrost.stg2_cards_visa_cards_tab in Datastore BIFROST.(New source)
+
+--FCT_LOAN_BALANCE(VALHOLL.VALHOLL) (target)
+
+--1) QT Q_the_date is redundant, assign value to the_date later on.
+    --remove mapping (reference_date -> the_date) and rename Q_the_date into Q_CONST AND USE SOURCE_SYSTEM_STG as constant 'VISA'.
+--2) QT Q_set_nulls_for_unmapped_columns, and its content, it is not necessary.
+    --remove it ?
+
+--3) QT Q_Get_validDt_Records: Eliminate nvl() from the where-condition, it is obsolete.
+    --remove nvl() 
+    /* was
+(((Q_JOIN.TRUE_DATE >= nvl(Q_JOIN.LOAN_VALID_FROM, Q_JOIN.TRANSACTION_DATE)) AND
+(Q_JOIN.TRUE_DATE <= nvl(Q_JOIN.LOAN_VALID_TO, (SYSDATE() + 100)))) AND
+((Q_JOIN.TRUE_DATE >= nvl(Q_JOIN.CUST_VALID_FROM, Q_JOIN.TRANSACTION_DATE)) AND
+(Q_JOIN.TRUE_DATE <= nvl(Q_JOIN.CUST_VALID_TO, (SYSDATE() + 100)))))
+    */
+    
+    /* now
+(((Q_JOIN.TRUE_DATE >= Q_JOIN.LOAN_VALID_FROM) AND
+(Q_JOIN.TRUE_DATE <= Q_JOIN.LOAN_VALID_TO)) AND
+((Q_JOIN.TRUE_DATE >= Q_JOIN.CUST_VALID_FROM) AND
+(Q_JOIN.TRUE_DATE <= Q_JOIN.CUST_VALID_TO)))
+    */
+    
+--4) QT Q_lookups: Agreement_id is in the source table so no lookup is needed for that.
+    --replace lookup_ext_4(BIFROST.STG_AGREEMENT_AGREEMENTS_ID.HOST_AGREEMENT_NUM) on AGREEMENT_ID(AGREEMENT_ID_CARD) from stg2_cards_visa_cards_tab(new source)
+
+--5) QT Q_join: Use reference_date instead of BANKING_DAY.TRANSACTION_DATE in the mapping for in_arrears.
+    /* --was 
+    #cast(DECODE(  Q_the_date.SID_EINDAGI <  BANKING_DAY.TRANSACTION_DATE   
+    #and   Q_the_date.STADA_A_GIRO> 0  
+    #, Q_the_date.STADA_A_GIRO +   Q_the_date.STADA_DRATTARVEXTIR      
+    #,  Q_the_date.STADA_ELDRI_SKULD  
+    #),'decimal(32,8)')
+     
+    
+    cast(decode( Q_the_date.SID_EINDAGI < BANKING_DAY.TRANSACTION_DATE and Q_the_date.STADA_A_GIRO > 0    
+    , Q_the_date.STADA_A_GIRO +  Q_the_date.STADA_DRATTARVEXTIR   
+    ,  dim_loan.LOAN_DATE_IN_ARREARS is not null and  Q_the_date.STADA_ELDRI_SKULD = 0 
+    ,  Q_the_date.STADA +  Q_the_date.STADA_DRATTARVEXTIR  
+    , Q_the_date.STADA_ELDRI_SKULD    
+    ),'decimal(32,8)')
+    */
+    
+    /* --now 
+    cast(decode( Q_CONST.SID_EINDAGI < Q_CONST.REFERENCE_DATE and Q_CONST.STADA_A_GIRO > 0    
+    , Q_CONST.STADA_A_GIRO +  Q_CONST.STADA_DRATTARVEXTIR   
+    , dim_loan.LOAN_DATE_IN_ARREARS is not null and  Q_CONST.STADA_ELDRI_SKULD = 0 
+    , Q_CONST.STADA +  Q_CONST.STADA_DRATTARVEXTIR  
+    , Q_CONST.STADA_ELDRI_SKULD    
+    ),'decimal(32,8)')
+    */
+
+
+--6) QT Q_join: Use reference_date instead of the_date in the mapping for days_in_arrears.
+
+    
+
+--set Monitor sample rate to 300 seconds.
+
+
+--map
+/* --Q_JOIN
+IN_ARREARS -> 
+cast(decode( Q_CONST.SID_EINDAGI < Q_CONST.REFERENCE_DATE and Q_CONST.STADA_A_GIRO > 0    
+, Q_CONST.STADA_A_GIRO +  Q_CONST.STADA_DRATTARVEXTIR   
+, dim_loan.LOAN_DATE_IN_ARREARS is not null and  Q_CONST.STADA_ELDRI_SKULD = 0 
+, Q_CONST.STADA +  Q_CONST.STADA_DRATTARVEXTIR  
+, Q_CONST.STADA_ELDRI_SKULD    
+),'decimal(32,8)')
+
+STADA -> NVL( Q_CONST.STADA ,0)  + NVL( Q_CONST.UPPH_FJOLGR   ,0)
+
+PENALTY_INTEREST -> 
+cast(NVL( Q_CONST.STADA_DRATTARVEXTIR ,0) +  
+nvl(Q_CONST.REIKNADIR_DRATTARVEXTIR, 0),'decimal(32,8)')
+
+DAYS_IN_ARREARS -> 
+DECODE( DIM_LOAN.LOAN_DATE_IN_ARREARS  is null 
+, cast(NULL,'DECIMAL(30,15)')
+, cast( Q_CONST.REFERENCE_DATE - DIM_LOAN.LOAN_DATE_IN_ARREARS + 1,'DECIMAL(30,15)'))
+
+
+--Q_Get_validDt_Records
+
+CUST_DIMENSION_KEY -> nvl(Q_JOIN.CUST_DIMENSION_KEY ,1703534707)
+
+--Q_lookups
+    --lookup_ext
+    VALHOLL.VALHOLL.DIM_COUNTRY.COUNTRY_ID=Q_Get_validDt_Records.CUST_COUNTRY_CODE ->DIMENTION_KEY(DIM_COUNTRY) default 121742
+    --lookup_ext_1
+    VALHOLL.VALHOLL.DIM_INDUSTRY_SEGMENT.SEGMENT_ID=Q_Get_validDt_Records.INDUSTRY_SEGMENT ->DIMENTION_KEY(DIM_INDUSTRY_SEGMENT) default 641506
+    --lookup_ext_3
+    VALHOLL.VALHOLL.DIM_TIME.THE_DATE=Q_Get_validDt_Records.THE_DATE ->DIMENTION_KEY(DIM_TIME) default 39063
+    
+    -- was --ifthenelse((Q_Get_validDt_Records.CUST_DIMENSION_KEY = 1703534707), 'UNKNOWN   ', Q_Get_validDt_Records.KENNITALA)
+    -- now --ifthenelse((Q_Get_validDt_Records.CUST_DIMENSION_KEY = 1703534707), 'UNKNOWN   ', Q_Get_validDt_Records.KENNITALA_REIKNINGSEIGANDA)
+    
+    --lookup_ext_2
+    GLADHEIMUR.GLADHEIMUR.PA_PARTIES_ID.PARTY_SSN_CD=ifthenelse((Q_Get_validDt_Records.CUST_DIMENSION_KEY = 1703534707), 'UNKNOWN   ', Q_Get_validDt_Records.KENNITALA) ->PARTY_ID(PARTY_ID) default NULL
+    --lookup_ext_4
+    BIFROST.BIFROST.STG_AGREEMENT_AGREEMENTS_ID.HOST_AGREEMENT_NUM=Q_Get_validDt_Records.KORTUMER 
+    BIFROST.BIFROST.STG_AGREEMENT_AGREEMENTS_ID.AGR_SOURCE_SYSTEM_CD=16
+                                                                                                   ->AGREEMENT_ID(AGREEMENT_ID) default -1 
+
+ DIM_LOAN -> nvl(Q_Get_validDt_Records.LOAN_DIMENSION_KEY, 153687658)
+ 
+ BALANCE -> Q_Get_validDt_Records.STADA- ( Q_Get_validDt_Records.IN_ARREARS -  Q_Get_validDt_Records.STADA_DRATTARVEXTIR) +  Q_Get_validDt_Records.REIKNADIR_DRATTARVEXTIR
+ 
+ EXPOSURE -> Q_Get_validDt_Records.STADA - (Q_Get_validDt_Records.IN_ARREARS - Q_Get_validDt_Records.STADA_DRATTARVEXTIR) + Q_Get_validDt_Records.REIKNADIR_DRATTARVEXTIR  +  Q_Get_validDt_Records.IN_ARREARS
+ 
+ DIM_LOAN_TYPE -> NVL(Q_Get_validDt_Records.LOAN_TYPE_DIMENSION_KEY,71005)
+
+
+--Q_exposure
+
+BALANCE -> abs(Q_lookups.BALANCE)
+
+EXPOSURE -> abs(Q_lookups.EXPOSURE)
+
+ASSET_LIABILITY_EXP -> decode((Q_lookups.EXPOSURE < 0), 'l', 'a')
+
+ASSET_LIABILITY -> decode((Q_lookups.BALANCE < 0), 'l', 'a')
+
+LOAD_ID -> $G_N_LOAD_ID
+
+LOAD_DATE -> $G_DT_LOAD_DATE
+
+ACTIVE -> 'Y'
+
+DIM_CURRENCY -> 46014
+
+DIM_GL_ACCOUNT -> 2136
+
+DIM_GL_ACCOUNT_ARR -> 2136
+
+
+--Q_set_nulls_for_unmapped_columns
+
+Q_exposure.BALANCE -> LOAN_BALANCE
+Q_exposure.BALANCE -> LOAN_BALANCE_ISK
+Q_exposure.DIM_CURRENCY -> DIM_CURRENCY_ARR
+
+NULL for unused columns
+
+*/
+
+/* join conditions
+
+'VISA' =    DIM_LOAN.SOURCE_SYSTEM     
+AND Q_the_date.KORTNUMER= DIM_LOAN.ID
+
+ Q_the_date.KENNITALA = DIM_CUSTOMER.CUST_ID and
+DIM_LOAN.DIMENSION_KEY = DIM_CUSTOMER.DIMENSION_KEY
+
+Q_the_date.REFERENCE_DATE=BANKING_DAY.TRANSACTION_DATE
+
+DIM_LOAN_TYPE.TYPE_ID=Q_the_date.TEG_KORTS AND
+DIM_LOAN_TYPE.SOURCE_SYSTEM=Q_the_date.SOURCE_SYSTEM_STG
+
+*/
+
+
+/* join conditions
+
+'VISA' =    DIM_LOAN.SOURCE_SYSTEM     
+AND Q_CONST.KENNITALA_REIKNINGSEIGANDA= DIM_LOAN.CUST_ID
+
+Q_CONST.KENNITALA_REIKNINGSEIGANDA = DIM_CUSTOMER.CUST_ID and
+DIM_LOAN.DIMENSION_KEY = DIM_CUSTOMER.DIMENSION_KEY
+
+Q_CONST.REFERENCE_DATE=BANKING_DAY.TRANSACTION_DATE
+
+DIM_LOAN_TYPE.TYPE_ID=Q_CONST.TEG_KORTS AND
+DIM_LOAN_TYPE.SOURCE_SYSTEM=Q_CONST.SOURCE_SYSTEM_STG
+
+*/
+
+
+--
+
+--1881641327 --TEST
+select count(*) 
+from VALHOLL.FCT_LOAN_BALANCE dc;
+
+----
+
+SELECT NVL( "STG2_CARDS_VISA_CARDS_TAB"."STADA" , 0) ,
+    NVL( "STG2_CARDS_VISA_CARDS_TAB"."UPPH_FJOLGR" , 0) ,
+    ( ((
+    CASE
+        WHEN (( "STG2_CARDS_VISA_CARDS_TAB"."SID_EINDAGI" < "STG2_CARDS_VISA_CARDS_TAB".
+            "REFERENCE_DATE" )
+        AND ( "STG2_CARDS_VISA_CARDS_TAB"."STADA_A_GIRO" > 0))
+        THEN ( "STG2_CARDS_VISA_CARDS_TAB"."STADA_A_GIRO" + "STG2_CARDS_VISA_CARDS_TAB".
+            "STADA_DRATTARVEXTIR" )
+        ELSE ( ((
+            CASE
+                WHEN (( "DIM_LOAN"."LOAN_DATE_IN_ARREARS"            IS NOT NULL )
+                AND ( "STG2_CARDS_VISA_CARDS_TAB"."STADA_ELDRI_SKULD" = 0))
+                THEN ( "STG2_CARDS_VISA_CARDS_TAB"."STADA" + "STG2_CARDS_VISA_CARDS_TAB".
+                    "STADA_DRATTARVEXTIR" )
+                ELSE "STG2_CARDS_VISA_CARDS_TAB"."STADA_ELDRI_SKULD"
+            END) ) )
+    END) ) ) ,
+    NVL( "STG2_CARDS_VISA_CARDS_TAB"."STADA_DRATTARVEXTIR" , 0) ,
+    NVL( "STG2_CARDS_VISA_CARDS_TAB"."REIKNADIR_DRATTARVEXTIR" , 0) ,
+    "DIM_LOAN_TYPE"."DIMENSION_KEY" ,
+    "DIM_LOAN"."DIMENSION_KEY" ,
+    "DIM_CUSTOMER"."DIMENSION_KEY" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."STADA_DRATTARVEXTIR" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."REIKNADIR_DRATTARVEXTIR" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."STADA" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."UPPH_FJOLGR" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."SID_EINDAGI" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."REFERENCE_DATE" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."STADA_A_GIRO" ,
+    "DIM_LOAN"."LOAN_DATE_IN_ARREARS" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."STADA_ELDRI_SKULD" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."AGREEMENT_ID_CARD" ,
+    "DIM_LOAN"."VALID_FROM" ,
+    "DIM_LOAN"."VALID_TO" ,
+    "DIM_CUSTOMER"."VALID_FROM" ,
+    "DIM_CUSTOMER"."VALID_TO" ,
+    "DIM_LOAN_TYPE"."TYPE_ID" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."TEG_KORTS" ,
+    "DIM_LOAN_TYPE"."SOURCE_SYSTEM" ,
+    "STG2_CARDS_VISA_CARDS_TAB"."KENNITALA_REIKNINGSEIGANDA" ,
+    "DIM_CUSTOMER"."CUST_ID" ,
+    "DIM_LOAN"."SOURCE_SYSTEM" ,
+    "DIM_LOAN"."CUST_ID" ,
+    "DIM_CUSTOMER"."CUST_COUNTRY_CODE" ,
+    "DIM_CUSTOMER"."INDUSTRY_SEGMENT"
+FROM (("BIFROST"."STG2_CARDS_VISA_CARDS_TAB" "STG2_CARDS_VISA_CARDS_TAB"
+LEFT OUTER JOIN "VALHOLL"."DIM_LOAN" "DIM_LOAN"
+ON ('VISA' = "DIM_LOAN"."SOURCE_SYSTEM" )
+AND ( "STG2_CARDS_VISA_CARDS_TAB"."KENNITALA_REIKNINGSEIGANDA" = "DIM_LOAN"."CUST_ID" ))
+LEFT OUTER JOIN "VALHOLL"."DIM_CUSTOMER" "DIM_CUSTOMER"
+ON ( "STG2_CARDS_VISA_CARDS_TAB"."KENNITALA_REIKNINGSEIGANDA" = "DIM_CUSTOMER"."CUST_ID" )
+AND ( "DIM_LOAN"."DIMENSION_KEY" = "DIM_CUSTOMER"."DIMENSION_KEY" ))
+LEFT OUTER JOIN "VALHOLL"."DIM_LOAN_TYPE" "DIM_LOAN_TYPE"
+ON ( "DIM_LOAN_TYPE"."TYPE_ID" = "STG2_CARDS_VISA_CARDS_TAB"."TEG_KORTS" )
+AND ( "DIM_LOAN_TYPE"."SOURCE_SYSTEM" = 'VISA')
+
+
+
+
+------------------------------------------------
+
+/* log
+11136	10640	DBS-070300	8/29/2018 9:01:00 AM	|Data flow FCT_LOAN_BALANCE_VISA_NS_DF|Reader STG2_CARDS_VISA_CARDS_TAB+DIM_LOAN+DIM_CUSTOMER+DIM_LOAN_TYPE1
+11136	10640	DBS-070300	8/29/2018 9:01:00 AM	SQL submitted to Oracle Server <VHGTEST.WORLD> resulted in error <ORA-12801: error signaled in parallel query server P004
+11136	10640	DBS-070300	8/29/2018 9:01:00 AM	ORA-01652: unable to extend temp segment by 32 in tablespace TEMP
+
+*/
+
+--
+
+--1457 --TEST
+select count(*) 
+from VALHOLL.FCT_LOAN_BALANCE dc;
+
+
+
+--added to central repository with comment: Initial job creation according to demands of Task 237952:Cretae and test fct_loan_balance_visa_ns_job
+----
+
+--for test
+--Task 236945:Testing new "NS" fct_loan_balance_visa_ns_job
+--https://tfs.isbank.is/tfs/DefaultCollection/HBL/_workitems/edit/236945
+
+
+The main information described below.
+
+Job name: DIM_LOAN_TYPE_VISA_NS_JOB, DIM_LOAN_TYPE_MC_NS_JOB;
+Source: BIFROST.STG_CARDS_VISA_CARDS_TAB, BIFROST.STG_CARDS_MC_CARD_ACC_TAB (BIFROST.BIFROST) in the datastore:(BIFROST) (BODI spec);
+Target: DIM_LOAN_TYPE(VALHOLL.VALHOLL)
+
+You need to use VHGTEST env. credentials for source and target as well. You probably have all needed ones from previous task. 
+--
+DIM_LOAN_TYPE_VISA_NS_JOB, DIM_LOAN_TYPE_MC_NS_JOB have been created and checked into Central Repository.
+--
+To test development task, the sequence of action is followed.
+
+STEP 1 Log into BODS and get latest version of Job from Central repository (use "Get latest version -> Object [and dependency]").
+
+STEP 2 Check that jobs DIM_LOAN_TYPE_VISA_NS_JOB, DIM_LOAN_TYPE_MC_NS_JOB have been appeared in your Local Repository,
+
+STEP 3 Check the main demanded parameters, namely:
+a)new source table bifrost.stg_cards_visa_cards_tab insted of STG_VISA_STG_UPPLYS_VISA_S and bifrost.stg_cards_mc_card_acc_tab insted of STG_MC_STG_UPPLYS_MCS_S1
+b)new map columns TEG_KORTS -> TYPE_ID, MARKADSHEITI_KORTS  -> TYPE_NAME 
+    and EINKENNI_KORTATEGUNDAR  -> TYPE_ID, KORTATEGUND -> TYPE_NAME
+c)Monitor sample rate setting up to 60 seconds(Right click on the job. Select "Properties". In the "Execution Options" tab, give the monitor sample rate.)
+
+STEP 4 Replace all needed datastores(if those do not for VHGTEST yet), do validate and run the job if errors do not popup.
+
+STEP 5 Check count of inserted rows or changed values of updated rows
+
+
+
+
+--for reviewer
+
+Rýni/Review new "NS" dim_loan_type_jobs
+--Task 236953:Rýni/Review new "NS" dim_customer_jobs
+
+Please review the BODS jobs DIM_LOAN_TYPE_VISA_NS_JOB, DIM_LOAN_TYPE_MC_NS_JOB. 
+More detailed information can be obtained from the result of Task 235856:Create and test new dim_loan_type_jobs.
+
+Job name: DIM_LOAN_TYPE_VISA_NS_JOB, DIM_LOAN_TYPE_MC_NS_JOB;
+Source: BIFROST.STG_CARDS_VISA_CARDS_TAB, BIFROST.STG_CARDS_MC_CARD_ACC_TAB (BIFROST.BIFROST) in the datastore:(BIFROST) (BODI spec);
+Target: DIM_LOAN_TYPE(VALHOLL.VALHOLL)
+
+DIM_LOAN_TYPE_VISA_NS_JOB, DIM_LOAN_TYPE_MC_NS_JOB have been created and checked into Central Repository.
+
+Check the main demanded parameters, namely:
+a)new source table bifrost.stg_cards_visa_cards_tab insted of STG_VISA_STG_UPPLYS_VISA_S and bifrost.stg_cards_mc_card_acc_tab insted of STG_MC_STG_UPPLYS_MCS_S1
+b)new map columns TEG_KORTS -> TYPE_ID, MARKADSHEITI_KORTS  -> TYPE_NAME 
+    and EINKENNI_KORTATEGUNDAR  -> TYPE_ID, KORTATEGUND -> TYPE_NAME
+c)Monitor sample rate setting up to 60 seconds(Right click on the job. Select "Properties". In the "Execution Options" tab, give the monitor sample rate.)
+
+It also has been tested by Nataly (Task 236945:Testing new "NS" dim_loan_type_jobs)
+
+

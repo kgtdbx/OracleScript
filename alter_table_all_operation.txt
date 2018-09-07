@@ -116,3 +116,7 @@ alter table BARS.BANKS$BASE
 alter table BARS.BANKS$BASE
   add constraint CC_BANKS_MFO_NN
   check ("MFO" IS NOT NULL);
+  
+-----------Manually Specifying the Degree of Parallelism-----------
+ALTER TABLE customers PARALLEL 4;
+  

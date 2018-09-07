@@ -54,6 +54,45 @@ BEGIN
 END;
 /
 --************************************************
+--The cursor_variable.%ROWCOUNT is the solution. But its value will be 0 if you check it after opening. You need to loop through all the records, to get the total row count. Example below:
+
+DECLARE 
+  cur sys_refcursor;
+  cur_rec YOUR_TABLE%rowtype;
+BEGIN
+  OPEN cur FOR
+  SELECT * FROM YOUR_TABLE;
+
+  dbms_output.put_line(cur%rowcount);--returning 0
+
+  LOOP
+    FETCH cur INTO cur_rec;  
+    EXIT WHEN cur%notfound;
+    dbms_output.put_line(cur%rowcount);--will return row number beginning with 1
+    dbms_output.put_line(cur_rec.SOME_COLUMN);
+  END LOOP;
+
+  dbms_output.put_line('Total Rows: ' || cur%rowcount);--here you will get total row count
+END;
+/
+--************************************************
+--You can also use BULK COLLECT so that a LOOP is not needed,
+
+DECLARE
+    CURSOR c 
+    IS   SELECT *
+           FROM employee;
+    TYPE emp_tab IS TABLE OF employee%ROWTYPE INDEX BY BINARY_INTEGER;
+    v_emp_tab emp_tab;
+BEGIN
+    OPEN c;
+    FETCH c BULK COLLECT INTO v_emp_tab;
+    DBMS_OUTPUT.PUT_LINE(v_emp_tab.COUNT);
+    CLOSE c;
+END;
+/
+--************************************************
+
 DECLARE
   TYPE emp_name_rec is RECORD (
     firstname    employees.first_name%TYPE,

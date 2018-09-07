@@ -1,0 +1,128 @@
+--Task 236864:Create and test job stg2_visa_cards_tab_job
+--https://tfs.isbank.is/tfs/DefaultCollection/HBL/_workitems/edit/236864
+
+/*
+New job: Stg2_visa_cards_tab_job.
+Source: bifrost.stg_visa_cards_tab
+
+New target table: bifrost.stg2_visa_cards_tab
+  Same columns as in source table.
+  Additional columns:
+  - host_agreement_num VARCHAR2(35 BYTE)
+  - reference_date date
+Value for reference_date: same as in staging jobs.
+Value for host_agreement_num: Use lookup_ext from bifrost.stg_agreement_agreements_id to find host_agreement_num
+  where agreement_id = bifrost.stg_visa_cards_tab.bifrost.agreement_id_card.
+
+Apply filter in job: Copy where-condition from STG_VISA_STG_UPPLYS_VISA_S_JOB (in query transform Q_FILTER).
+
+In job, set Monitor sample rate to 60 seconds (under Execution options in Properties.).
+
+-- Grants for Table
+GRANT SELECT ON stg2_visa_cards_tab TO dw_admin_role
+
+*/
+
+
+--#####################STG2_VISA_CARDS_TAB_JOB##############################--
+
+--bifrost.stg_visa_cards_tab in Datastore BIFROST.(New source)
+
+--bifrost.stg2_visa_cards_tab(target)
+
+--
+/* --where clause from STG_VISA_STG_UPPLYS_VISA_S_JOB
+
+((SQL_STG_UPPLYS_VISA_S_V.ASTANDSKODI  in ('0', '7', '8') or SQL_STG_UPPLYS_VISA_S_V.ASTANDSKODI is null )
+OR 
+(not (SQL_STG_UPPLYS_VISA_S_V.ASTANDSKODI in ('0', '7', '8') or  SQL_STG_UPPLYS_VISA_S_V.ASTANDSKODI is null ) and
+not (SQL_STG_UPPLYS_VISA_S_V.STADA = 0 and SQL_STG_UPPLYS_VISA_S_V.STADA_ELDRI_SKULD = 0 and SQL_STG_UPPLYS_VISA_S_V.STADA_DRATTARVEXTIR = 0 and 
+SQL_STG_UPPLYS_VISA_S_V.REIKNADIR_DRATTARVEXTIR  = 0 and SQL_STG_UPPLYS_VISA_S_V.UPPH_FJOLGR = 0 )) )
+AND not (SQL_STG_UPPLYS_VISA_S_V.TEG_KORTS = 'HG' and SQL_STG_UPPLYS_VISA_S_V.STADA = 0)
+
+*/
+/*
+Additional columns:
+  - host_agreement_num VARCHAR2(35 BYTE)
+  - reference_date date -> 
+
+*/
+
+--Set Monitor sample rate to 60 seconds
+
+
+
+--
+
+
+------------------------------------------------
+
+/* log
+
+*/
+
+--
+
+--1457 --TEST
+select count(*) 
+from VALHOLL.DIM_LOAN_TYPE dc;
+
+
+
+--added to central repository with comment: Initial job creation according to demands of Task 235856:Create and test new dim_loan_type_jobs
+
+----
+
+--for test
+--Task 236945:Testing new "NS" dim_loan_type_jobs
+--https://tfs.isbank.is/tfs/DefaultCollection/HBL/_workitems/edit/236945
+
+
+The main information described below.
+
+Job name: DIM_LOAN_TYPE_VISA_NS_JOB, DIM_LOAN_TYPE_MC_NS_JOB;
+Source: BIFROST.STG_CARDS_VISA_CARDS_TAB, BIFROST.STG_CARDS_MC_CARD_ACC_TAB (BIFROST.BIFROST) in the datastore:(BIFROST) (BODI spec);
+Target: DIM_LOAN_TYPE(VALHOLL.VALHOLL)
+
+You need to use VHGTEST env. credentials for source and target as well. You probably have all needed ones from previous task. 
+--
+DIM_LOAN_TYPE_VISA_NS_JOB, DIM_LOAN_TYPE_MC_NS_JOB have been created and checked into Central Repository.
+--
+To test development task, the sequence of action is followed.
+
+STEP 1 Log into BODS and get latest version of Job from Central repository (use "Get latest version -> Object [and dependency]").
+
+STEP 2 Check that jobs DIM_LOAN_TYPE_VISA_NS_JOB, DIM_LOAN_TYPE_MC_NS_JOB have been appeared in your Local Repository,
+
+STEP 3 Check the main demanded parameters, namely:
+a)new source table bifrost.stg_cards_visa_cards_tab insted of STG_VISA_STG_UPPLYS_VISA_S and bifrost.stg_cards_mc_card_acc_tab insted of STG_MC_STG_UPPLYS_MCS_S1
+b)new map columns TEG_KORTS -> TYPE_ID, MARKADSHEITI_KORTS  -> TYPE_NAME 
+    and EINKENNI_KORTATEGUNDAR  -> TYPE_ID, KORTATEGUND -> TYPE_NAME
+c)Monitor sample rate setting up to 60 seconds(Right click on the job. Select "Properties". In the "Execution Options" tab, give the monitor sample rate.)
+
+STEP 4 Replace all needed datastores(if those do not for VHGTEST yet), do validate and run the job if errors do not popup.
+
+STEP 5 Check count of inserted rows or changed values of updated rows
+
+
+
+
+--for reviewer
+
+Rýni/Review new "NS" dim_customer_jobs
+Please review the BODS jobs DIM_CUSTOMER_VISA_NS_JOB, DIM_CUSTOMER_MC_NS_JOB. 
+More detailed information can be obtained from the result of Task 235855:Create and test new dim_customer_jobs.
+
+Job name: DIM_CUSTOMER_VISA_NS_JOB, DIM_CUSTOMER_MC_NS_JOB;
+Source: BIFROST.STG_CARDS_VISA_CARDS_TAB, BIFROST.STG_CARDS_MC_CARD_ACC_TAB (BIFROST.BIFROST) in the datastore:(BIFROST) (BODI spec);
+Target:  DIM_CUSTOMER_DWC_EDF(Bodi WF) -> table DIM_CUSTOMER(VALHOLL.VALHOLL)
+
+DIM_CUSTOMER_VISA_NS_JOB, DIM_CUSTOMER_MC_NS_JOB have been created and checked into Central Repository.
+Check the main demanded parameters, namely:
+a)new source table bifrost.stg_cards_visa_cards_tab insted of STG_VISA_STG_UPPLYS_VISA_S and bifrost.stg_cards_mc_card_acc_tab insted of STG_MC_STG_UPPLYS_MCS_S1
+b)new map column kennitala_reikningseiganda -> cust_id and kennitala_reikningseiganda -> kennitala in DF (Q_CUSTOMER component)
+c)Monitor sample rate setting up to 60 seconds(Right click on the job. Select "Properties". In the "Execution Options" tab, give the monitor sample rate.)
+
+It also has been tested by Nataly (Task 236936:Testing new "NS" dim_customer_jobs)
+
+

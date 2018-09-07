@@ -1,0 +1,20 @@
+--Task 235856:Create and test new dim_loan_type_jobs
+--https://tfs.isbank.is/tfs/DefaultCollection/HBL/_workitems/edit/235856
+
+/*
+
+Visa:
+Dim_loan_type_visa_ns_job. Also create new data flow and new work flow for this job.
+Source table: bifrost.stg_cards_visa_cards_tab, same column names as in old source. 
+
+MC: 
+Dim_loan_type_mc_ns_job. Also create new data flow and new work flow for this job.
+Source table: bifrost.stg_cards_mc_card_acc_tab, same column names as in old source.
+
+For both jobs: Set Monitor sample rate to 60 seconds (under Execution options in Properties.)
+
+For both jobs: Discard SCR_DIM_LOAN_TYPE_SEQ_RESET, it is obsolete.
+
+*/
+
+

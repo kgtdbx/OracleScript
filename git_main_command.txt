@@ -134,7 +134,7 @@ usage: git checkout [<options>] <branch>
 
 */
 
-
+--  (use "git checkout -- <file>..." to discard changes in working directory)
 git checkout --m git_main_command.txt
 
 --then do commit

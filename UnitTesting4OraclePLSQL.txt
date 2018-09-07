@@ -1,0 +1,11 @@
+utPLSQL: Unit Testing for Oracle PL/SQL
+
+https://www.slideshare.net/StevenFeuerstein/utplsql-unit-testing-for-oracle-plsql
+
+https://mikesmithers.wordpress.com/2016/09/25/utplsql-were-building-the-unit-tests/
+
+http://stevenfeuersteinonplsql.blogspot.com/2015/03/recommendations-for-unit-testing-plsql.html
+
+
+
+https://docs.oracle.com/cd/E15846_01/doc.21/e15222/unit_testing.htm#RPTUG45045

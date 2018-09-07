@@ -1,0 +1,25 @@
+--Task 237962:Cretae and test dim_loan_visa_ns_job
+--https://tfs.isbank.is/tfs/DefaultCollection/HBL/_workitems/edit/237962
+/*
+New job dim_loan_visa_ns_job,
+with new data flow and new work flow.
+
+The data flow from the old job can be copied and used with some adjustments:
+
+New source table bifrost.stg2_cards_visa_cards_tab instead of STG2_VISA_STG_UPPLYS_VISA_S.
+
+Source table bifrost.stg_basel_facility_id_mapping is obsolete and should not be used any more. The column facility_id in dim_loan will be left empty.
+
+Change filter in Table Comparison to: SOURCE_SYSTEM = 'VISA' and LOAN_TYPE = 'VISA', this will improve preformance.
+
+For specific Query Transforms:
+1) QT Q_stg and Q_JOINER: The columns GILDISTIMI and GILDISTIMI_INNL_AUKAHEIMILDAR are of type datetime they can be mapped directly.
+2) QT Q_EXPRESSION: In mappings, use reference_date instead of banka_keyrsludags. 
+3) QT Q_EXPRESSION: OVERDRAFT_LIMIT_EFFECTIVE_DATE <not ready yet>
+4) QT Q_BRANCH_NAME: The Distinct rows option under Select is not needed.
+
+In job, set Monitor sample rate to 300 seconds.
+
+*/
+
+

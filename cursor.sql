@@ -283,7 +283,7 @@ function GetBindings(InHostProductId in number )
   ------------------How to test------------------ 
   
 /*
-sete serveroutput on
+set serveroutput on
 variable rc refcursor;
 exec products_pak.GetProductsForAccountsCreaInd( :rc );
 print rc;
@@ -392,3 +392,89 @@ BEGIN
 END;
 /
 ------------------------------------------
+--test sys refcursor----
+--type in spec of package 
+Type cuForeignPaymentsSearch is ref cursor;
+
+-- procedure in body
+PROCEDURE pGetForeignPaymentsSearch 
+  ( 
+    IdDateFrom              IN    DATE,
+    IdDateTo                IN    DATE,
+    IvCurrency              IN    VARCHAR2,
+    IvStatus                IN    VARCHAR2,
+    InForeignAmountFrom     IN    NUMBER,
+	InForeignAmountTo       IN    NUMBER,
+    IvPayerSSN              IN    VARCHAR2,
+    IvSearchText            IN    VARCHAR2,
+    IvOrderColumn           IN    VARCHAR2,
+    IvOrderAscending        IN    VARCHAR2, 
+    InFirstRowNumber        IN    NUMBER,
+    InLastRowNumber         IN    NUMBER,
+    OnErrorNumber           OUT   NUMBER,
+    OvErrorMessage          OUT   VARCHAR2,
+    OcuForeignPayments      OUT   cuForeignPaymentsSearch
+  ) is
+ orderColumn VARCHAR2(50):='I.DAGS_SKRAD';
+begin
+
+    CASE IvOrderColumn
+        WHEN 'SendDt'  THEN orderColumn:='DAGS_SKRAD';
+        WHEN 'CostAmt' THEN orderColumn:='KOSTNADUR';
+        WHEN 'CurrencyCd' THEN orderColumn:='MYNT';
+        WHEN 'ForeignAmt' THEN orderColumn:='ERLEND_FJARHAED';
+        WHEN 'RecipientName' THEN orderColumn:='NAFN_VIDTAKANDA';
+        WHEN 'StatusCd' THEN orderColumn:='STADA';
+        ELSE orderColumn:='I.DAGS_SKRAD'; --SendDt
+    END CASE;
+
+      OPEN OcuForeignPayments FOR
+        WITH ResultList
+            AS( 
+                SELECT  TRUNC(I.DAGS_SKRAD) DAGS_SKRAD,
+                        EG.BUNKANUMER,
+                        EG.LINUNUMER,
+                        EG.MYNT,
+                        EG.ERLEND_FJARHAED,
+                        EG.KOSTNADUR, 
+                        EG.MYNT_GREIDANDA, 
+                        EG.GENGI_FYRIR_SKULDFAERSLU,
+                        EG.NAFN_VIDTAKANDA,
+                        decode(EG.GENGI,1,EG.GENGI_FYRIR_SKULDFAERSLU,EG.GENGI) GENGI,
+                        EG.STADA,
+                        TRUNC(EG.DAGS_FRAMKV) DAGS_FRAMKV, 
+                        (EG.BANKI_GREIDANDA || '-' || EG.HOFUDBOK_GREIDANDA || '-' || EG.REIKNINGSNUMER_GREIDANDA) AS UTREIKNINGUR,
+                        nvl(EG.ISLENSK_UPPHAED,(EG.ERLEND_FJARHAED*decode(EG.GENGI,1,EG.GENGI_FYRIR_SKULDFAERSLU,EG.GENGI))) ISK_FJARHAED,
+                        I.STADA AS INNTAK_STADA, 
+                        I.notandi, 
+                        EG.upphaed_greidanda, 
+                        EG.AUDKENNI_I_IBAS,
+                        ROWNUM as rn
+                FROM
+                    SKJALINA.ERLEND_GREIDSLA EG, SKJALINA.INNTAK I
+                WHERE
+                    EG.BUNKANUMER = I.BUNKANUMER AND 
+                    EG.kennitala_greidanda = IvPayerSSN AND 
+                    I.DAGS_SKRAD between IdDateFrom AND IdDateTo+1 AND
+                    EG.MYNT = NVL(IvCurrency,EG.MYNT) AND
+                    EG.STADA = NVL(IvStatus,EG.STADA) AND
+                    EG.ERLEND_FJARHAED >= NVL(InForeignAmountFrom,EG.ERLEND_FJARHAED) AND
+                    EG.ERLEND_FJARHAED <= NVL(InForeignAmountTo,EG.ERLEND_FJARHAED) 
+                ORDER BY
+                    orderColumn DESC, I.DAGS_SKRAD DESC,EG.NAFN_VIDTAKANDA,EG.ERLEND_FJARHAED) 
+     SELECT t.*, (Select count(1) from ResultList) RowsCount
+        FROM  ResultList t
+     where t.rn BETWEEN InFirstRowNumber AND InLastRowNumber;          
+end;
+
+
+--test
+set serveroutput on
+variable    rc refcursor;
+variable    ONERRORNUMBER NUMBER;
+variable    OVERRORMESSAGE VARCHAR2(200);
+
+exec SKJALINA.FOREIGNPAYMENTS.PGETFOREIGNPAYMENTSSEARCH(date'2002-07-01',date'2012-08-01',null,null,null,null,'4406861259',null,NULL,NULL,1,100,:ONERRORNUMBER,:OVERRORMESSAGE,:rc );
+print rc;
+
+--

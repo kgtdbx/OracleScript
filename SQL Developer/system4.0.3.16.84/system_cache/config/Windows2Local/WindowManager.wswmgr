@@ -3,10 +3,10 @@
 <windowmanager version="2.1">
     <main-window>
   <joined-properties
-   x="3589"
-   y="76"
-   width="1936"
-   height="1056"
+   x="3983"
+   y="171"
+   width="1440"
+   height="774"
    relative-x="0.0"
    relative-y="0.0"
    relative-width="0.0"
@@ -33,8 +33,8 @@
   </main-window>
     <editor-area state="joined" frame-state="0">
   <constraints>
-  <path orientation="horizontal" number="60" weight="0.7371995820271683" />
-  <path orientation="vertical" number="40" weight="0.8002148227712137" />
+  <path orientation="horizontal" number="60" weight="0.8" />
+  <path orientation="vertical" number="40" weight="0.7" />
   </constraints>
   <bounds x="528" y="206" width="672" height="378" />
     </editor-area>
@@ -42,13 +42,6 @@
     <active-mode name="editor"/>
     <toolbar configuration="Standard" preferred-icon-size="24"/>
     <tc-list>
-  <tc-id id="EditorContainer_6"/>
-  <tc-id id="NBDC_DatabaseNavigatorWindow.Default"/>
-  <tc-id id="EditorContainer"/>
-  <tc-id id="NBDC_ReportNavigatorWindow.DatabaseReports"/>
-  <tc-id id="EditorContainer_1"/>
-  <tc-id id="NBDC_LogWindow.Log"/>
-  <tc-id id="NBDC_SQLHISTORY_VIEW_TYPE.SQLHISTORY_VIEW_ID"/>
-  <tc-id id="NBDC_DBMS_OUTPUT_DOCKABLE_VIEW_TYPE.DBMS_OUTPUT_DOCKABLE_VIEW_ID"/>
+  <tc-id id="EditorContainer_2"/>
     </tc-list>
 </windowmanager>

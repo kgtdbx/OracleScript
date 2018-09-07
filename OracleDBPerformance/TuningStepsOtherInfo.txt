@@ -23,3 +23,230 @@ Advanced steps to identify performance problems on your Oracle Database
 – See if large-table full-table scans can be removed with well-placed indexes
 
 – Look for non-shared cursors
+
+
+
+---------------------------------------------
+
+
+dbms_xplan
+AWR+ASH
+SQLTrace+TKProof
+SQL Monitor
+
+
+SQL Tuning 101
+SQL Tuning 101 
+The three pillars of SQL Tuning: Diagnostics Collection, Root Cause Analysis and Remediation Carlos Sierra
+
+Agenda 
+• Motivation 
+• Methodology – Diagnostics Collection – Root Cause Analysis – Remediation 
+• Some Important Topics – Execution Plan – Cost-based Optimizer – Plan Stability 
+• Free Tools
+
+Motivation 
+• One bad SQL can degrade overall DB performance! 
+• SQL Tuning is: – A Complex Task – Part Science and part Art – The Responsibility of WHO? 
+• DBA? • Developer? 
+• Oracle? 
+• Application Vendor?
+
+Methodology The three pillars of SQL Tuning 
+1. Good Practices 
+2. Diagnostics Collection 
+3. Root Cause Analysis (RCA) 
+4. Remediation
+
+I. Good Practices 
+• The forgotten pillar of SQL Tuning 
+• Quid pro Quo (e.g. This for That or Give and Take) – Be nice to the CBO and the CBO will be nice to you 
+• A healthy environment requires less SQL Tuning • A win-win! • Except for Consultants like myself!
+Some Good Practices 
+• Start with a modern and solid database release 
+• Reset all CBO related parameters (and some more) 
+• Gather CBO Statistics as per Application or Product – Automatic task does a decent job on 11.2.0.4+ 
+• Write reasonable SQL – Use the product as designed and avoid weird SQL – If SQL is too long or too complex the CBO will struggle
+
+Partial list of Parameters to Reset 
+• optimizer_features_enable 
+• optimizer_index_cost_adj 
+• optimizer_index_caching 
+• db_file_multiblock_read_count (not CBO exclusive) 
+• cursor_sharing (not an optimizer parameter) 
+• optimizer_dynamic_sampling 
+• optimizer_mode
+
+II. Diagnostics Collection 
+a) Identify SQL_ID 
+b) Use Oracle-product base Tools 
+c) Supplement with specialized Tools
+II.a Identify SQL_ID 
+• Oracle Enterprise Manager (OEM) – [ OEM] [ Database | Grid | Cloud ] Control 
+• Automatic Workload Repository (AWR) 
+• Statspack (SP) 
+• SQL Trace (and TKPROF) 
+• V$ dynamic views (e.g. V$SQL and V$SESSION)
+ II.b Oracle-product base Tools 
+ • SQL Trace (and TKPROF) 
+ • Active Session History (ASH) 
+ • EXPLAIN PLAN FOR 
+ • AUTOTRACE 
+ • SQL Developer 
+ • DBMS_XPLAN 
+ • SQL Monitor
+ 
+ SQL Trace 
+ • ALTER SESSION SET – SQL_TRACE = [ TRUE | FALSE ] – EVENTS ‘10046 trace name context forever, level N’ 
+ • N = 1: all executions (10g-) or 1st execution (11g+) 
+ • N = 4: Binds 
+ • N = 8: Waits 
+ • N = 12 = 4 + 8 
+ • N = 16: each execution (11g+) 
+ • N = 64: 1st + each where DB time > 1min (11.2.0.2+)
+ Where is my Trace? 
+ • V$DIAG_INFO (11.1+) 
+ • USER_DUMP_DEST (deprecated 12c)
+ TKPROF: SQL Text and DB Calls
+ TKPROF: Execution Plan and Wait Events
+
+
+EXPLAIN PLAN FOR 
+• Actual SQL is not executed 
+• Blind to Bind Peeking, thus unreliable with Binds
+SET AUTOTRACE ON 
+•Actual SQL is executed 
+• Includes small subset of Session Statistics
+
+SQL Trace vs. ASH 
+Pros 
+• Precise 
+• Free 
+Pros 
+• Always available 
+• Multi-dimensional repository 
+• Plan line granularity (11g+) 
+Cons 
+• Re-execute transaction 
+• Waits per cursor 
+    – No plan line granularity 
+Cons 
+• Requires Diagnostics Pack
+
+
+Active Session History (ASH) 
+• 1 sec snapshots of V$SESSION 
+• Every 10 ASH samples into AWR (10 sec granularity) 
+• Sessions “ON CPU” or “WAITING” (non-idle) 
+• Multiple Dimensions 
+• Excellent repository for performance data mining 
+• Requires Oracle Diagnostics Pack!
+
+
+SQL Monitor 
+• Part of the Oracle Tuning Pack 
+• Tabular and Graphical Execution Plan •
+ Timeline per Plan Line 
+ • Binds and Predicates 
+ • Nice and intuitive 
+ • Executed from OEM or SQL*Plus
+
+
+SQLTXPLAIN(a.k.a. SQLT)
+    --My Oracle Support(MOS) 215187.1
+SQLHC
+    --MOS 1366133.1
+SQLd360
+    --by Mauro Pagano
+    
+    
+Typical Steps 
+1. Find where the time is spent (plan line) 
+    – Too many executions or too much time per exec? 
+2. Validate estimated rows versus actual rows 
+    – If off determine why (deficient statistics maybe?) 
+3. What is the history of this SQL? 
+    – Can you find a better performing plan? 
+4. Can you make perfect sense of the SQL and plan?
+
+IV. Remediation 
+• Explore multiple possibilities 
+    – And try to prove yourself wrong! 
+• Implement the smallest-scope fix 
+    – Avoid system-wide changes unless you are rock solid! 
+• Avoid guesses and assumptions (piñata method) 
+    – Too many people out there are “tuning” blind-folded! 
+• Trust nobody! (be skeptic and test thoroughly)
+
+
+Three Important Topics 
+1. Execution Plan 
+2. Cost-based Optimizer 
+3. Plan Stability
+
+1. Execution Plan 
+• If you do not understand the SQL or the Execution Plan stop right there! 
+• From SQL text you can draw a diagram if that helps 
+• To understand the Execution Plan start small 
+    – Review a two-tables query and review plan 
+    – Move to a three-tables query and review plan 
+    – Introduce subqueries and more complex constructions
+
+2. Cost-based Optimizer 
+• CBO was released on 7.3 (circa February 1996) 
+• A large and complex piece of software enhanced for two decades 
+• By design the CBO produces an optimal execution plan according to some representation of the data 
+    – This means: execution plans are expected to change! – Breathe deep and embrace the change!
+
+3. Plan Stability 
+• Most DBAs hate Execution Plan changes 
+    – They never hear of changes for the better! 
+• To remediate undesired plan changes we do have several Plan Stability techniques 
+    – SQL Plan Management (Baselines) from 11g 
+    – SQL Profiles from 10g 
+    – Deprecated Stored Outlines from 9i 
+    – And then some others (SQL Patches and CBO Hints)
+    
+Popular Free Diagnostics Tools 
+• SQLTXPLAIN 
+• SQLHC 
+• SQLd360 
+• Stand-alone scripts
+
+
+SQLTXPLAIN
+SQLd360
+SQLd360 Plan Tree
+
+SQLT XPLAIN vs. SQLd360 
+Pros 
+• Oracle Support Standard 
+• Free (requires MOS account) 
+• Comprehensive and mature 
+
+Pros 
+• Free Software (no strings) 
+• Installs nothing on database 
+• Graphical visualization of data 
+Cons 
+• Requires installation 
+• HTML Tables (no charts) 
+Cons 
+• Still young (frequent releases)
+
+SQL Tuning Road Map 
+1. Start with a clean and healthy environment 
+2. Identify SQL_ID 
+3. Collect diagnostics using comprehensive tools 
+4. Spend time analyzing diagnostics collected 
+5. Determine root cause 
+6. Explore remediation actions 
+7. Test and implement solution
+
+
+Questions
+The End • http://carlos-sierra.net/ 
+    – Blog and downloads 
+• carlos.sierra.usa@gmail.com 
+    – Questions and follow-up 
+• SQL Tuning is more about understanding what your eyes see at first

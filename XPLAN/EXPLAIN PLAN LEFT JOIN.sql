@@ -120,3 +120,28 @@ select t.*
           where sql_text like 'select prod_category%') pb,
          table(dbms_xplan.display_sql_plan_baseline(pb.sql_handle,
                                                     null,'basic')) t;
+
+                                                    
+                                                    
+                                                    -----------dbms_xplan------------
+DISPLAY
+DISPLAY_CURSOR
+DISPLAY_AWR
+DISPLAY_SQL_PLAN_BASELINE
+DISPLAY_SQL_SET
+
+
+SELECT * FROM TABLE(dbms_xplan.display%());
+
+DBMS_XPLAN.DISPLAY_CURSOR 
+• SQL_ID 
+• CURSOR_CHILD_NO (defaults to 0!) 
+• FORMAT 
+    – TYPICAL = DEFAULT 
+    – ALL = TYPICAL + QB + PROJECTION + ALIAS + REMOTE 
+    – ADVANCED = ALL + OUTLINE + BINDS 
+    – ALLSTATS = IOSTATS + MEMSTATS (all executions) 
+    – ALLSTATS LAST (last execution) 
+    – ADAPTIVE (12c)
+    
+    

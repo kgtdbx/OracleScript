@@ -475,4 +475,36 @@ exec SKJALINA.FOREIGNPAYMENTS.PGETFOREIGNPAYMENTSSEARCH(date'2002-07-01',date'20
 print rc;
  
 --
+--for sql developer
+set serveroutput on
+DECLARE
+    orderColumn VARCHAR2(50):='I.DAGS_SKRAD';
+    IvOrderColumn VARCHAR2(50):='CurrencyCd';       
+    IvOrderAscending VARCHAR2(50):='ACS';   
+    rc sys_refcursor;
+BEGIN 
+ CASE IvOrderColumn
+        WHEN 'SendDt'  THEN orderColumn:='DAGS_SKRAD';
+        WHEN 'CostAmt' THEN orderColumn:='KOSTNADUR';
+        WHEN 'CurrencyCd' THEN orderColumn:='MYNT';
+        WHEN 'ForeignAmt' THEN orderColumn:='ERLEND_FJARHAED';
+        WHEN 'RecipientName' THEN orderColumn:='NAFN_VIDTAKANDA';
+        WHEN 'StatusCd' THEN orderColumn:='STADA';
+        ELSE orderColumn:='I.DAGS_SKRAD'; --SendDt
+    END CASE;
+    --orderColumn:= orderColumn || ' ' || IvOrderAscending;
+   --DBMS_OUTPUT.put_line(
+   open rc for
+   'SELECT EG.BUNKANUMER , EG.LINUNUMER , EG.KENNITALA_GREIDANDA , EG.NAFN_GREIDANDA,
+         EG.HEIMILI_GREIDANDA_1 , EG.HEIMILI_GREIDANDA_2 , EG.HEIMILI_GREIDANDA_3 ,
+         EG.MYNT,
+         EG.ERLEND_FJARHAED  
+          FROM
+         SKJALINA.ERLEND_GREIDSLA EG
+         WHERE  EG.kennitala_greidanda = ''5811110450''
+         Order By ' ||orderColumn;
+    dbms_sql.return_result(rc);
+END;
 
+
+--

@@ -1,3 +1,24 @@
+function is_source_ready(ip_object_name varchar2, ip_owner varchar2 default 'DEPOSITS')
+    return varchar2
+    is
+        cur_data sys_refcursor;
+        --TYPE is_empty_tt IS TABLE OF VARCHAR2(1 CHAR);
+        --l_is_empty is_empty_tt;
+        l_is_empty varchar2(1 CHAR);
+      begin
+        open cur_data for 'select /*+ FIRST_ROWS(1) */ ''T''
+                              from  '||ip_object_name||
+                           ' where  1=1
+                               AND  ROWNUM < 2';
+        --loop 
+            fetch cur_data into l_is_empty;
+            --EXIT WHEN cur_data%NOTFOUND;
+        --end loop;
+        close cur_data;
+        return nvl(l_is_empty,'F');
+   end;
+
+
 Another possibility is to declare and define a Record Type object to be a container for your query results. This could be useful if the query is a JOIN query, returning columns from several joined tables.
 
 SQL> create or replace procedure p1 is
@@ -23,6 +44,8 @@ SQL> create or replace procedure p1 is
          END LOOP;
      end;
 NOTE: You could use the above technique on a dynamically constructed SQL query statement by substituting 'select deptno,ename,job from emp' with a variable such as v_sql and update this variable with the SQL statement within the body of the procedure.
+
+
 
 
 --*****************************************

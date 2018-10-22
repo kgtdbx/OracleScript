@@ -1,0 +1,442 @@
+Top 65 PL/SQL Interview Questions & Answers
+--https://www.guru99.com/pl-sql-interview-questions-answers.html
+1) What is PL SQL ?
+
+PL SQL is a procedural language which has interactive SQL, as well as procedural programming language constructs like conditional branching and iteration.
+
+2) Differentiate between % ROWTYPE and TYPE RECORD.
+
+% ROWTYPE is used when a query returns an entire row of a table or view.
+
+TYPE RECORD, on the other hand, is used when a query returns column of different tables or views.
+
+Eg. TYPE r_emp is RECORD (sno smp.smpno%type,sname smp sname %type)
+
+e_rec smp %ROWTYPE
+
+Cursor c1 is select smpno,dept from smp;
+
+e_rec c1 %ROWTYPE
+
+3) Explain uses of cursor.
+
+Cursor is a named private area in SQL from which information can be accessed. They are required to process each row individually for queries which return multiple rows.
+
+4) Show code of a cursor for loop.
+
+Cursor declares %ROWTYPE as loop index implicitly. It then opens a cursor, gets rows of values from the active set in fields of the record and shuts when all records are processed.
+
+Eg. FOR smp_rec IN C1 LOOP
+
+totalsal=totalsal+smp_recsal;
+
+ENDLOOP;
+
+
+
+5) Explain the uses of database trigger.
+
+A PL/SQL program unit associated with a particular database table is called a database trigger. It is used for :
+
+1) Audit data modifications.
+
+2) Log events transparently.
+
+3) Enforce complex business rules.
+
+4) Maintain replica tables
+
+5) Derive column values
+
+6) Implement Complex security authorizations
+
+6) What are the two types of exceptions.
+
+Error handling part of PL/SQL block is called Exception. They have two types : user_defined and predefined.
+
+7) Show some predefined exceptions.
+
+DUP_VAL_ON_INDEX
+
+ZERO_DIVIDE
+
+NO_DATA_FOUND
+
+TOO_MANY_ROWS
+
+CURSOR_ALREADY_OPEN
+
+INVALID_NUMBER
+
+INVALID_CURSOR
+
+PROGRAM_ERROR
+
+TIMEOUT _ON_RESOURCE
+
+STORAGE_ERROR
+
+LOGON_DENIED
+
+VALUE_ERROR
+
+etc.
+
+8) Explain Raise_application_error.
+
+It is a procedure of package DBMS_STANDARD that allows issuing of user_defined error messages from database trigger or stored sub-program.
+
+9) Show how functions and procedures are called in a PL SQL block.
+
+Function is called as a part of an expression.
+
+total:=calculate_sal('b644')
+
+Procedure is called as a statement in PL/SQL.
+
+calculate_bonus('b644');
+
+10) Explain two virtual tables available at the time of database trigger execution.
+
+Table columns are referred as THEN.column_name and NOW.column_name.
+
+For INSERT related triggers, NOW.column_name values are available only.
+
+For DELETE related triggers, THEN.column_name values are available only.
+
+For UPDATE related triggers, both Table columns are available.
+
+11) What are the rules to be applied to NULLs whilst doing comparisons?
+
+1) NULL is never TRUE or FALSE
+
+2) NULL cannot be equal or unequal to other values
+
+3) If a value in an expression is NULL, then the expression itself evaluates to NULL except for concatenation operator (||)
+
+12) How is a process of PL SQL compiled?
+
+Compilation process includes syntax check, bind and p-code generation processes.
+
+Syntax checking checks the PL SQL codes for compilation errors. When all errors are corrected, a storage address is assigned to the variables that hold data. It is called Binding. P-code is a list of instructions for the PL SQL engine. P-code is stored in the database for named blocks and is used the next time it is executed.
+
+13) Differentiate between Syntax and runtime errors.
+
+A syntax error can be easily detected by a PL/SQL compiler. For eg, incorrect spelling.
+
+A runtime error is handled with the help of exception-handling section in an PL/SQL block. For eg, SELECT INTO statement, which does not return any rows.
+
+14) Explain Commit, Rollback and Savepoint.
+
+For a COMMIT statement, the following is true:
+
+Other users can see the data changes made by the transaction.
+The locks acquired by the transaction are released.
+The work done by the transaction becomes permanent.
+A ROLLBACK statement gets issued when the transaction ends, and the following is true.
+
+The work done in a transition is undone as if it was never issued.
+All locks acquired by transaction are released.
+It undoes all the work done by the user in a transaction. With SAVEPOINT, only part of transaction can be undone.
+
+15) Define Implicit and Explicit Cursors.
+
+A cursor is implicit by default. The user cannot control or process the information in this cursor.
+
+If a query returns multiple rows of data, the program defines an explicit cursor. This allows the application to process each row sequentially as the cursor returns it.
+
+16) Explain mutating table error.
+
+It occurs when a trigger tries to update a row that it is currently using. It is fixed by using views or temporary tables, so database selects one and updates the other.
+
+17) When is a declare statement required?
+
+DECLARE statement is used by PL SQL anonymous blocks such as with stand alone, non-stored procedures. If it is used, it must come first in a stand alone file.
+
+18) How many triggers can be applied to a table?
+
+A maximum of 12 triggers can be applied to one table.
+
+19) What is the importance of SQLCODE and SQLERRM?
+
+SQLCODE returns the value of the number of error for the last encountered error whereas SQLERRM returns the message for the last error.
+
+20) If a cursor is open, how can we find in a PL SQL Block?
+
+the %ISOPEN cursor status variable can be used.
+
+21) Show the two PL/SQL cursor exceptions.
+
+Cursor_Already_Open
+
+Invaid_cursor
+
+22) What operators deal with NULL?
+
+NVL converts NULL to another specified value.
+
+var:=NVL(var2,'Hi');
+
+IS NULL and IS NOT NULL can be used to check specifically to see whether the value of a variable is NULL or not.
+
+23) Does SQL*Plus also have a PL/SQL Engine?
+
+No, SQL*Plus does not have a PL/SQL Engine embedded in it. Thus, all PL/SQL code is sent directly to database engine. It is much more efficient as each statement is not individually stripped off.
+
+24) What packages are available to PL SQL developers?
+
+DBMS_ series of packages, such as, DBMS_PIPE, DBMS_DDL, DBMS_LOCK, DBMS_ALERT, DBMS_OUTPUT, DBMS_JOB, DBMS_UTILITY, DBMS_SQL, DBMS_TRANSACTION, UTL_FILE.
+
+25) Explain 3 basic parts of a trigger.
+
+A triggering statement or event.
+A restriction
+An action
+26) What are character functions?
+
+INITCAP, UPPER, SUBSTR, LOWER and LENGTH are all character functions. Group functions give results based on groups of rows, as opposed to individual rows. They are MAX, MIN, AVG, COUNT and SUM.
+
+27) Explain TTITLE and BTITLE.
+
+TTITLE and BTITLE commands that control report headers and footers.
+
+28) Show the cursor attributes of PL/SQL.
+
+%ISOPEN : Checks if the cursor is open or not
+
+%ROWCOUNT : The number of rows that are updated, deleted or fetched.
+
+%FOUND : Checks if the cursor has fetched any row. It is true if rows are fetched
+
+%NOT FOUND : Checks if the cursor has fetched any row. It is True if rows are not fetched.
+
+29) What is an Intersect?
+
+Intersect is the product of two tables and it lists only matching rows.
+
+30) What are sequences?
+
+Sequences are used to generate sequence numbers without an overhead of locking. Its drawback is that the sequence number is lost if the transaction is rolled back.
+
+31) How would you reference column values BEFORE and AFTER you have inserted and deleted triggers?
+
+Using the keyword "new.column name", the triggers can reference column values by new collection. By using the keyword "old.column name", they can reference column vaues by old collection.
+
+32) What are the uses of SYSDATE and USER keywords?
+
+SYSDATE refers to the current server system date. It is a pseudo column. USER is also a pseudo column but refers to current user logged onto the session. They are used to monitor changes happening in the table.
+
+33) How does ROWID help in running a query faster?
+
+ROWID is the logical address of a row, it is not a physical column. It composes of data block number, file number and row number in the data block. Thus, I/O time gets minimized retrieving the row, and results in a faster query.
+
+34) What are database links used for?
+
+Database links are created in order to form communication between various databases, or different environments like test, development and production. The database links are read-only to access other information as well.
+
+35) What does fetching a cursor do?
+
+Fetching a cursor reads Result Set row by row.
+
+36) What does closing a cursor do?
+
+Closing a cursor clears the private SQL area as well as de-allocates memory
+
+37) Explain the uses of Control File.
+
+It is a binary file. It records the structure of the database. It includes locations of several log files, names and timestamps. They can be stored in different locations to help in retrieval of information if one file gets corrupted.
+
+38) Explain Consistency
+
+Consistency shows that data will not be reflected to other users until the data is commit, so that consistency is maintained.
+
+39) Differ between Anonymous blocks and sub-programs.
+
+Anonymous blocks are unnamed blocks that are not stored anywhere whilst sub-programs are compiled and stored in database. They are compiled at runtime.
+
+40) Differ between DECODE and CASE.
+
+DECODE and CASE statements are very similar, but CASE is extended version of DECODE. DECODE does not allow Decision making statements in its place.
+
+select decode(totalsal=12000,'high',10000,'medium') as decode_tesr from smp where smpno in (10,12,14,16);
+
+This statement returns an error.
+
+CASE is directly used in PL SQL, but DECODE is used in PL SQL through SQL only.
+
+41) Explain autonomous transaction.
+
+An autonomous transaction is an independent transaction of the main or parent transaction. It is not nested if it is started by another transaction.
+
+There are several situations to use autonomous transactions like event logging and auditing.
+
+42) Differentiate between SGA and PGA.
+
+SGA stands for System Global Area whereas PGA stands for Program or Process Global Area. PGA is only allocated 10% RAM size, but SGA is given 40% RAM size.
+
+43) What is the location of Pre_defined_functions.
+
+They are stored in the standard package called "Functions, Procedures and Packages"
+
+44) Explain polymorphism in PL SQL.
+
+Polymorphism is a feature of OOP. It is the ability to create a variable, an object or function with multiple forms. PL/SQL supports Polymorphism in the form of program unit overloading inside a member function or package..Unambiguous logic must be avoided whilst overloading is being done.
+
+45) What are the uses of MERGE?
+
+MERGE is used to combine multiple DML statements into one.
+
+Syntax : merge into tablename
+
+using(query)
+
+on(join condition)
+
+when not matched then
+
+[insert/update/delete] command
+
+when matched then
+
+[insert/update/delete] command
+
+46) Can 2 queries be executed simultaneously in a Distributed Database System?
+
+Yes, they can be executed simultaneously. One query is always independent of the second query in a distributed database system based on the 2 phase commit.
+
+47) Explain Raise_application_error.
+
+It is a procedure of the package DBMS_STANDARD that allow issuing a user_defined error messages from the database trigger or stored sub-program.
+
+48) What is out parameter used for eventhough return statement can also be used in pl/sql?
+
+Out parameters allows more than one value in the calling program. Out parameter is not recommended in functions. Procedures can be used instead of functions if multiple values are required. Thus, these procedures are used to execute Out parameters.
+
+49) How would you convert date into Julian date format?
+
+We can use the J format string :
+
+SQL > select to_char(to_date('29-Mar-2013','dd-mon-yyyy'),'J') as julian from dual;
+
+JULIAN
+
+50) Explain SPOOL
+
+Spool command can print the output of sql statements in a file.
+
+spool/tmp/sql_outtxt
+
+select smp_name, smp_id from smp where dept='accounts';
+
+spool off;
+
+51) Mention what PL/SQL package consists of?
+
+A PL/SQL package consists of
+
+PL/SQL table and record TYPE statements
+Procedures and Functions
+Cursors
+Variables ( tables, scalars, records, etc.) and constants
+Exception names and pragmas for relating an error number with an exception
+Cursors
+52) Mention what are the benefits of PL/SQL packages?
+
+It provides several benefits like
+
+Enforced Information Hiding: It offers the liberty to choose whether to keep data private or public
+Top-down design: You can design the interface to the code hidden in the package before you actually implemented the modules themselves
+Object persistence: Objects declared in a package specification behaves like a global data for all PL/SQL objects in the application. You can modify the package in one module and then reference those changes to another module
+Object oriented design: The package gives developers strong hold over how the modules and data structures inside the package can be used
+Guaranteeing transaction integrity: It provides a level of transaction integrity
+Performance improvement: The RDBMS automatically tracks the validity of all program objects stored in the database and enhance the performance of packages.
+53) Mention what are different methods to trace the PL/SQL code?
+
+Tracing code is a crucial technique to measure the code performance during the runtime. Different methods for tracing includes
+
+DBMS_APPLICATION_INFO
+DBMS_TRACE
+DBMS_SESSION and DBMS_MONITOR
+trcsess and tkproof utilities
+54) Mention what does the hierarchical profiler does?
+
+The hierarchical profiler could profile the calls made in PL/SQL, apart from filling the gap between the loopholes and the expectations of performance tracing. The efficiencies of the hierarchical profiler includes
+
+Distinct reporting for SQL and PL/SQL time consumption
+Reports count of distinct sub-programs calls made in the PL/SQL, and the time spent with each subprogram call
+Multiple interactive analytics reports in HTML format by using the command line utility
+More effective than conventional profiler and other tracing utilities
+55) Mention what does PLV msg allows you to do?
+
+The PLV msg enables you to
+
+Assign individual text message to specified row in the PL/SQL table
+It retrieves the message text by number
+It substitutes automatically your own messages for standard Oracle error messages with restrict toggle
+Batch load message numbers and text from a database table directly PLV msg PL/SQL table
+56) Mention what is the PLV (PL/Vision) package offers?
+
+Null substitution value
+Set of assertion routines
+Miscellaneous utilities
+Set of constants used throughout PL vision
+Pre-defined datatypes
+57) Mention what is the use of PLVprs and PLVprsps?
+PLVprs: It is an extension for string parsing for PL/SQL, and it is the lowest level of string parsing functionality
+PLVprsps: It is the highest level package to parse PL/SQL source code into separate atomics. It relies on other parsing packages to get work done.
+58) Explain how you can copy a file to file content and file to PL/SQL table in advance PL/SQL?
+
+With a single program call - "fcopy procedure", you can copy the complete contents of one file into another file. While to copy the contents of a file directly into a PL/SQL table, you can use the program "file2pstab".
+
+59) Explain how exception handling is done in advance PL/SQL?
+
+For exception handling PL/SQl provides an effective plugin PLVexc. PLVexc supports four different exception handling actions.
+
+Continue processing
+Record and then continue
+Halt processing
+Record and then halt processing
+For those exceptions that re-occurs you can use the RAISE statement.
+
+60) Mention what problem one might face while writing log information to a data-base table in PL/SQL?
+
+While writing log information to a database table, the problem you face is that the information is only available only once the new rows are committed to the database. This might be a problem as such PLVlog is usually deployed to track errors and in many such instances the current transaction would fail or otherwise needed a rollback.
+
+61) Mention what is the function that is used to transfer a PL/SQL table log to a database table?
+
+To transfer a PL/SQL table log a database log table function "PROCEDURE ps2db" is used.
+
+62) When you have to use a default "rollback to" savepoint of PLVlog?
+
+The default "rollback to" savepoint of PLVlog is used when the users has turned on the rollback activity and has not provided an alternative savepoint in the call to put_line. The default savepoint is initialized to the c none constant.
+
+63) Why PLVtab is considered as the easiest way to access the PL/SQL table?
+
+The PL/SQL table are the closest to arrays in PL/SQL, and in order to access this table you have to first declare a table type, and then you have to declare PL/SQL table itself. But by using PLVtab, you can avoid defining your own PL/SQL table type and make PL/SQL data-table access easy.
+
+64) Mention what does PLVtab enables you to do when you showthe contents of PL/SQL tables?
+
+PLVtab enables you to do following things when you show the contents of PL/SQL tables
+
+Display or suppress a header for the table
+Display or suppress the row numbers for the table values
+Show a prefix before each row of the table
+65) Explain how can you save or place your msg in a table?
+
+To save msg in a table, you can do it in two ways
+
+Load individual messages with calls to the add_text procedure
+Load sets of messages from a database table with the load_from_dbms procedure
+66) Mention what is the use of function "module procedure" in PL/SQL?
+
+The "module procedure" enables to convert all the lines of code in a definite program unit with one procedure call. There are three arguments for modules
+
+module_in
+cor_in
+Last_module_in
+67) Mention what PLVcmt and PLVrb does in PL/SQL?
+
+PL/Vision offers two packages that help you manage transaction processing in PL/SQL application. It is PLVcmt and PLVrb.
+
+PLVcmt: PLVcmt package wraps logic and complexity for dealing with commit processing
+PLVrb: It provides a programmatic interface to roll-back activity in PL/SQL

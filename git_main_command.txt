@@ -148,7 +148,7 @@ To commit changes and automatically add modified files (doesn't add new files)
 git commit -am "commit message"
 */
 
-git commit -am "update from IS 20180813"
+git commit -am "update from IS 20180907"
 
 --pull the changes from remote repo
 git pull OracleScript master

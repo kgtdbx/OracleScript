@@ -62,7 +62,8 @@ How Partial Indexing helps you save space in #Oracle 12c
 
 partial
 
-Over time certain partitions may become less popular. In 12c, you don’t have to index these partitions anymore! This can save huge amounts of space and is one of the best 12c New Features in my opinion. Really a big deal if you are working with range partitioned tables where the phenomenon of old ranges becoming unpopular is very common. Let’s have a look, first at the problem:
+Over time certain partitions may become less popular. In 12c, you don’t have to index these partitions anymore! This can save huge amounts of space and is one of the best 12c New Features in my opinion. 
+Really a big deal if you are working with range partitioned tables where the phenomenon of old ranges becoming unpopular is very common. Let’s have a look, first at the problem:
 
 SQL> select segment_name,partition_name ,bytes/1024/1024 from user_segments 
      where segment_name like '%OLD';   

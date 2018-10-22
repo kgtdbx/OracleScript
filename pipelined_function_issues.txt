@@ -1,21 +1,25 @@
 pipelined function issues
 http://www.oracle-developer.net/display.php?id=423
 
-Pipelined functions have been available in Oracle for several versions (and years) since 9i Release 1 and there are several related articles on oracle-developer.net. This latest article summarises some of the issues we might encounter when using pipelined functions in our applications.
+Pipelined functions have been available in Oracle for several versions (and years) since 9i Release 1 and there are several related articles on oracle-developer.net. 
+This latest article summarises some of the issues we might encounter when using pipelined functions in our applications.
 
 Readers wishing to familiarise themselves with pipelined functions should read this oracle-developer.net article which provides all the necessary background to understanding the issues presented below.
 
 issue 1: parallel pipelined functions and cursor variables
 
-One of the major benefits of pipelined functions is that they can be parallelised. This means that Oracle's parallel query mechanism can be exploited to execute PL/SQL code in parallel, providing excellent performance gains. For a pipelined function to be parallel-enabled, however, it must take its source dataset from a ref cursor parameter (rather than have a static cursor defined inside the PL/SQL). Such a function would be used as follows (in pseudo-code):
+One of the major benefits of pipelined functions is that they can be parallelised. This means that Oracle's parallel query mechanism can be exploited to execute PL/SQL code in parallel, providing excellent performance gains. 
+For a pipelined function to be parallel-enabled, however, it must take its source dataset from a ref cursor parameter (rather than have a static cursor defined inside the PL/SQL). Such a function would be used as follows (in pseudo-code):
 
 SELECT *
 FROM   TABLE(
           pipelined_function(
              CURSOR(SELECT * FROM staging_table))) --<-- input rowsource
-The cursor parameter in a parallel-enabled pipelined function can be defined as either a weak or strong refcursor. The first issue we will see is that when we use a cursor variable to pass to the pipelined function (instead of the direct CURSOR function call as above), Oracle's parallel DML fails.
+The cursor parameter in a parallel-enabled pipelined function can be defined as either a weak or strong refcursor. 
+The first issue we will see is that when we use a cursor variable to pass to the pipelined function (instead of the direct CURSOR function call as above), Oracle's parallel DML fails.
 
-It should be stated at the outset that this problem only occurs when we are using parallel DML to load a table from the resultset of a pipelined function (i.e. not when simply selecting from the function). This is important, however, because parallel DML from pipelined functions is how Oracle most commonly demonstrates the technology in its articles and documentation.
+It should be stated at the outset that this problem only occurs when we are using parallel DML to load a table from the resultset of a pipelined function (i.e. not when simply selecting from the function). 
+This is important, however, because parallel DML from pipelined functions is how Oracle most commonly demonstrates the technology in its articles and documentation.
 
 We will setup a small example of a parallel insert from a parallel pipelined function. We will begin by creating a source and target table of the same structure (for simplicity) as follows.
 
@@ -123,7 +127,9 @@ SQL> BEGIN
 10000 rows inserted.
 
 PL/SQL procedure successfully completed.
-As we are using a refcursor parameter in our pipelined function, we might wish to use a cursor variable instead of a direct CURSOR function call. For example, our source data cursor might be large and complex. Therefore, we might wish to avoid having to embed a large SQL statement in a packaged function call. The following example demonstrates, however, that this will not work with parallel DML statements. This is true of all versions up to and including 11.1.0.6 (this is the latest version tested).
+As we are using a refcursor parameter in our pipelined function, we might wish to use a cursor variable instead of a direct CURSOR function call. 
+For example, our source data cursor might be large and complex. Therefore, we might wish to avoid having to embed a large SQL statement in a packaged function call. 
+The following example demonstrates, however, that this will not work with parallel DML statements. This is true of all versions up to and including 11.1.0.6 (this is the latest version tested).
 
 SQL> DECLARE
   2
@@ -191,9 +197,11 @@ Assuming the "prepare table_A variables" stage in the above pseudo-code is suffi
 INSERT INTO table_A (...)
 SELECT ...
 FROM   TABLE( pipelined_fx( CURSOR(SELECT * FROM source_table) ) );
-We can achieve some good performance gains by adopting this technique, especially if we use parallel-enabled pipelined functions. There is, however, an issue with "wide" records where the efficiency of pipelined functions degrades quite dramatically to the point where the row-by-row alternative is faster.
+We can achieve some good performance gains by adopting this technique, especially if we use parallel-enabled pipelined functions. 
+There is, however, an issue with "wide" records where the efficiency of pipelined functions degrades quite dramatically to the point where the row-by-row alternative is faster.
 
-To demonstrate this issue, we are going to manufacture some variable-width records and simply compare the time it takes to load one table using row-by-row inserts and bulk insert from a pipelined function. We will begin by creating a source and target table with just three columns to demonstrate the type of comparison we will be making.
+To demonstrate this issue, we are going to manufacture some variable-width records and simply compare the time it takes to load one table using row-by-row inserts and bulk insert from a pipelined function. 
+We will begin by creating a source and target table with just three columns to demonstrate the type of comparison we will be making.
 
 SQL> CREATE TABLE src
   2  CACHE
@@ -230,7 +238,9 @@ SQL> CREATE PACKAGE etl_pkg AS
  13  /
 
 Package created.
-Note that we have defined a PL/SQL-based collection type for our pipelined function. This method can raise issues in itself (as we will see later in this article), but for the purposes of this demonstration, it aligns the collection to however many columns the target table happens to have at runtime (if the table changes, Oracle will recompile the package when we next execute it and create a new underlying collection type to support the pipelined function).
+Note that we have defined a PL/SQL-based collection type for our pipelined function. 
+This method can raise issues in itself (as we will see later in this article), but for the purposes of this demonstration, it aligns the collection to however many columns the target table happens to have at runtime 
+(if the table changes, Oracle will recompile the package when we next execute it and create a new underlying collection type to support the pipelined function).
 
 The package body is as follows. We can see that the ROW_BY_ROW and BULK_FROM_PIPELINE procedures implement the two types of loading we saw in pseudo-code earlier. For simplicity, the pipelined function pipes out the input dataset without any modifications.
 
@@ -272,7 +282,8 @@ SQL> CREATE PACKAGE BODY etl_pkg AS
  36  /
 
 Package body created.
-With just three columns to begin, we will compare the two methods using the wall-clock as follows. Note that we have deliberately turned off the PL/SQL compiler optimisation introduced in 10g (this optimisation turns cursor-for-loops into implicit bulk fetches).
+With just three columns to begin, we will compare the two methods using the wall-clock as follows. 
+Note that we have deliberately turned off the PL/SQL compiler optimisation introduced in 10g (this optimisation turns cursor-for-loops into implicit bulk fetches).
 
 SQL> ALTER SESSION SET PLSQL_OPTIMIZE_LEVEL = 0;
 
@@ -344,9 +355,11 @@ Columns	10.2 Row (s)	10.2 Bulk (s)	10.1 Row (s)	10.1 Bulk (s)	9.2 Row (s)	9.2 Bu
 50	9.07	4.37	9.90	8.65	7.07	8.00
 100	14.23	12.98	15.79	18.42	13.05	17.01
 150	14.90	19.04	24.82	30.86	18.06	29.01
-The point at which the bulk method becomes slower than row-by-row processing is highlighted for each database version and we can see that it has improved with each release (the patterns are the same with repeated runs of the test). In 9i, the pipelined function performance degrades with records of around 50 attributes or fewer, while in 10g Release 2 (and since confirmed in 11g Release 1) it is with records of somewhere around 150 attributes.
+The point at which the bulk method becomes slower than row-by-row processing is highlighted for each database version and we can see that it has improved with each release (the patterns are the same with repeated runs of the test). 
+In 9i, the pipelined function performance degrades with records of around 50 attributes or fewer, while in 10g Release 2 (and since confirmed in 11g Release 1) it is with records of somewhere around 150 attributes.
 
-To dig deeper than the "wall-clock" allows, we will compare the row-by-row and bulk pipelined function inserts using a variation on Tom Kyte's RUNSTATS utility (available here). In the following example, we compare the loads at 150 columns on a 10.2 database to see if we can determine the cause of the performance degradation.
+--To dig deeper than the "wall-clock" allows, we will compare the row-by-row and bulk pipelined function inserts using a variation on Tom Kyte's RUNSTATS utility (available here). 
+In the following example, we compare the loads at 150 columns on a 10.2 database to see if we can determine the cause of the performance degradation.
 
 SQL> exec runstats_pkg.rs_start;
 
@@ -407,7 +420,9 @@ Run1        Run2        Diff        Pct
 1,350,719     635,670    -715,049    212.49%
 
 PL/SQL procedure successfully completed.
-We can see that the row-by-row method uses far more resources than the bulk pipelined function method and yet it is still quicker. Many of the resource differences we see above are directly attributable to row-by-row insert inefficiencies (such as the volume of redo and the additional latching). Note that the "table scan rows gotten" statistic is misleading: we haven't accidentally loaded TGT with 204,000 rows in the row-based version (these additional rows must be related to recursive SQL).
+We can see that the row-by-row method uses far more resources than the bulk pipelined function method and yet it is still quicker. 
+Many of the resource differences we see above are directly attributable to row-by-row insert inefficiencies (such as the volume of redo and the additional latching). 
+Note that the "table scan rows gotten" statistic is misleading: we haven't accidentally loaded TGT with 204,000 rows in the row-based version (these additional rows must be related to recursive SQL).
 
 Reversing the running order of the test makes no difference to the overall patterns we've seen in timings and resource statistics. As a final investigation, we will run the load under SQL trace as follows.
 
@@ -541,13 +556,18 @@ Elapsed times include waiting on following events:
   log file switch completion                      5        0.21          0.29
   log buffer space                                2        0.13          0.18
 ********************************************************************************
-The source cursor for the bulk load is faster still, but the bulk insert statement has accounted for the majority of the runtime. Again the waits are trivial, but we'd need to be able to investigate lower still to find out what, if anything, is causing Oracle's reduced performance at this level. It has been suggested that it is Oracle's handling of object types (that underpins pipelined functions) that might contribute to this performance issue but we cannot prove this from the above data.
+The source cursor for the bulk load is faster still, but the bulk insert statement has accounted for the majority of the runtime. 
+Again the waits are trivial, but we'd need to be able to investigate lower still to find out what, if anything, is causing Oracle's reduced performance at this level. 
+--It has been suggested that it is Oracle's handling of object types (that underpins pipelined functions) that might contribute to this performance issue but we cannot prove this from the above data.
 
 issue 3: versioned objects: ora-04043
 
-The implementation of all pipelined functions is supported by object and collection types. Oracle provides three ways of defining these types, but most developers will either create their own object and collection types explicitly or rely on "versioned types" that Oracle generates from PL/SQL packaged record and collection declarations. There is an interesting bug with versioned types that is worthy of note in this article.
+The implementation of all pipelined functions is supported by object and collection types. 
+Oracle provides three ways of defining these types, but most developers will either create their own object and collection types explicitly or rely on "versioned types" that Oracle generates from PL/SQL packaged record and collection declarations. 
+There is an interesting bug with versioned types that is worthy of note in this article.
 
-To demonstrate the issue, we will create a pipelined function that relies on versioned types for its implementation. To do this, we simply create a package with a global record type, a collection type based on this record type and the pipelined function itself, as follows.
+To demonstrate the issue, we will create a pipelined function that relies on versioned types for its implementation. 
+To do this, we simply create a package with a global record type, a collection type based on this record type and the pipelined function itself, as follows.
 
 SQL> CREATE PACKAGE etl_pkg AS
   2
@@ -568,7 +588,8 @@ SQL> CREATE PACKAGE etl_pkg AS
  17  /
 
 Package created.
-Remember that pipelined functions require SQL types to be able to pipe collections of data to the consumer. Because we have only declared PL/SQL types to support our pipelined function, Oracle creates the SQL types on our behalf. We can see these in the dictionary using the following type of query.
+Remember that pipelined functions require SQL types to be able to pipe collections of data to the consumer. Because we have only declared PL/SQL types to support our pipelined function, Oracle creates the SQL types on our behalf. 
+We can see these in the dictionary using the following type of query.
 
 SQL> WITH t AS (
   2     SELECT object_id AS o
@@ -627,7 +648,8 @@ SYS_PLSQL_53640_9_2
 SYS_PLSQL_53640_DUMMY_2
 
 3 rows selected.
-Our supporting types have been re-generated by Oracle and a new "version" has been created. If we use CREATE OR REPLACE, the "version numbers" are reset to 1. However, because we have already recompiled this package, it appears as though we have no more chances to change its state, as follows.
+Our supporting types have been re-generated by Oracle and a new "version" has been created. If we use CREATE OR REPLACE, the "version numbers" are reset to 1. 
+However, because we have already recompiled this package, it appears as though we have no more chances to change its state, as follows.
 
 SQL> ALTER PACKAGE etl_pkg COMPILE;
 ALTER PACKAGE etl_pkg COMPILE
@@ -670,7 +692,8 @@ SQL> WITH t AS (
  10  AND    type_name LIKE 'SYS_PLSQL_' || (SELECT o FROM t) || '%_1';
 
 no rows selected
-Of course, we created some synonyms earlier in the application user's schema (SH) and these are at version 1. But these are in another schema and we are trying to drop our own objects. Fortunately, we are able to see the root of this problem quite easily in a SQL trace file, so we will enable SQL trace and attempt to drop the ETL_PKG package, as follows.
+Of course, we created some synonyms earlier in the application user's schema (SH) and these are at version 1. But these are in another schema and we are trying to drop our own objects. 
+Fortunately, we are able to see the root of this problem quite easily in a SQL trace file, so we will enable SQL trace and attempt to drop the ETL_PKG package, as follows.
 
 SQL> ALTER SESSION SET SQL_TRACE = TRUE;
 
@@ -685,7 +708,8 @@ ORA-04043: object SYS_PLSQL_53640_33_1 does not exist
 SQL> ALTER SESSION SET SQL_TRACE = FALSE;
 
 Session altered.
-The trace file leads us to the cause of this problem. Before Oracle can drop, recompile or replace a package with versioned types, it needs to identify the associated types and drop these first. In 10.2, Oracle uses the following SQL statement to identify the types. Each type is then dropped in turn.
+The trace file leads us to the cause of this problem. Before Oracle can drop, recompile or replace a package with versioned types, it needs to identify the associated types and drop these first. 
+In 10.2, Oracle uses the following SQL statement to identify the types. Each type is then dropped in turn.
 
 =====================
 PARSING IN CURSOR #25 len=109 dep=1 uid=0 oct=3 lid=0 tim=78367384109 hv=2962406971 ad='1d176f3c'
@@ -710,7 +734,8 @@ SYS_PLSQL_53640_DUMMY_1
 SYS_PLSQL_53640_DUMMY_2
 
 6 rows selected.
-The query returns the synonyms before our own schema's types! This means that Oracle will try to drop the version 1 synonym first, which of course doesn't exist as a type in our schema. To resolve this issue on 10.2, we can simply drop the redundant synonyms, as follows.
+The query returns the synonyms before our own schema's types! This means that Oracle will try to drop the version 1 synonym first, which of course doesn't exist as a type in our schema. 
+To resolve this issue on 10.2, we can simply drop the redundant synonyms, as follows.
 
 SQL> BEGIN
   2     FOR r IN (SELECT synonym_name
@@ -748,7 +773,9 @@ SQL> DROP PACKAGE etl_pkg;
 Package dropped.
 a special note for 11g release 1
 
-Note that this bug is fixed in 11g. Oracle has changed its versioned type naming rules to resolve the issue altogether. In 11g, regardless of whether we recompile or replace a package, Oracle retains the corresponding versioned type names (in other words, their number suffix doesn't increment). Hence, Oracle's recursive query against OBJ$ to determine the corresponding type names will always return the correct values, enabling the versioned types to be dropped.
+Note that this bug is fixed in 11g. Oracle has changed its versioned type naming rules to resolve the issue altogether. 
+In 11g, regardless of whether we recompile or replace a package, Oracle retains the corresponding versioned type names (in other words, their number suffix doesn't increment). 
+Hence, Oracle's recursive query against OBJ$ to determine the corresponding type names will always return the correct values, enabling the versioned types to be dropped.
 
 a special note for 9i and 10g release 1
 
@@ -794,8 +821,136 @@ SYS_PLSQL_53766_DUMMY_1                10
 SYS_PLSQL_53766_DUMMY_2                13
 
 6 rows selected.
-This means, of course, that we cannot drop, recompile or recreate the package until the obsolete synonym entries (TYPE#=10) are removed from OBJ$. This cleanup will be performed by SMON after a database bounce (or sometimes after an indeterminate period of time), after which point the package and associated versioned types can be dropped.
+This means, of course, that we cannot drop, recompile or recreate the package until the obsolete synonym entries (TYPE#=10) are removed from OBJ$. 
+This cleanup will be performed by SMON after a database bounce (or sometimes after an indeterminate period of time), after which point the package and associated versioned types can be dropped.
 
 source code
 
 The source code for the examples in this article can be downloaded from http://www.oracle-developer.net/content/code/423.zip.
+
+
+
+------------------------------------------------------------------------
+
+after looking into -- that is correct, it will actually parallelize the ref cursor itself and send the table funnction the equivalent of "slave sql".  So for example (big_table is 100,000 rows):
+
+
+ops$tkyte@ORA9IR2> create or replace type tabType as table of number
+  2  /
+ 
+Type created.
+ 
+ops$tkyte@ORA9IR2>
+ops$tkyte@ORA9IR2> create or replace function f( p_cursor in sys_refcursor ) return tabType
+  2  parallel_enable ( partition p_cursor by any ) pipelined
+  3  as
+  4          l_number number := 0;
+  5          l_rec    big_table%rowtype;
+  6  begin
+  7          loop
+  8                  fetch p_cursor into l_rec;
+  9                  exit when p_cursor%notfound;
+ 10                  l_number := l_number+1;
+ 11          end loop;
+ 12          close p_cursor;
+ 13          pipe row (l_number);
+ 14          return;
+ 15  end;
+ 16  /
+ 
+Function created.
+ 
+ops$tkyte@ORA9IR2> show err
+No errors.
+ops$tkyte@ORA9IR2> create or replace function f2( p_cursor in sys_refcursor ) return tabType
+  2  parallel_enable ( partition p_cursor by any ) pipelined
+  3  as
+  4          l_number number := 0;
+  5          l_rec    big_table%rowtype;
+  6  begin
+  7          loop
+  8                  fetch p_cursor into l_rec;
+  9                  exit when p_cursor%notfound;
+ 10                  l_number := l_number+1;
+ 11              pipe row (l_number);
+ 12          end loop;
+ 13          close p_cursor;
+ 14          return;
+ 15  end;
+ 16  /
+ 
+Function created.
+ 
+ops$tkyte@ORA9IR2> show err
+No errors.
+ops$tkyte@ORA9IR2>
+ops$tkyte@ORA9IR2>
+ops$tkyte@ORA9IR2> select *
+  2    from table( f( cursor( select /*+ parallel( bt, 5 ) */ * from big_table bt ) ) )
+  3  /
+ 
+COLUMN_VALUE
+------------
+       40656
+       59344
+ 
+<b>shows the function was called twice in two sessions and each got about the same number of rows</b>
+
+
+ops$tkyte@ORA9IR2>
+ops$tkyte@ORA9IR2> set autotrace traceonly
+ops$tkyte@ORA9IR2> select *
+  2    from table( f2( cursor( select * from big_table bt ) ) )
+  3  /
+ 
+100000 rows selected.
+ 
+ 
+Execution Plan
+----------------------------------------------------------
+   0      SELECT STATEMENT Optimizer=CHOOSE (Cost=11 Card=8168 Bytes=106184)
+   1    0   VIEW* (Cost=11 Card=8168 Bytes=106184)                                                             :Q37001
+   2    1     COLLECTION ITERATOR* (PICKLER FETCH) OF 'F2'                                                     :Q37001
+   3    2       TABLE ACCESS* (FULL) OF 'BIG_TABLE' (Cost=70 Card=100000 Bytes=10000000)                       :Q37000
+ 
+ 
+   1 PARALLEL_TO_SERIAL            SELECT C0 FROM (SELECT /*+ NO_QKN_BUFF */ VA
+                                   LUE(A2) C0 FROM TABLE("OPS$TKYTE"."F2"(CURSO
+                                   R(SELECT A1.C0 C0,A1.C1 C1,A1.C2 C2,A1.C3 C3
+                                   ,A1.C4 C4,A1.C5 C5,A1.C6 C6,A1.C7 C7,A1.C8 C
+                                   8,A1.C9 C9,A1.C10 C10,A1.C11 C11,A1.C12 C12,
+                                   A1.C13 C13 FROM :Q37000 A1))) A2) A0
+ 
+   2 PARALLEL_COMBINED_WITH_PARENT
+   3 PARALLEL_TO_PARALLEL          SELECT /*+ NO_EXPAND ROWID(A1) */ A1."ID" C0
+                                   ,A1."OWNER" C1,A1."OBJECT_NAME" C2,A1."SUBOB
+                                   JECT_NAME" C3,A1."OBJECT_ID" C4,A1."DATA_OBJ
+                                   ECT_ID" C5,A1."OBJECT_TYPE" C6,A1."CREATED"
+                                   C7,A1."LAST_DDL_TIME" C8,A1."TIMESTAMP" C9,A
+                                   1."STATUS" C10,A1."TEMPORARY" C11,A1."GENERA
+                                   TED" C12,A1."SECONDARY" C13 FROM "BIG_TABLE"
+                                    PX_GRANULE(0, BLOCK_RANGE, DYNAMIC)  A1
+ 
+ 
+ 
+Statistics
+----------------------------------------------------------
+     100058  recursive calls
+          3  db block gets
+       1556  consistent gets
+       1440  physical reads
+        808  redo size
+    1405873  bytes sent via SQL*Net to client
+      73825  bytes received via SQL*Net from client
+       6668  SQL*Net roundtrips to/from client
+         10  sorts (memory)
+          0  sorts (disk)
+     100000  rows processed
+ 
+ops$tkyte@ORA9IR2> set autotrace off
+
+<b>and that all 100,000 rows were processed</b>
+
+
+It takes N sessions to run the SQL and N sessions to run the function (the query feeds the session).  In my case -- i used a total of 5 sessions, two to query, two to process and one to coordinate. 
+

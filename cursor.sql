@@ -1,3 +1,77 @@
+
+!!!!!!!!!!!!!!!!!
+We use EXIT WHEN cur%NOTFOUND; when doing FETCH cur INTO cur_collection; based on cursor ;
+
+We use EXIT WHEN l_table_rowtype.COUNT = 0; when we doing FETCH cur BULK COLLECT INTO l_table_rowtype LIMIT c_limit; based on index by collection type; 
+!!!!!!!!!!!!!!!!!!          
+
+/*  --https://blogs.oracle.com/oraclemagazine/working-with-cursors
+Choosing the Right Way to Query 
+This article has shown that the PL/SQL language offers many different ways, ranging from the simplest SELECT-INTO implicit query to the much more complicated cursor variable, to use cursors to fetch data from relational tables into local variables.
+
+Here are some guidelines to help you decide which technique to use:
+
+When fetching a single row, use SELECT-INTO or EXECUTE IMMEDIATE-INTO (if your query is dynamic). Do not use an explicit cursor or a cursor FOR loop.
+
+When fetching all the rows from a query, use a cursor FOR loop unless the body of the loop executes one or more DML statements (INSERT, UPDATE, DELETE, or MERGE). In such a case, you will want to switch to BULK COLLECT and FORALL.
+
+Use an explicit cursor when you need to fetch with BULK COLLECT, but limit the number of rows returned with each fetch.
+
+Use an explicit cursor when you are fetching multiple rows but might conditionally exit before all rows are fetched.
+
+Use a cursor variable when the query you are fetching from varies at runtime (but isn’t necessarily dynamic) and especially when you need to pass a result back to a non-PL/SQL host environment.
+
+Use EXECUTE IMMEDIATE to query data only when you cannot fully construct the SELECT statement while writing your code.
+
+Move SELECT-INTOs into Functions
+PL/SQL developers frequently need to retrieve data for a single row in a table, specified (usually) by a primary key value, and often find themselves writing the same primary key lookup again and again. A much better approach is to move each of your SELECT-INTO queries into a function whose sole purpose is to serve up the requested row. So instead of this:
+
+DECLARE
+   l_employee   employees%ROWTYPE;
+BEGIN
+   SELECT *
+     INTO l_employee
+     FROM employees
+    WHERE employee_id = 138;
+   DBMS_OUTPUT.put_line (
+      l_employee.last_name);
+END;
+you would first create a function:
+
+CREATE OR REPLACE FUNCTION row_for_employee_id (
+   employee_id_in IN employees.employee_id%TYPE)
+   RETURN employees%ROWTYPE
+IS
+   l_employee   employees%ROWTYPE;
+BEGIN
+   SELECT *
+     INTO l_employee
+     FROM employees e
+    WHERE e.employee_id = 
+       row_for_employee_id.employee_id_in;
+   RETURN l_employee;
+EXCEPTION
+   WHEN NO_DATA_FOUND
+   THEN
+      RETURN NULL;
+END;
+Then the anonymous block for your primary key lookup would be DECLARE l_employee employees%ROWTYPE; BEGIN l_employee := row_for_employee_id (138); DBMS_OUTPUT.put_line ( l_employee.last_name); END;
+
+Best of all, the next time you need to get a row from the employees table for an ID, you’ll just call the function.
+
+There are two big advantages to this approach:
+
+Your productivity increases, because you can write less code and rely on prebuilt, pretested, reusable programs.
+
+If you ever need to change the way you look up that single row, you’ll make the change in one place (the “single point of definition”) and all programs that call the function will immediately use the improved version.
+
+Note that I included in the function an exception handler that traps NO_DATA_FOUND and simply returns a NULL record. During execution of a SELECT-INTO, the absence of data is often not actually an error but, rather, just a data condition. So it is quite common to trap the exception and return an indicator that no row was found. (NULL is usually, but not necessarily, a good indicator of this state of affairs.) The programmer who calls the function gets to decide how to treat the NO_DATA_FOUND condition.
+
+*/
+
+
+
+
 /*  -- from http://www.oracle.com/technetwork/issue-archive/2013/13-mar/o23plsql-1906474.html
 The central purpose of the Oracle PL/SQL language is to make it as easy and efficient as possible to query and change the contents of tables in a database. 
 You must, of course, use the SQL language to access tables, and each time you do so, you use a cursor to get the job done. 
@@ -37,6 +111,7 @@ The cursor FOR loop is an elegant and natural extension of the numeric FOR loop 
 With a numeric FOR loop, the body of the loop executes once for every integer value between the low and high values specified in the range. 
 With a cursor FOR loop, the body of the loop is executed for each row returned by the query.
   */
+
 
 BEGIN
    FOR employee_rec IN (
@@ -471,10 +546,162 @@ end;
 --test
 set serveroutput on
 variable    rc refcursor;
-variable    ONERRORNUMBER NUMBER;
-variable    OVERRORMESSAGE VARCHAR2(200);
-
-exec SKJALINA.FOREIGNPAYMENTS.PGETFOREIGNPAYMENTSSEARCH(date'2002-07-01',date'2012-08-01',null,null,null,null,'4406861259',null,NULL,NULL,1,100,:ONERRORNUMBER,:OVERRORMESSAGE,:rc );
+exec SKJALINA.FOREIGNPAYMENTS.PGETFOREIGNPAYMENTSSEARCH(date'2002-07-01',:rc );
 print rc;
 
 --
+--for sql developer
+set serveroutput on
+DECLARE
+    orderColumn VARCHAR2(50):='I.DAGS_SKRAD';
+    IvOrderColumn VARCHAR2(50):='CurrencyCd';       
+    IvOrderAscending VARCHAR2(50):='ACS';   
+    rc sys_refcursor;
+BEGIN 
+ CASE IvOrderColumn
+        WHEN 'SendDt'  THEN orderColumn:='DAGS_SKRAD';
+        WHEN 'CostAmt' THEN orderColumn:='KOSTNADUR';
+        WHEN 'CurrencyCd' THEN orderColumn:='MYNT';
+        WHEN 'ForeignAmt' THEN orderColumn:='ERLEND_FJARHAED';
+        WHEN 'RecipientName' THEN orderColumn:='NAFN_VIDTAKANDA';
+        WHEN 'StatusCd' THEN orderColumn:='STADA';
+        ELSE orderColumn:='I.DAGS_SKRAD'; --SendDt
+    END CASE;
+    --orderColumn:= orderColumn || ' ' || IvOrderAscending;
+   --DBMS_OUTPUT.put_line(
+   open rc for
+   'SELECT EG.BUNKANUMER , EG.LINUNUMER , EG.KENNITALA_GREIDANDA , EG.NAFN_GREIDANDA,
+         EG.HEIMILI_GREIDANDA_1 , EG.HEIMILI_GREIDANDA_2 , EG.HEIMILI_GREIDANDA_3 ,
+         EG.MYNT,
+         EG.ERLEND_FJARHAED  
+          FROM
+         SKJALINA.ERLEND_GREIDSLA EG
+         WHERE  EG.kennitala_greidanda = ''5811110450''
+         Order By ' ||orderColumn;
+    dbms_sql.return_result(rc);
+END;
+
+
+--
+
+--Example 12-18 Controlling Number of BULK COLLECT Rows with LIMIT
+--https://isu.ifmo.ru/docs/doc112/appdev.112/e10472/tuning.htm
+
+DECLARE
+  TYPE numtab IS TABLE OF NUMBER INDEX BY PLS_INTEGER;
+
+  CURSOR c1 IS
+    SELECT employee_id
+    FROM employees
+    WHERE department_id = 80;
+
+  empids  numtab;
+  rows    PLS_INTEGER := 10;
+BEGIN
+  OPEN c1;
+  LOOP  -- Fetch 10 rows or fewer in each iteration
+    FETCH c1 BULK COLLECT INTO empids LIMIT rows;
+    EXIT WHEN empids.COUNT = 0;  -- Not: EXIT WHEN c1%NOTFOUND
+    DBMS_OUTPUT.PUT_LINE ('------- Results from Each Bulk Fetch --------');
+    FOR i IN 1..empids.COUNT LOOP
+      DBMS_OUTPUT.PUT_LINE ('Employee Id: ' || empids(i));
+    END LOOP;
+  END LOOP;
+  CLOSE c1;
+END;
+/
+
+---------------
+SET SERVEROUTPUT ON
+DECLARE
+    -- constants
+    c_enter   constant varchar2(2) := chr(13)||chr(10);
+    c_quote   constant varchar2(2) := chr(39);
+
+    TYPE flag_tt IS TABLE OF VARCHAR2(1 CHAR);
+    l_flag flag_tt;
+    l_date varchar2(30) := to_char(bifrost.dagar.bankadagur_nidur(SYSDATE - 1),'dd.mm.yyyy');
+    l_stmt varchar2(250);
+    CURSOR mview_cur (filter_in IN VARCHAR2) 
+        IS 
+        SELECT mview_name
+          FROM all_mviews am
+         WHERE am.owner = filter_in;   
+   
+BEGIN  
+   FOR rec IN mview_cur ('DEPOSITS') 
+   LOOP  
+   l_stmt := 'SELECT /*+ FIRST_ROWS(1) */ ''T'' n
+                        FROM  '|| rec.mview_name||
+                     ' WHERE  1=1
+                         AND  to_char(reference_date, ''dd.mm.yyyy'') = '||c_quote||l_date||c_quote||
+                     '   AND  ROWNUM < 2';
+   
+   EXECUTE IMMEDIATE l_stmt BULK COLLECT INTO l_flag;  
+   --DBMS_OUTPUT.put_line (l_stmt);
+   DBMS_OUTPUT.put_line (rec.mview_name||' - '||l_flag.COUNT);
+   END LOOP;  
+END;
+/
+
+-- using index base on date 
+SET SERVEROUTPUT ON
+DECLARE
+    -- constants
+    c_enter   constant varchar2(2) := chr(13)||chr(10);
+    c_quote   constant varchar2(2) := chr(39);
+
+    TYPE flag_tt IS TABLE OF VARCHAR2(1 CHAR);
+    l_flag flag_tt;
+    l_date date := bifrost.dagar.bankadagur_nidur(SYSDATE - 1);
+    l_stmt varchar2(250);
+    CURSOR mview_cur (filter_in IN VARCHAR2) 
+        IS 
+        SELECT mview_name
+          FROM all_mviews am
+         WHERE am.owner = filter_in;   
+   
+BEGIN  
+   FOR rec IN mview_cur ('DEPOSITS') 
+   LOOP  
+   l_stmt := 'SELECT /*+ FIRST_ROWS(1) */ ''T'' n
+                        FROM  '|| rec.mview_name||
+                     ' WHERE  1=1
+                         AND  reference_date = :l_date
+                         AND  ROWNUM < 2';
+   
+   EXECUTE IMMEDIATE l_stmt BULK COLLECT INTO l_flag USING l_date;  
+   --DBMS_OUTPUT.put_line (l_stmt);
+   DBMS_OUTPUT.put_line (rec.mview_name||' - '||l_flag.COUNT);
+   END LOOP;  
+END;
+/
+
+----------------
+set serveroutput on
+declare
+procedure alter_mview_copmile(ip_owner varchar2, ip_test_only boolean default true)
+is
+l_stmp varchar2(500);
+begin
+for cur in (select mview_name from all_mviews where owner = ip_owner)
+loop
+l_stmp :='alter materialized view '||cur.mview_name||' compile';
+    begin
+    if ip_test_only
+    then
+        dbms_output.put_line(l_stmp);
+    else 
+        execute immediate l_stmp;
+    end if;
+    exception 
+        when others 
+            then raise;
+    end;
+end loop;
+end alter_mview_copmile;
+
+begin
+alter_mview_copmile('DEPOSITS');
+end;
+/

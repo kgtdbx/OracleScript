@@ -1,0 +1,101 @@
+Execute Scripts with SQL*Plus on a Windows Batch Script
+Posted on junio 29, 2014 by Daniel Arancibia Bohle — 2 comentarios
+It’s always a good idea to automate the execution of SQL statements on a batch script for the creation and update of objects on an Oracle database, in this post I’m going to see how to do it.
+
+This becomes especially handy if you need to run the script(s) several times on your development environment or you have to create the objects on distinct environments of a company.
+
+First, I’m going to show you the DOS commands you have to write on a batch file (.bat) and later in this post I’m going to explain them.
+
+@echo off
+set result_file=result.log
+ 
+set user_name=SOME_ORACLE_USER_NAME
+set password=USERS_NAME_PASSWORD
+set net_service_name=ALIAS_ON_TNS
+ 
+if exists %result_file% (
+   del %result_file%
+)
+ 
+echo exit | sqlplus -s %user_name%/%password%@%net_service_name% @ScriptToExecute.sql >> %result_file%
+ 
+pause
+Note: You have to be careful with the trailing spaces on the user name or the password.
+Note 2: Don’t add spaces around the equal signs.
+Note 3: It’s a convention on Windows bash programming to use variables with lower case, because the ones that uses upper case are the system variables (environment variables).
+
+How to Run Multiple Scripts
+Sometimes you have to run multiple scripts, for example, the tables are in one script, the procedures in other and so on, this can be important if your company has the policy of separating the different objects in different files or if the tool you are using has this behavior when it extracts the scripts from the database.
+
+The script you need differs just a little bit from the former:
+
+@echo off
+set result_file=result.log
+ 
+set user_name=SOME_ORACLE_USER_NAME
+set password=USERS_NAME_PASSWORD
+set net_service_name=ALIAS_ON_TNS
+ 
+if exists %result_file% (
+   del %result_file%
+)
+ 
+(
+echo @FirstScriptToExecute.sql
+echo @SecondScriptToExecute.sql
+echo exit
+) | sqlplus -s %user_name%/%password%@%net_service_name% >> %result_file%
+ 
+pause
+Code Explained
+
+rem # "echo off" prevents displaying all the commands on the screen, the "@" symbol prevents showing the echo off command.
+@echo off
+rem # "set result_file" creates a variable that stores the output messages given from the *.sql files.
+rem # if you put only the file name, then it will be written on the same folder as the batch file.
+set result_file=result.log
+ 
+rem # define the variables that stores information to connect to the Oracle database.
+set user_name=SOME_ORACLE_USER_NAME
+set password=USERS_NAME_PASSWORD
+set net_service_name=ALIAS_ON_TNS
+ 
+rem # deletes the results file from the hard drive if this already exists from a previous batch execution.
+if exists %result_file% (
+   del %result_file%
+)
+ 
+rem # "echo exit |" adds the exit command to the standard input pipeline, so when sql*plus has finished reading its parameters reads the next input which in this case is "exit".
+rem # This is the last part of the command issued, which instructs to sql*plus to terminate the session.
+rem # "sqlplus -s" executes sql*plus in a silent mode, this means it won't show the messages when it connects or disconnects.
+rem # "%user_name%/%password%@%net_service_name%" are the variables to connect to the Oracle database.
+rem # "@ScriptToExecute.sql" is the file with the SQL instructions you want to execute.
+rem # ">> %result_file%" is the file that appends results thanks to the >> operator.
+echo exit | sqlplus -s %user_name%/%password%@%net_service_name% @ScriptToExecute.sql >> %result_file%
+ 
+rem # using parentheses is the way to issue several commands on the same session of sql*plus.
+(
+echo @FirstScriptToExecute.sql
+echo @SecondScriptToExecute.sql
+echo exit
+) | sqlplus -s %user_name%/%password%@%net_service_name% >> %result_file%
+Some Additional Tips
+Inside the *.sql file, you can enable messages from a PL/SQL program to be printed.
+1
+2
+3
+4
+5
+-- Enables the print of messages from the server.
+set serveroutput on
+...
+-- Writes a message.
+dbms_output.put_line('table MyTable was created.');
+Inside the *.sql file, you can turn off the statement confirmation messages with the following instruction:
+1
+set feedback off
+With this, messages like the following won’t be displayed:
+
+\
+Synonym created.
+PL/SQL procedure successfully completed.

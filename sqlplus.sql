@@ -35,3 +35,40 @@ Controls whether SQL*Plus allows blank lines within a SQL command or script. ON 
 Enter the BLOCKTERMINATOR to stop SQL command entry without running the SQL command. Enter the SQLTERMINATOR character to stop SQL command entry and run the SQL statement.
 Pressing Enter on a blank line while typing a SQL statement into SQL*Plus normally signals the end of the statement. The statement is placed into the buffer, and you have the option of making further edits or of executing the statement. Turning SQLBLANKLINES ON allows you to put a blank line in the middle of your statement, as in the following example:
 ****************
+
+--run script via sqplus Windows
+--crate .bat file
+/*
+chcp 1251
+set SQLPATH=C:\Temp\constraint_test
+mkdir log
+
+start sqlplus /nolog @script1.sql
+
+rem View log
+start log\script.log 
+
+*/
+
+******************
+/*
+Question:  How do I change my current directory from SQL*Plus?
+
+Answer:  It is not easy to "shell out: and change your current directory in SQL*Plus.  In UNIX/Linux and Windows it is fastest to simply exist SQL*Plus, cd to the appropriate directory and re-enter SQL*Plus.
+
+If you are executing a SQL*Plus script, it is not necessary to change directories if you use the fully-qualified path name name in the invocation:
+
+ */
+
+--Find current directory in SQL*Plus
+
+--UNIX/Linux: Use the "!" to shell out"
+
+       SQL> !/u01/app/oracle/mysid/bin/xxxx.sql
+ 
+--In Windows:  Use the "host command" to shell out:
+ 
+       SQL> host  c:\u01\app\oracle\mysid\bin\xxxx.sql
+       
+******************
+       

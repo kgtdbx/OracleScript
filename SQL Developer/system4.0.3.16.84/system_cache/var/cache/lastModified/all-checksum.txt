@@ -1,9 +1,0 @@
-home=1410188014000
-fcpbridge=1410188366000
-ide=1410188002000
-Oracle SQL Developer=0
-dropins=0
-user=1410188366000
-crc=7
-locale=en_US
-branding=jdev

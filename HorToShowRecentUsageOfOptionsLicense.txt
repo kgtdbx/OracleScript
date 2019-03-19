@@ -1,0 +1,97 @@
+--https://www.sejustloveit.com/2015/04/dbms_space-standard-edition-proof/
+
+
+<27th May 2015 – Confirmation from an Oracle License Expert START
+
+According to a letter from an Oracle expert on License  that I received, the DBMS_SPACE package is Standard Edition proof: 
+“the DBMS_SPACE can be used in Standard Edition, since it is making use of DBA_HIST_SEG_STAT and DBA_HIST_SEG_STAT_OBJ views, and doesn’t require the Diagnostic Pack”
+Let’s take a look at the Enterprise Manager License document:
+“All data dictionary views beginning with the prefix DBA_HIST_* are part of this pack, along with their underlying tables.
+The only exception is the views: DBA_HIST_SNAPSHOT, DBA_HIST_DATABASE_INSTANCE, DBA_HIST_SNAP_ERROR, DBA_HIST_SEG_STAT, DBA_HIST_SEG_STAT_OBJ, and DBA_HIST_UNDOSTAT. They can be used without the Oracle Diagnostics Pack license.”
+
+“There are neither any explicit information found about this package from Oracle License Document(https://docs.oracle.com/database/121/DBLIC/editions.htm#DBLIC109) 
+nor the Enterprise Manager License document(http://docs.oracle.com/cd/E24628_01/doc.121/e24474/ch2_db_mgmt.htm#OEMLI113), saying that this DBMS_SPACE package is part of any management pack”.
+
+As always when you get questions about Oracle License, follow the note above, and verify with an Oracle License Expert. Thanks Oracle License Expert for your assistant!
+Note to myself: On the internet you can find an article on how to Measuring Database Space Growth(https://oraworklog.wordpress.com/2010/02/26/measuring-database-space-growth/) if you would like another method on how to accomplish the growth measurement, 
+instead of using this package.
+27th May 2015 -Confirmation from an Oracle License Expert  END>
+
+
+---------------
+
+SQL> @/home/oracle/scripts/option_usage
+
+-- -----------------------------------------------------------------------------------
+-- File Name    : https://oracle-base.com/dba/10g/feature_usage.sql
+-- Author       : Tim Hall
+-- Description  : Displays feature usage statistics.
+-- Requirements : Access to the DBA views.
+-- Call Syntax  : @feature_usage
+-- Last Modified: 26-NOV-2004
+-- -----------------------------------------------------------------------------------
+
+COLUMN name  FORMAT A40
+COLUMN detected_usages FORMAT 999999999999
+
+SELECT u1.name,
+       u1.detected_usages,
+       u1.currently_used,
+       u1.version
+FROM   dba_feature_usage_statistics u1
+WHERE  u1.version = (SELECT MAX(u2.version)
+                     FROM   dba_feature_usage_statistics u2
+                     WHERE  u2.name = u1.name)
+AND    u1.detected_usages > 0
+AND    u1.dbid = (SELECT dbid FROM v$database)
+ORDER BY u1.name;
+
+COLUMN FORMAT DEFAULT
+
+
+--run something
+
+
+SELECT *
+FROM TABLE(dbms_space.object_space_usage_tbf('EXTSTG', 'RB_AGREEMENTS_11_ARC', 'TABLE PARTITION', NULL, 'SYS_P157964'));
+
+
+--then
+EXEC DBMS_FEATURE_USAGE_INTERNAL.exec_db_usage_sampling(SYSDATE);
+
+
+--Now the check. Has my database recorded this?
+--repeat
+
+SQL> @/home/oracle/scripts/option_usage
+
+
+
+------------
+
+1.2.5 Checking for Feature, Option, and Management Pack Usage
+Oracle provides the script options_packs_usage_statistics.sql, which enables you to check feature usage, Oracle Database option usage, and Oracle management pack usage on your database. This script lists, in two distinct sections:
+
+Oracle Database option and Oracle management pack usage
+
+Features used by each option and management pack
+
+You can obtain the script from My Oracle Support as follows:
+
+Use a Web browser to view the My Oracle Support Web site:
+https://support.oracle.com
+Log in to My Oracle Support.
+If you are not a My Oracle Support registered user, then click Register and follow the registration instructions.
+
+Search for Document ID 1317265.1, or access it directly with the following URL:
+https://support.oracle.com/CSP/main/article?cmd=show&type=NOT&id=1317265.1
+You can manually run the script on an individual database or use Oracle Enterprise Manager Job System to automatically run the script on multiple databases. Refer to Oracle Enterprise Manager Cloud Control Administrator's Guide for information on Oracle Enterprise Manager Job System.
+
+
+
+@C:\WORK\OracleScript\options_packs_usage_statistics.sql
+
+
+
+
+

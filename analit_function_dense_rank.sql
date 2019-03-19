@@ -59,6 +59,397 @@ where status <> 'stop'
 group by road
 
 ---------------------------------------------------------
+
+This article provides a clear, thorough concept of analytic functions and its various options by a series of simple yet concept building examples. The article is intended for SQL coders, who for might be not be using analytic functions due to unfamiliarity with its cryptic syntax or uncertainty about its logic of operation. Often I see that people tend to reinvent the feature provided by analytic functions by native join and sub-query SQL. This article assumes familiarity with basic Oracle SQL, sub-query, join and group function from the reader. Based on that familiarity, it builds the concept of analytic functions through a series of examples.
+It is true that whatever an analytic function does can be done by native SQL, with join and sub-queries. But the same routine done by analytic function is always faster, or at least as fast, when compared to native SQL. Moreover, I am not considering here the amount of time that is spent in coding the native SQLs, testing, debugging and tuning them.
+
+The general syntax of analytic function is:
+
+Function(arg1,..., argn) OVER ( [PARTITION BY <...>] [ORDER BY <....>] [<window_clause>] )
+
+<window_clause> is like "ROW <?>" or "RANK <?>" 
+All the keywords will be dealt in details as we walk through the examples. The script for creating the schema (SCOTT) on which the example queries of this article are run can be obtained in ORACLE_HOME/sqlplus/demo/demobld.sql of any standard Oracle installation.
+
+How are analytic functions different from group or aggregate functions?
+SELECT deptno,
+COUNT(*) DEPT_COUNT
+FROM emp
+WHERE deptno IN (20, 30)
+GROUP BY deptno;
+
+DEPTNO                 DEPT_COUNT             
+---------------------- ---------------------- 
+20                     5                      
+30                     6                      
+
+2 rows selected
+Query-1
+Consider the Query-1 and its result. Query-1 returns departments and their employee count. Most importantly it groups the records into departments in accordance with the GROUP BY clause. As such any non-"group by" column is not allowed in the select clause.
+
+SELECT empno, deptno, 
+COUNT(*) OVER (PARTITION BY 
+deptno) DEPT_COUNT
+FROM emp
+WHERE deptno IN (20, 30);
+
+     EMPNO     DEPTNO DEPT_COUNT
+---------- ---------- ----------
+      7369         20          5
+      7566         20          5
+      7788         20          5
+      7902         20          5
+      7876         20          5
+      7499         30          6
+      7900         30          6
+      7844         30          6
+      7698         30          6
+      7654         30          6
+      7521         30          6
+
+11 rows selected.
+Query-2
+Now consider the analytic function query (Query-2) and its result. Note the repeating values of DEPT_COUNT column.
+
+This brings out the main difference between aggregate and analytic functions. Though analytic functions give aggregate result they do not group the result set. They return the group value multiple times with each record. As such any other non-"group by" column or expression can be present in the select clause, for example, the column EMPNO in Query-2.
+
+Analytic functions are computed after all joins, WHERE clause, GROUP BY and HAVING are computed on the query. The main ORDER BY clause of the query operates after the analytic functions. So analytic functions can only appear in the select list and in the main ORDER BY clause of the query.
+
+In absence of any PARTITION or <window_clause> inside the OVER( ) portion, the function acts on entire record set returned by the where clause. Note the results of Query-3 and compare it with the result of aggregate function query Query-4.
+
+SELECT empno, deptno, 
+COUNT(*) OVER ( ) CNT
+FROM emp
+WHERE deptno IN (10, 20)
+ORDER BY 2, 1;
+
+     EMPNO     DEPTNO        CNT
+---------- ---------- ----------
+      7782         10          8
+      7839         10          8
+      7934         10          8
+      7369         20          8
+      7566         20          8
+      7788         20          8
+      7876         20          8
+      7902         20          8
+Query-3
+SELECT COUNT(*) FROM emp
+WHERE deptno IN (10, 20);
+
+  COUNT(*)
+----------
+         8
+Query-4
+How to break the result set in groups or partitions?
+It might be obvious from the previous example that the clause PARTITION BY is used to break the result set into groups. PARTITION BY can take any non-analytic SQL expression.
+
+Some functions support the <window_clause> inside the partition to further limit the records they act on. In the absence of any <window_clause> analytic functions are computed on all the records of the partition clause.
+
+The functions SUM, COUNT, AVG, MIN, MAX are the common analytic functions the result of which does not depend on the order of the records.
+
+Functions like LEAD, LAG, RANK, DENSE_RANK, ROW_NUMBER, FIRST, FIRST VALUE, LAST, LAST VALUE depends on order of records. In the next example we will see how to specify that.
+
+How to specify the order of the records in the partition?
+The answer is simple, by the "ORDER BY" clause inside the OVER( ) clause. This is different from the ORDER BY clause of the main query which comes after WHERE. In this section we go ahead and introduce each of the very useful functions LEAD, LAG, RANK, DENSE_RANK, ROW_NUMBER, FIRST, FIRST VALUE, LAST, LAST VALUE and show how each depend on the order of the record.
+
+The general syntax of specifying the ORDER BY clause in analytic function is:
+
+ORDER BY <sql_expr> [ASC or DESC] NULLS [FIRST or LAST]
+
+The syntax is self-explanatory.
+
+ROW_NUMBER, RANK and DENSE_RANK
+All the above three functions assign integer values to the rows depending on their order. That is the reason of clubbing them together.
+
+ROW_NUMBER( ) gives a running serial number to a partition of records. It is very useful in reporting, especially in places where different partitions have their own serial numbers. In Query-5, the function ROW_NUMBER( ) is used to give separate sets of running serial to employees of departments 10 and 20 based on their HIREDATE.
+
+SELECT empno, deptno, hiredate,
+ROW_NUMBER( ) OVER (PARTITION BY
+deptno ORDER BY hiredate
+NULLS LAST) SRLNO
+FROM emp
+WHERE deptno IN (10, 20)
+ORDER BY deptno, SRLNO;
+
+EMPNO  DEPTNO HIREDATE       SRLNO
+------ ------- --------- ----------
+  7782      10 09-JUN-81          1
+  7839      10 17-NOV-81          2
+  7934      10 23-JAN-82          3
+  7369      20 17-DEC-80          1
+  7566      20 02-APR-81          2
+  7902      20 03-DEC-81          3
+  7788      20 09-DEC-82          4
+  7876      20 12-JAN-83          5
+
+8 rows selected.
+Query-5 (ROW_NUMBER example)
+RANK and DENSE_RANK both provide rank to the records based on some column value or expression. In case of a tie of 2 records at position N, RANK declares 2 positions N and skips position N+1 and gives position N+2 to the next record. While DENSE_RANK declares 2 positions N but does not skip position N+1.
+
+Query-6 shows the usage of both RANK and DENSE_RANK. For DEPTNO 20 there are two contenders for the first position (EMPNO 7788 and 7902). Both RANK and DENSE_RANK declares them as joint toppers. RANK skips the next value that is 2 and next employee EMPNO 7566 is given the position 3. For DENSE_RANK there are no such gaps.
+
+SELECT empno, deptno, sal,
+RANK() OVER (PARTITION BY deptno
+ORDER BY sal DESC NULLS LAST) RANK,
+DENSE_RANK() OVER (PARTITION BY
+deptno ORDER BY sal DESC NULLS
+LAST) DENSE_RANK
+FROM emp
+WHERE deptno IN (10, 20)
+ORDER BY 2, RANK;
+
+EMPNO  DEPTNO   SAL  RANK DENSE_RANK
+------ ------- ----- ----- ----------
+  7839      10  5000     1          1
+  7782      10  2450     2          2
+  7934      10  1300     3          3
+  7788      20  3000     1          1
+  7902      20  3000     1          1
+  7566      20  2975     3          2
+  7876      20  1100     4          3
+  7369      20   800     5          4
+
+8 rows selected.
+Query-6 (RANK and DENSE_RANK example)
+LEAD and LAG
+LEAD has the ability to compute an expression on the next rows (rows which are going to come after the current row) and return the value to the current row. The general syntax of LEAD is shown below:
+
+LEAD (<sql_expr>, <offset>, <default>) OVER (<analytic_clause>)
+
+<sql_expr> is the expression to compute from the leading row.
+<offset> is the index of the leading row relative to the current row.
+<offset> is a positive integer with default 1.
+<default> is the value to return if the <offset> points to a row outside the partition range.
+
+The syntax of LAG is similar except that the offset for LAG goes into the previous rows.
+Query-7 and its result show simple usage of LAG and LEAD function.
+
+SELECT deptno, empno, sal,
+LEAD(sal, 1, 0) OVER (PARTITION BY dept ORDER BY sal DESC NULLS LAST) NEXT_LOWER_SAL,
+LAG(sal, 1, 0) OVER (PARTITION BY dept ORDER BY sal DESC NULLS LAST) PREV_HIGHER_SAL
+FROM emp
+WHERE deptno IN (10, 20)
+ORDER BY deptno, sal DESC;
+
+ DEPTNO  EMPNO   SAL NEXT_LOWER_SAL PREV_HIGHER_SAL
+------- ------ ----- -------------- ---------------
+     10   7839  5000           2450               0
+     10   7782  2450           1300            5000
+     10   7934  1300              0            2450
+     20   7788  3000           3000               0
+     20   7902  3000           2975            3000
+     20   7566  2975           1100            3000
+     20   7876  1100            800            2975
+     20   7369   800              0            1100
+
+8 rows selected.
+Query-7 (LEAD and LAG)
+FIRST VALUE and LAST VALUE function
+The general syntax is:
+
+FIRST_VALUE(<sql_expr>) OVER (<analytic_clause>)
+
+The FIRST_VALUE analytic function picks the first record from the partition after doing the ORDER BY. The <sql_expr> is computed on the columns of this first record and results are returned. The LAST_VALUE function is used in similar context except that it acts on the last record of the partition.
+
+-- How many days after the first hire of each department were the next
+-- employees hired?
+
+SELECT empno, deptno, hiredate ? FIRST_VALUE(hiredate)
+OVER (PARTITION BY deptno ORDER BY hiredate) DAY_GAP
+FROM emp
+WHERE deptno IN (20, 30)
+ORDER BY deptno, DAY_GAP;
+
+     EMPNO     DEPTNO    DAY_GAP
+---------- ---------- ----------
+      7369         20          0
+      7566         20        106
+      7902         20        351
+      7788         20        722
+      7876         20        756
+      7499         30          0
+      7521         30          2
+      7698         30         70
+      7844         30        200
+      7654         30        220
+      7900         30        286
+
+11 rows selected.
+Query-8 (FIRST_VALUE)
+FIRST and LAST function
+The FIRST function (or more properly KEEP FIRST function) is used in a very special situation. Suppose we rank a group of record and found several records in the first rank. Now we want to apply an aggregate function on the records of the first rank. KEEP FIRST enables that.
+
+The general syntax is:
+
+Function( ) KEEP (DENSE_RANK FIRST ORDER BY <expr>) OVER (<partitioning_clause>)
+
+Please note that FIRST and LAST are the only functions that deviate from the general syntax of analytic functions. They do not have the ORDER BY inside the OVER clause. Neither do they support any <window> clause. The ranking done in FIRST and LAST is always DENSE_RANK. The query below shows the usage of FIRST function. The LAST function is used in similar context to perform computations on last ranked records.
+
+-- How each employee's salary compare with the average salary of the first
+-- year hires of their department?
+
+SELECT empno, deptno, TO_CHAR(hiredate,'YYYY') HIRE_YR, sal,
+TRUNC(
+AVG(sal) KEEP (DENSE_RANK FIRST
+ORDER BY TO_CHAR(hiredate,'YYYY') )
+OVER (PARTITION BY deptno)
+     ) AVG_SAL_YR1_HIRE
+FROM emp
+WHERE deptno IN (20, 10)
+ORDER BY deptno, empno, HIRE_YR;
+
+     EMPNO     DEPTNO HIRE        SAL AVG_SAL_YR1_HIRE
+---------- ---------- ---- ---------- ----------------
+      7782         10 1981       2450             3725
+      7839         10 1981       5000             3725
+      7934         10 1982       1300             3725
+      7369         20 1980        800              800
+      7566         20 1981       2975              800
+      7788         20 1982       3000              800
+      7876         20 1983       1100              800
+      7902         20 1981       3000              800
+
+8 rows selected.
+Query-9 (KEEP FIRST)
+How to specify the Window clause (ROW type or RANGE type windows)?
+Some analytic functions (AVG, COUNT, FIRST_VALUE, LAST_VALUE, MAX, MIN and SUM among the ones we discussed) can take a window clause to further sub-partition the result and apply the analytic function. An important feature of the windowing clause is that it is dynamic in nature.
+
+The general syntax of the <window_clause> is
+
+[ROW or RANGE] BETWEEN <start_expr> AND <end_expr>
+
+<start_expr> can be any one of the following 
+UNBOUNDED PECEDING
+CURRENT ROW 
+<sql_expr> PRECEDING or FOLLOWING.
+<end_expr> can be any one of the following
+UNBOUNDED FOLLOWING or
+CURRENT ROW or
+<sql_expr> PRECEDING or FOLLOWING.
+For ROW type windows the definition is in terms of row numbers before or after the current row. So for ROW type windows <sql_expr> must evaluate to a positive integer.
+
+For RANGE type windows the definition is in terms of values before or after the current ORDER. We will take this up in details latter.
+
+The ROW or RANGE window cannot appear together in one OVER clause. The window clause is defined in terms of the current row. But may or may not include the current row. The start point of the window and the end point of the window can finish before the current row or after the current row. Only start point cannot come after the end point of the window. In case any point of the window is undefined the default is UNBOUNDED PRECEDING for <start_expr> and UNBOUNDED FOLLOWING for <end_expr>.
+
+If the end point is the current row, syntax only in terms of the start point can be can be
+[ROW or RANGE] [<start_expr> PRECEDING or UNBOUNDED PRECEDING ]
+
+[ROW or RANGE] CURRENT ROW is also allowed but this is redundant. In this case the function behaves as a single-row function and acts only on the current row.
+
+ROW Type Windows
+For analytic functions with ROW type windows, the general syntax is:
+
+Function( ) OVER (PARTITIN BY <expr1> ORDER BY <expr2,..> ROWS BETWEEN <start_expr> AND <end_expr>)
+or 
+Function( ) OVER (PARTITON BY <expr1> ORDER BY <expr2,..> ROWS [<start_expr> PRECEDING or UNBOUNDED PRECEDING]
+
+For ROW type windows the windowing clause is in terms of record numbers.
+
+The query Query-10 has no apparent real life description (except column FROM_PU_C) but the various windowing clause are illustrated by a COUNT(*) function. The count simply shows the number of rows inside the window definition. Note the build up of the count for each column for the YEAR 1981.
+
+The column FROM_P3_TO_F1 shows an example where start point of the window is before the current row and end point of the window is after current row. This is a 5 row window; it shows values less than 5 during the beginning and end.
+
+-- The query below has no apparent real life description (except 
+-- column FROM_PU_C) but is remarkable in illustrating the various windowing
+-- clause by a COUNT(*) function.
+ 
+SELECT empno, deptno, TO_CHAR(hiredate, 'YYYY') YEAR,
+COUNT(*) OVER (PARTITION BY TO_CHAR(hiredate, 'YYYY')
+ORDER BY hiredate ROWS BETWEEN 3 PRECEDING AND 1 FOLLOWING) FROM_P3_TO_F1,
+COUNT(*) OVER (PARTITION BY TO_CHAR(hiredate, 'YYYY')
+ORDER BY hiredate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) FROM_PU_TO_C,
+COUNT(*) OVER (PARTITION BY TO_CHAR(hiredate, 'YYYY')
+ORDER BY hiredate ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING) FROM_P2_TO_P1,
+COUNT(*) OVER (PARTITION BY TO_CHAR(hiredate, 'YYYY')
+ORDER BY hiredate ROWS BETWEEN 1 FOLLOWING AND 3 FOLLOWING) FROM_F1_TO_F3
+FROM emp
+ORDEDR BY hiredate
+
+ EMPNO  DEPTNO YEAR FROM_P3_TO_F1 FROM_PU_TO_C FROM_P2_TO_P1 FROM_F1_TO_F3
+------ ------- ---- ------------- ------------ ------------- -------------
+  7369      20 1980             1            1             0             0
+  <font bgcolor=yellow>7499      30 1981             2            1             0             3
+  7521      30 1981             3            2             1             3
+  7566      20 1981             4            3             2             3
+  7698      30 1981             5            4             3             3
+  7782      10 1981             5            5             3             3
+  7844      30 1981             5            6             3             3
+  7654      30 1981             5            7             3             3
+  7839      10 1981             5            8             3             2
+  7900      30 1981             5            9             3             1
+  7902      20 1981             4           10             3             0</font>
+  7934      10 1982             2            1             0             1
+  7788      20 1982             2            2             1             0
+  7876      20 1983             1            1             0             0
+
+14 rows selected.
+Query-10 (ROW type windowing example)
+The column FROM_PU_TO_CURR shows an example where start point of the window is before the current row and end point of the window is the current row. This column only has some real world significance. It can be thought of as the yearly employee build-up of the organization as each employee is getting hired.
+
+The column FROM_P2_TO_P1 shows an example where start point of the window is before the current row and end point of the window is before the current row. This is a 3 row window and the count remains constant after it has got 3 previous rows.
+
+The column FROM_F1_TO_F3 shows an example where start point of the window is after the current row and end point of the window is after the current row. This is a reverse of the previous column. Note how the count declines during the end.
+
+RANGE Windows
+For RANGE windows the general syntax is same as that of ROW:
+
+Function( ) OVER (PARTITION BY <expr1> ORDER BY <expr2> RANGE BETWEEN <start_expr> AND <end_expr>)
+or 
+Function( ) OVER (PARTITION BY <expr1> ORDER BY <expr2> RANGE [<start_expr> PRECEDING or UNBOUNDED PRECEDING]
+
+For <start_expr> or <end_expr> we can use UNBOUNDED PECEDING, CURRENT ROW or <sql_expr> PRECEDING or FOLLOWING. However for RANGE type windows <sql_expr> must evaluate to value compatible with ORDER BY expression <expr1>.
+
+<sql_expr> is a logical offset. It must be a constant or expression that evaluates to a positive numeric value or an interval literal. Only one ORDER BY expression is allowed.
+
+If <sql_expr> evaluates to a numeric value, then the ORDER BY expr must be a NUMBER or DATE datatype. If <sql_expr> evaluates to an interval value, then the ORDER BY expr must be a DATE datatype.
+
+Note the example (Query-11) below which uses RANGE windowing. The important thing here is that the size of the window in terms of the number of records can vary.
+
+-- For each employee give the count of employees getting half more that their 
+-- salary and also the count of employees in the departments 20 and 30 getting half 
+-- less than their salary.
+ 
+SELECT deptno, empno, sal,
+Count(*) OVER (PARTITION BY deptno ORDER BY sal RANGE
+BETWEEN UNBOUNDED PRECEDING AND (sal/2) PRECEDING) CNT_LT_HALF,
+COUNT(*) OVER (PARTITION BY deptno ORDER BY sal RANGE
+BETWEEN (sal/2) FOLLOWING AND UNBOUNDED FOLLOWING) CNT_MT_HALF
+FROM emp
+WHERE deptno IN (20, 30)
+ORDER BY deptno, sal
+
+ DEPTNO  EMPNO   SAL CNT_LT_HALF CNT_MT_HALF
+------- ------ ----- ----------- -----------
+     20   7369   800           0           3
+     20   7876  1100           0           3
+     20   7566  2975           2           0
+     20   7788  3000           2           0
+     20   7902  3000           2           0
+     30   7900   950           0           3
+     30   7521  1250           0           1
+     30   7654  1250           0           1
+     30   7844  1500           0           1
+     30   7499  1600           0           1
+     30   7698  2850           3           0
+
+11 rows selected.
+Query-11 (RANGE type windowing example)
+Order of computation and performance tips
+Defining the PARTITOIN BY and ORDER BY clauses on indexed columns (ordered in accordance with the PARTITION CLAUSE and then the ORDER BY clause in analytic function) will provide optimum performance. For Query-5, for example, a composite index on (deptno, hiredate) columns will prove effective.
+
+It is advisable to always use CBO for queries using analytic functions. The tables and indexes should be analyzed and optimizer mode should be CHOOSE.
+
+Even in absence of indexes analytic functions provide acceptable performance but need to do sorting for computing partition and order by clause. If the query contains multiple analytic functions, sorting and partitioning on two different columns should be avoided if they are both not indexed.
+
+Conclusion
+The aim of this article is not to make the reader try analytic functions forcibly in every other complex SQL. It is meant for a SQL coder, who has been avoiding analytic functions till now, even in complex analytic queries and reinventing the same feature much painstakingly by native SQL and join query. Its job is done if such a person finds analytic functions clear, understandable and usable after going through the article, and starts using them.
+
+
+
+
+
+-------------------------------------------------------
 Общие положения
 Общая информация
 В версии СУБД Oracle 8.1.6 появился новый класс из 26 функций, названных аналитическими, и получившим дальнейшее развитие в версии 9. Их описания были созданы совместными усилиями фирм IBM, Informix, Oracle и Compaq путем разработки так называемых "улучшений" некоторых конструкций, имеющихся в стандарте SQL1999.

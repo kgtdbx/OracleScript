@@ -1,0 +1,261 @@
+All About the SQLT Diagnostic Tool (Doc ID 215187.1)	To BottomTo Bottom
+https://support.oracle.com/epmos/faces/DocumentDisplay?_afrLoop=556553837323239&id=215187.1&_afrWindowMode=0&_adf.ctrl-state=ul2lyjsej_4
+
+In this Document
+Main Content
+ 	What is SQLTXPLAIN (SQLT)?
+ 	Licensing (SQLT requires no license and is FREE)
+ 	Download SQLTXPLAIN (SQLT)
+ 	Installation
+ 	SQLTXPLAIN Reference Material
+ 	How to get SQLT Installation Advice?
+ 	Troubleshooting SQLT Runtime or Installation Issues
+ 	SQLTXPLAIN Usage Guide
+ 	Interpreting the SQLTXPLAIN Main report
+ 	SQLTXPLAIN FAQ
+ 	SQLTXPLAIN Video and Webinars
+ 	Best Practices
+ 	Ask Questions, Get Help, And Share Your Experiences With SQLT
+ 	Pro-Active Problem Avoidance and Diagnostic Collection
+ 	Discuss SQLT!
+References
+APPLIES TO:
+Oracle Application Object Library - Version 11.5.10.0 and later
+Oracle Database - Enterprise Edition - Version 10.2.0.1 and later
+Managed Cloud Services Problem Resolution - Version N/A to N/A
+PeopleSoft Enterprise PT PeopleTools - Version 8.54 to 8.54 [Release 8.4]
+Oracle Database Cloud Schema Service - Version N/A and later
+Information in this document applies to any platform.
+Checked for relevance 09-JUL-2014
+MAIN CONTENT
+
+What is SQLTXPLAIN (SQLT)?
+SQLTXPLAIN, also known as SQLT, is a tool provided by Oracle Server Technologies Center of Expertise - ST CoE. SQLT inputs one SQL statement and outputs a set of diagnostics files. These files are commonly used to diagnose SQL statements performing poorly. SQLT connects to the database and collects execution plans, Cost-based Optimizer CBO statistics, schema objects metadata, performance statistics, configuration parameters, and similar elements that influence the performance of the SQL being analyzed.
+
+For tuning SQL, SQLT requires some level of expertise to get the most from it. For most issues we recommend that you start by checking the query using SQL Health Check and then progress to SQLT if you are unable to resolve the issue. For details of SQLHC see:
+
+Document 1366133.1 SQL Tuning Health-Check Script (SQLHC)
+ 
+
+Licensing (SQLT requires no license and is FREE)
+As in the title of this section, SQLT requires no license and is FREE. 
+
+SQLT can use data from the Oracle Diagnostic and/or the Oracle Tuning Packs if your site has a license for them. For more details refer to the licensing section in the SQLT FAQ:
+
+Document 1454160.1 FAQ: SQLT (SQLTXPLAIN) Frequently Asked Questions
+ 
+
+Download SQLTXPLAIN (SQLT)
+10.2, 11.1, 11.2, 12.1, 12.2 and 18.1 download
+9.2 and 10.1 download
+
+Note that you can also download SQLT in the RAC and DB Support Tools Bundle
+  
+Document 1594347.1 RAC and DB Support Tools Bundle
+ 
+Installation
+For 10.2, 11.1, 11.2, 12.1. 12.2 and 18.1 download the SQLT tool from the sqlt.zip file attached and unzip the contents into a suitable folder.
+
+Read the SQLT Usage instructions:
+Document 1614107.1 SQLT Usage Instructions
+
+These instructions (sqlt_instructions.html) are also included in the zip file.
+If the zip file appears corrupted while downloading, please retry with another browser. 
+If you encounter any installation issues, please refer to the following Community thread for assistance: SQLTXPLAIN: SQLT Installation Issues 
+
+For sample output, download output sample.
+
+For 9.2 and 10.1 download the SQLT tool from the sqlt9i.zip. Read sqlt_instructions.txt included in zip file. Do not use this version of the tool on 10.2 and posterior versions .
+SQLTXPLAIN REFERENCE MATERIAL
+How to get SQLT Installation Advice?
+The best place to get SQLT installation advice is the My Oracle Support Community (MOSC). Refer to the following thread: SQLTXPLAIN: SQLT Installation Issues, where you can benefit from the shared experience of the community, ask questions and get help from others.
+
+Troubleshooting SQLT Runtime or Installation Issues
+In the event that SQLT raises errors at runtime or during installation or has other installation related issues, refer to:  
+
+Document 1670677.1 FAQ: Common SQLT (SQLTXPLAIN) Runtime/Installation Errors
+ As above, the My Oracle Support Community (MOSC) can also provide valuable assistance. 
+
+SQLTXPLAIN Usage Guide
+The SQLT usage guide can be found here:
+
+Document 1614107.1 SQLT Usage Instructions
+Unless you plan to execute the SQL, you will need to know the SQL_ID or HASH_VALUE of the statement from an AWR or ASH report or you can select it from the database using the V$SQL view. See:
+
+Document 1627387.1 How to Determine the SQL_ID for a SQL Statement
+Interpreting the SQLTXPLAIN Main report
+You can find some suggestions about how you might be able to use the SQLT main report in the following document:
+
+Document 1922234.1 SQLT Main Report: Usage Suggestions
+SQLTXPLAIN FAQ
+A FAQ for the SQLT tool can be found here:
+
+Document 1454160.1 FAQ: SQLT (SQLTXPLAIN) Frequently Asked Questions
+SQLTXPLAIN Video and Webinars
+Additionally number of webcasts covering various SQLT related topics have been recorded, including topics such as:
+
+"Using SQLTXPLAIN to diagnose SQL statements performing poorly"
+"How to create in 5 minutes a SQL Tuning Test Case using SQLTXPLAIN".
+The webinars can be found, along with many other recorded webcasts, here:
+
+Document 740964.1 Advisor Webcast Archived Recordings
+Related to the Testcase webinar, there are some articles outlining how to use SQLT Testcases here:
+
+Document 1470811.1 How to Use SQLT (SQLTXPLAIN) to Create a Testcase Without Row Data
+Document 1465741.1 How to Use SQLT (SQLTXPLAIN) to Create a Testcase Containing Application Data
+ 
+
+BEST PRACTICES
+Ask Questions, Get Help, And Share Your Experiences With SQLT
+Would you like to explore SQLT further with other Oracle Customers, Oracle Employees, and Industry Experts?
+We have various community threads available where you can ask questions, get help from others, and share your experiences with SQLTXPLAIN:
+
+SQLTXPLAIN: SQLT Installation Issues 
+SQLTXPLAIN: Dealing with Long Execution Times 
+SQLTXPLAIN: Dealing with Errors reported in SQLT MAIN report 
+SQLTXPLAIN: Using SQLT on a Stand-by or Dataguard 
+SQLTXPLAIN: Interpreting and Understanding SQLT Output
+
+SQLTXPLAIN (SQLT): General Discussion
+
+Discover discussions about other articles and helpful subjects by clicking here to access the main My Oracle Support Community page for Database Tuning.
+
+Pro-Active Problem Avoidance and Diagnostic Collection
+Although some problems may be unforeseen, in many cases problems may be avoidable if signs are detected early enough. Additionally, if an issue does occur, it is no use collecting information about that issue after the event. SQLTXPLAIN is one of the tools that support recommend for collecting such diagnostics. For information on suggested uses, other proactive preparations and diagnostics, see:
+
+Document 1482811.1 Best Practices: Proactively Avoiding Database and Query Performance Issues
+Document 1477599.1 Best Practices Around Data Collection For Performance Issues
+Discuss SQLT!
+The window below is a live discussion of this article (not a screenshot). We encourage you to join the discussion by clicking the "Reply" link below for the entry you would like to provide feedback on. If you have questions or implementation issues with the information in the article above, please share that below.
+
+
+
+REFERENCES
+NOTE:224270.1 - TRCANLZR (TRCA): SQL_TRACE/Event 10046 Trace File Analyzer - Tool for Interpreting Raw SQL Traces (NO LONGER SUPPORTED - Use SQLTXPLAIN sqltrcanlzr.sql)
+NOTE:781927.1 - Performance Tuning Guidelines For Siebel CRM Application On Oracle Database
+NOTE:1477599.1 - Best Practices: Proactive Data Collection for Performance Issues
+NOTE:1482811.1 - Best Practices: Proactively Avoiding Database and Query Performance Issues
+NOTE:1322888.1 - pscbo_stats - Improving Statistics in Oracle RDBMS for PeopleSoft Enterprise
+NOTE:1460440.1 - Script PXHCDR.SQL: Parallel Execution Health-Checks and Diagnostics Reports
+NOTE:465787.1 - How to: Manage CBO Statistics During an Upgrade from 10g or 9i into 11g/12c
+NOTE:1470811.1 - How to Use SQLT (SQLTXPLAIN) to Create a Testcase Without Row Data
+NOTE:243755.1 - Script to produce HTML report with top consumers out of PL/SQL Profiler DBMS_PROFILER data
+NOTE:1465741.1 - How to Use SQLT (SQLTXPLAIN) to Create a Testcase Containing Application Data
+NOTE:1454160.1 - FAQ: SQLT (SQLTXPLAIN) Frequently Asked Questions
+NOTE:1366133.1 - SQL Tuning Health-Check Script (SQLHC)
+NOTE:749227.1 - * How to Gather Optimizer Statistics on 11g
+	
+ 	
+Was this document helpful?
+ 
+Yes
+No
+ 	 	 
+ 	
+Document Details
+ 
+Email link to this documentOpen document in new windowPrintable Page
+	
+Type:
+Status:
+Last Major Update:
+Last Update:
+Language:
+DIAGNOSTIC TOOLS
+PUBLISHED
+04-Aug-2018
+19-Sep-2018
+
+
+ 	 	 
+
+ 	
+Related Products
+ 
+	
+Oracle Application Object Library
+Oracle Database - Enterprise Edition
+Managed Cloud Services Problem Resolution
+PeopleSoft Enterprise PT PeopleTools
+Oracle Database Cloud Schema Service
+Show More
+ 	 	 
+ 	
+Information Centers
+ 
+			
+E-Business Suite Product Information Center Index [444.2]
+
+Information Center: Overview Database Server/Client Installation and Upgrade/Migration [1351022.2]
+
+Index of Oracle Database Information Centers [1568043.2]
+
+?????????·????: ????????? Enterprise Manager ????????? [1946305.2]
+
+Information Center: Overview of Database Security Products [1548952.2]
+
+Show More
+ 	 	 
+ 	
+Document References
+ 
+			
+TRCANLZR (TRCA): SQL_TRACE/Event 10046 Trace File Analyzer - Tool for Interpreting Raw SQL Traces (NO LONGER SUPPORTED - Use SQLTXPLAIN sqltrcanlzr.sql) [224270.1]
+
+Performance Tuning Guidelines For Siebel CRM Application On Oracle Database [781927.1]
+
+Best Practices: Proactive Data Collection for Performance Issues [1477599.1]
+
+Best Practices: Proactively Avoiding Database and Query Performance Issues [1482811.1]
+
+pscbo_stats - Improving Statistics in Oracle RDBMS for PeopleSoft Enterprise [1322888.1]
+
+Show More
+ 	 	 
+ 	
+Recently Viewed
+ 
+	ORA-10635 error is reported when shrinking a table [732519.1]	
+
+	Patch Set Update and Critical Patch Update January 2015 Availability Document [1942215.1]	
+
+	October 2018 Critical Patch Update: Executive Summary and Analysis [2456979.1]	
+
+	Critical Patch Update (CPU) Program October 2018 Patch Availability Document (PAD) [2433477.1]	
+
+	Step by Step Guide To Configure SSL Authentication [736510.1]	
+
+Show More
+ 	 	 
+Didn't find what you are looking for?Ask in Community...
+
+ 
+Attachments
+ 
+ZIPSQLT Tool for 9.2 and 10.1 (ZIP format)(1.7 MB)
+ZIPSQLT_LATEST(3.68 MB)
+ZIPSQLT Tool for 10gR2 to 12cR2 (Released 4th October 2017)(908.8 KB)
+ZIPSQLT Tool for 10gR2 to 12cR2 (Released 31st March 2018)(916.65 KB)
+ZIPSQLT Output Sample(5.73 MB)
+
+ 
+Related
+ 
+ 
+Products
+ 
+Oracle E-Business Suite > Applications Technology > Application Object Library > Oracle Application Object Library
+Oracle Database Products > Oracle Database Suite > Oracle Database > Oracle Database - Enterprise Edition > RDBMS > Generic SQL Performance, SQL Execution, Query Optimizer
+Services > Oracle Managed Cloud > Managed Cloud Services > Managed Cloud Services Problem Resolution > On Demand Assistance/Access > On Demand Assistance/Access
+PeopleSoft Enterprise > Tools and Technology > PeopleTools > PeopleSoft Enterprise PT PeopleTools > Tree Manager
+Oracle Cloud > Oracle Platform Cloud > Oracle Database Cloud Service > Oracle Database Cloud Schema Service
+Oracle Cloud > Oracle Infrastructure Cloud > Oracle Public Cloud Machine > Oracle Database Exadata Cloud Machine
+Oracle Cloud > Oracle Platform Cloud > Oracle Cloud Infrastructure - Database Service > Oracle Cloud Infrastructure - Database Service
+Oracle Cloud > Oracle Platform Cloud > Oracle Database Backup Service > Oracle Database Backup Service
+Oracle Cloud > Oracle Platform Cloud > Oracle Database Cloud Service > Oracle Database Cloud Exadata Service
+Oracle Cloud > Oracle Platform Cloud > Oracle Database Cloud Service > Oracle Database Exadata Express Cloud Service
+Oracle Cloud > Oracle Platform Cloud > Oracle Database Cloud Service > Oracle Database Cloud Service
+ 
+Keywords
+ 
+BAD PLAN;CBO;COST BASED OPTIMIZER;EXPLAIN PLAN;PERFORMANCE;SQL TUNING;SQLTXPLAIN

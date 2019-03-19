@@ -163,4 +163,10 @@ List parsing last value
  Take the value after the last comma SELECT SUBSTR('abc,def,ghi', INSTR('abc,def,ghi',',', -1, 1)+1)
 FROM DUAL;  
 
+----
 
+with t as
+(select 'AG_DEPOSIT_AGREEMENTS_RBGT_MV' as name from dual)
+select substr(name,1,length(name)-3) from t;
+
+-----

@@ -28,7 +28,18 @@ HOS tkprof &&trace. &&_user._tkprof.txt sort=prsela exeela fchela
 HOS more &&_user.tkprof.txt
 
 
-
+--- diag_info
+-- quick check of the new v$diag_info view that came in with 11
+col inst_id form 9999 head inst
+col name form a25
+col value form a60 wrap
+spool diag_info.lst
+set lines 120
+select * from v$diag_info
+order by name
+/
+spool off
+--
 
 -------------------
 --Run cmd as ADMIN
@@ -113,7 +124,7 @@ ALTER SYSTEM SET user_dump_dest = "C:\app\product\12.2.0\dbhome_1\bin";
 
 ---####################################################--
 --another way to trace session which is not yours
---select necessery information about session
+--select necessary information about session
 SELECT sid, serial#, username
 FROM V$SESSION;
 
@@ -132,6 +143,8 @@ tkprof C:\APP\diag\rdbms\orcl\orcl\trace\orcl_ora_8180.trc hr_tkprof.txt sort=pr
 
 ---####################################################--
 --if you do not have access to server just retrive info from V$DIAG_TRACE_FILE_CONTENTS
+
+--BUT This view is available starting with Oracle Database 12c Release 2 (12.2.0.1).
 
 select fc.adr_home, fc.trace_filename, payload 
 from V$DIAG_TRACE_FILE_CONTENTS fc
@@ -153,5 +166,87 @@ where fc.trace_filename = 'orcl_ora_8180_SERG_TRACE.trc';
 spool off
 cd C:\Temp
 tkprof C:\Temp\my_trace.trc C:\Temp\tkprof_my_trace.txt sort=prsela exeela fchela
+
+
+
+-------------
+--trace with CTX_OUTPUT Package
+http://www.dba86.com/docs/oracle/12.2/CCREF/CTX_OUTPUT-package.htm
+
+
+---------------one more ------------
+--https://static.rainfocus.com/oracle/oow18/sess/1523654077988001mEdJ/PF/TIP4094%20-%20fast%20lane_1540795887172001PZh2.pdf
+explain plan for
+select count(*)
+from VEHICLE
+where MAKE = 'HONDA' and MODEL = 'CIVIC';
+
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_PLAN);
+
+--
+--actual versus estimate
+select /*+ GATHER_PLAN_STATISTICS */ count(*)
+from VEHICLE
+where MAKE = 'HONDA' and MODEL = 'CIVIC';
+
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ALLSTATS LAST'));
+
+--
+set linesize 250 pagesize 0 trims on tab off long 1000000
+set timing on
+select plan_table_output
+from v$sql s,
+table(dbms_xplan.display_cursor(s.sql_id,
+                               s.child_number, 'ADVANCED +peeked_binds +projection')) t
+where upper(s.sql_text) like 'SELECT /*+ GATHER_PLAN_STATISTICS */%';
+----------------------------------------------------
+
+
+--tracing
+
+alter session set sql_trace = true
+alter session set tracefile_identifier = SERG_TRACE;
+Session altered.
+SQL> host ls *.trc
+
+
+alter session set events 'immediate trace name trace_buffer_on level 1048576';
+Session altered.
+SQL> host ls –l *.trc
+drw------- oracle dba Jun17 15:10 1048576 db10r2_ora_3248.trc
+
+--
+
+SQL> select name, value from v$diag_info;
+NAME VALUE
+------------------------ ------------------------------------------
+Diag Enabled TRUE
+ADR Base C:\ORACLE
+ADR Home C:\ORACLE\diag\rdbms\db122\db122
+Diag Trace C:\ORACLE\diag\rdbms\db122\db122\trace
+Diag Alert C:\ORACLE\diag\rdbms\db122\db122\alert
+Diag Incident C:\ORACLE\diag\rdbms\db122\db122\incident
+Diag Cdump c:\oracle\diag\rdbms\db122\db122\cdump
+Health Monitor C:\ORACLE\diag\rdbms\db122\db122\hm
+Default Trace File C:\ORACLE\...\trace\db122_ora_17296.trc
+
+--
+
+
+select PAYLOAD
+from V$DIAG_TRACE_FILE_CONTENTS
+where TRACE_FILENAME = 'db122_ora_12484.trc';
+
+PAYLOAD
+----------------------------------------------------------------------------
+Trace file C:\ORACLE\diag\rdbms\db122\db122\trace\db122_ora_12484.trc
+Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
+Build label: RDBMS_12.2.0.1.0WINDBBP_WINDOWS.X64_180202
+Windows NT Version V6.2
+ORACLE_HOME = c:\oracle\product\12.2.0.1
+Node name : XPS13
+CPU : 4 - type 8664, 2 Physical Cores
+Process Affinity : 0x0x0000000000000000
+Memory (Avail/Total): Ph:9411M/16235M, Ph+Pg
 
 

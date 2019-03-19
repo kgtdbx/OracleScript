@@ -24,3 +24,147 @@ order by OWNER, name,
 REFERENCED_TYPE ,
 REFERENCED_OWNER ,
 REFERENCED_name
+
+
+---
+
+select owner, name, type, referenced_owner, referenced_name, referenced_type
+from   (
+select *
+from   dba_dependencies
+start  with owner = 'MUECKNICK'
+and         name  = 'AAM_E2'
+connect by  PRIOR referenced_name  = name
+and         PRIOR referenced_type  = type
+and         PRIOR referenced_owner = owner
+)
+where  owner not in ('SYS', 'PUBLIC')
+and    referenced_owner not in ('SYS', 'PUBLIC')
+
+----
+
+--utldtree.sql
+
+Using the utldtree utility
+Oracle provides utldtree.sql in your $ORACLE_HOME/rdbms/admin directory for displaying any object (tables, stored procedures) and all of their dependencies.
+
+When you execute utldtree.sql, a procedure named deptree_fill is created, and youi specify the object name and type:
+
+deptree_fill('object_type', 'object_owner', 'object_name');
+
+You are now able to execute the deptree_fill procedure, followed by a query to the resulting ideptree table:
+
+exec deptree_fill('TABLE','SCOTT','EMP');
+select * from sys.deptree order by seq#;
+select * from deptree order by seq#;
+--or
+select * from ideptree;
+
+--
+The easiest approach is to use an Oracle utldtree.sql script. This will be located in the %ORACLE_HOME%\rdbms\admin\ directory.
+
+For each schema that you want to be able to get a dependency list, you will open up a SQL*Plus session and execute the script 
+scott@> @d:\oracle\ora92\rdbms\admin\utldtree.sql 
+Don’t worry about the ORA-00942 errors you will get– this script tries to drop objects before it re-creates them, so you’ll get errors when the objects don’t exist yet. 
+Once the script has been run, you can get a listing of dependent objects for a particular object by calling
+
+scott@jcave > exec deptree_fill('table', 'scott', 'emp' );
+PL/SQL procedure successfully completed.
+Elapsed: 00:00:00.01
+scott@jcave > select * from ideptree;
+DEPENDENCIES
+-------------------------------------------------------------------------------- 
+TABLE SCOTT.EMP
+   VIEW SCOTT.V2
+   PROCEDURE SCOTT.INCREASE_SALARY
+   VIEW SCOTT.V3
+   PROCEDURE SCOTT.CALL_ME
+   TRIGGER SCOTT.ODBC_EMP_TST
+   <no>
+7 rows selected.
+Elapsed: 00:00:08.03
+
+
+
+------
+--http://oncalldba.blogspot.com/2016/04/dependencies-for-given-object.html
+SELECT lvl, u.object_id, u.object_type, LPAD (' ', lvl) || object_name obj
+FROM (SELECT LEVEL lvl, object_id
+FROM SYS.public_dependency s
+START WITH s.object_id =
+(SELECT object_id
+FROM user_objects
+WHERE object_name = UPPER ('&OBJECT_NAME')
+AND object_type = UPPER ('&OBJECT_TYPE'))
+CONNECT BY s.object_id = PRIOR referenced_object_id
+GROUP BY LEVEL, object_id) tree,
+user_objects u
+WHERE tree.object_id = u.object_id
+ORDER BY lvl
+/
+
+--
+define OWNER='SCOTT';
+define PARENT_TABLE ='TEST_1' ;
+ 
+select level,lpad('> ',5*(level-1)) || to_char(child) "TABLE" from
+(select b.table_name "PARENT",a.table_name "CHILD"
+from all_constraints a,all_constraints b 
+where a.owner=b.owner 
+and a.owner='&OWNER'
+and a.constraint_type='R'
+and a.r_constraint_name=b.constraint_name 
+order by b.table_name,a.table_name) 
+start with parent='&PARENT_TABLE'
+connect by prior child = parent ;
+----------------
+SELECT DISTINCT table_name, 
+                constraint_name, 
+                column_name, 
+                r_table_name, 
+                position, 
+                constraint_type 
+FROM   (SELECT uc.table_name, 
+               uc.constraint_name, 
+               cols.column_name, 
+               (SELECT table_name 
+                FROM   user_constraints 
+                WHERE  constraint_name = uc.r_constraint_name) r_table_name, 
+               (SELECT column_name 
+                FROM   user_cons_columns 
+                WHERE  constraint_name = uc.r_constraint_name 
+                       AND position = cols.position)           r_column_name, 
+               cols.position, 
+               uc.constraint_type 
+        FROM   user_constraints uc 
+               inner join user_cons_columns cols 
+                       ON uc.constraint_name = cols.constraint_name 
+        WHERE  constraint_type != 'C') 
+START WITH table_name = '&&tableName' 
+           AND column_name = '&&columnName' 
+CONNECT BY NOCYCLE PRIOR table_name = r_table_name 
+                         AND PRIOR column_name = r_column_name; 
+                         
+--------------------
+
+select * from all_source s
+where upper(s.text) like '%AG_BLOCKING_REASON%' escape '\';
+
+-------------------
+
+select *
+  from (
+select owner, view_name,
+       serhiib.long_help.substr_of( 'select text
+                               from dba_views
+                              where owner = :owner
+                                and view_name = :view_name',
+                             1, 4000,
+                             'owner', owner,
+                             'view_name', view_name ) substr_of_view_text
+  from dba_views
+--where owner = ''
+       )
+where upper(substr_of_view_text) like '%EMP%'
+/
+------------------

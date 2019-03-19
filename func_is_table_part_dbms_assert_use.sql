@@ -1,3 +1,4 @@
+ https://oracle-base.com/articles/10g/dbms_assert_10gR2
  SET SERVEROUTPUT ON
  DECLARE 
  l_owner varchar2(30 char);
@@ -10,7 +11,9 @@
          nexist number(1);
         begin
             l_owner :=upper(dbms_assert.qualified_sql_name(ip_owner));
+            --l_owner :=upper(dbms_assert.sql_object_name(ip_owner));
             l_table_name :=upper(dbms_assert.qualified_sql_name(ip_table_name));
+            --l_table_name :=upper(dbms_assert.sql_object_name(ip_table_name));
             
             begin
               select 1
@@ -33,3 +36,5 @@ if is_table_partitioned('EXTSTG', '||RB_TDC_ZVD40_ARC') then DBMS_OUTPUT.put_lin
 ELSE DBMS_OUTPUT.put_line ('FALSE');
 END IF;
 END;
+
+

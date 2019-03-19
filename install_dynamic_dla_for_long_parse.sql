@@ -949,6 +949,7 @@ AS
                  ));
 
 prompt Installing synonyms and privileges...
+/*
 create or replace public synonym dla_pkg for dla_pkg;
 grant execute on dla_pkg to public;
 
@@ -969,7 +970,7 @@ grant select on v_dba_triggers to public;
 
 create or replace public synonym v_dba_views for v_dba_views;
 grant select on v_dba_views to public;
-
+*/
 prompt
 prompt
 prompt **************************************************************************

@@ -1,3 +1,43 @@
+
+--#############   One Time Immediate Job in Oracle  ###########--
+
+One Time Immediate Job can be created by using "dbms_job" and "dbms_scheduler" both.
+
+1) One Time Immediate Job using dbms_job
+  declare
+    l_jobid number := null;
+  begin
+    dbms_job.submit 
+    (
+      job       =>  l_jobid,
+      what      =>  'sp_proc;',
+      next_date =>  sysdate,
+      interval  =>  null
+    );
+    commit;
+  end;
+  /
+
+Always remember to issue a COMMIT statement immediately after dbms_job.submit. 
+
+
+2) One Time Immediate Job using dbms_scheduler
+  begin
+    dbms_scheduler.create_job 
+    (  
+      job_name      =>  'One_Time_Job',  
+      job_type      =>  'PLSQL_BLOCK',  
+      job_action    =>  'begin sp_proc; end;',  
+      start_date    =>  sysdate,  
+      enabled       =>  TRUE,  
+      auto_drop     =>  TRUE,  
+      comments      =>  'one-time job');
+  end;
+  /
+    commit;
+    
+--################################################--
+
 select * from user_jobs;
 
 
@@ -901,3 +941,151 @@ BEGIN
     DBMS_SCHEDULER.DROP_JOB('HISTORY_JOB', TRUE); 
 END;
 /
+
+--------------------------------------DBMS_JOB------------------------------
+
+SELECT * FROM user_scheduler_jobs dj where dj.job_name = 'NOTIFICATION_JOB';
+select TO_CHAR(d.LOG_DATE, 'dd.mm.yyyy hh24:mi:ss') LOG_DATE, d.* from user_scheduler_job_run_details d
+order by d.LOG_ID desc;
+select * from user_scheduler_job_log order by 1 desc;
+select * from dba_jobs; 
+select * from dba_jobs_running;
+select * from dba_scheduler_running_jobs;
+select * from DBA_SCHEDULER_JOBS d
+where d.owner = 'BARS';
+select * from DBA_SCHEDULER_JOB_LOG d
+where d.owner = 'BARS';
+select * from ALL_SCHEDULER_JOB_LOG l
+order by l.LOG_ID desc;
+
+select * from dba_jobs_running;
+
+select * from user_jobs uj where uj.JOB IN('128932', '53848');
+
+begin sys.dbms_job.broken(job => '128932',broken => true); commit; end;
+
+
+----------------
+--add to spec pkg
+-- stop all jobs that were enabled and run them after the migration process
+    procedure p_stop_scheduler_job;
+    procedure p_stop_dbms_job;
+    procedure p_stop_job;
+    procedure p_run_scheduler_job;
+    procedure p_run_dbms_job;
+    procedure p_run_job;
+    
+ ------
+ --add to body pkg
+ 
+ procedure p_run_scheduler_job
+  as
+  begin
+  for cur in
+     (
+      select t.object_name, t.object_type
+      from ddl_utils_store t
+      where t.object_type = 'JOB'
+        and not exists (select 1
+                        from dba_scheduler_jobs dsj
+                        where dsj.owner||'.'||dsj.job_name = t.object_name
+                        and dsj.enabled = 'TRUE'
+                        )
+      )
+   loop
+     p_job_restore(cur.object_name, cur.object_type);
+   end loop;
+  end p_run_scheduler_job;
+  
+  procedure p_run_dbms_job
+  as
+  begin
+  for cur in
+     (
+      select t.object_name, t.object_type
+      from ddl_utils_store t
+      where t.object_type = 'DBMS_JOB'
+        and not exists (select 1
+                        from all_jobs aj
+                        where aj.job = t.object_name 
+                        and aj.broken = 'N'
+                        )
+      )
+   loop
+     p_job_restore(cur.object_name, cur.object_type);
+   end loop;
+  end p_run_dbms_job;
+  
+  procedure p_run_job
+  as
+  begin
+  p_run_scheduler_job;
+  p_run_dbms_job;
+  exception when others
+   then raise;
+  end p_run_job; 
+  
+  procedure p_stop_scheduler_job
+    as
+     job_is_running   EXCEPTION;
+     PRAGMA EXCEPTION_INIT (job_is_running, -27478);
+     csql_text clob;
+  begin
+  for cur in 
+  (
+  select dsj.owner||'.'||dsj.job_name as job  from dba_scheduler_jobs dsj
+   where dsj.owner in ('BARS', 'BARSAQ', 'CDB', 'BARS_DM', 'BARSUPL')
+     and dsj.enabled = 'TRUE'
+  )
+  loop
+   csql_text := 'begin dbms_scheduler.enable('''||cur.job||'''); end;';
+   mgr_utl.p_object_save(null, cur.job,'JOB', csql_text);
+   begin
+     dbms_scheduler.stop_job(cur.job); 
+     exception when others 
+          then null; 
+   end;
+   
+   begin
+     dbms_scheduler.disable(cur.job);
+     exception when others 
+          then null; 
+   end;   
+  end loop;
+  exception when job_is_running 
+    then raise_application_error( -20001, 'All job must be stoped! Please stop running job and try again!' );
+  --dbms_scheduler.stop_job(cur.job, force=>true);
+  --dbms_scheduler.disable(cur.job);
+  end p_stop_scheduler_job; 
+  
+  procedure p_stop_dbms_job
+    as
+     job_is_not_in_queue EXCEPTION;
+     PRAGMA EXCEPTION_INIT (job_is_not_in_queue, -23421);
+     csql_text clob;
+  begin
+  for cur in 
+  (
+    select aj.job as job
+      from all_jobs aj
+     where aj.broken = 'N'
+   )
+  loop
+   csql_text := 'begin sys.dbms_job.broken(job => '''||cur.job||''', broken => false); commit; end;';
+   mgr_utl.p_object_save(null, cur.job,'DBMS_JOB', csql_text);
+   sys.dbms_job.broken(job => cur.job,broken => true); 
+   commit; 
+  end loop;
+  exception when job_is_not_in_queue
+    then null;
+  end p_stop_dbms_job; 
+  
+  procedure p_stop_job
+    as
+  begin
+   p_stop_scheduler_job; 
+   p_stop_dbms_job;
+  exception when others
+   then raise;
+  end p_stop_job;
+ 

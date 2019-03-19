@@ -83,3 +83,33 @@ so you have to set this in the SQLNET.ORA file in windows under the same folder 
 SQLNET.AUTHENTICATION_SERVICES= (NTS)
 
 then you should be able to start the Database. 
+
+--############################################################--
+This answer based on a1ex07 comment:
+
+given the folowing detailes:
+
+user name: demo
+password: Pass1234
+ip: 1.2.3.4
+listener port: 1521
+oracle SID: orcl
+pdb service name: pdborcl
+connect to core db from db host as sysdba:
+
+without need of password: sqlplus / as sysdba
+password manually: sqlplus sys as sysdba
+password in command:  sqlplus sys/Pass1234 as sysdba
+connect to core db from db host or remote as sysdba:
+
+password manually:  sqlplus sys@\"1.2.3.4:1521/orcl\" as sysdba
+password in command: sqlplus sys/Pass1234@1.2.3.4:1521/orcl as sysdba
+connect to pdb from db host or remote as sysdba:
+
+password manually:  sqlplus sys@\"1.2.3.4:1521/pdborcl\" as sysdba
+password in command: sqlplus sys/Pass1234@1.2.3.4:1521/pdborcl as sysdba
+connect to pdb from db host or remote as demo (regular user):
+
+password manually:  sqlplus demo@\"1.2.3.4:1521/pdborcl\"
+password in command: sqlplus demo/Pass1234@1.2.3.4:1521/pdborcl
+--

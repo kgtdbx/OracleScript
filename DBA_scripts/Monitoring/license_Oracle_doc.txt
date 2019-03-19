@@ -1,0 +1,112 @@
+To know if need extra cost license
+
+https://docs.oracle.com/en/database/oracle/oracle-database/12.2/dblic/Licensing-Information.html#GUID-0F9EB85D-4610-4EDF-89C2-4916A0E7AC87
+
+
+E.g. 
+Oracle Tuning Pack
+
+N
+
+Y
+
+Y
+
+N
+
+Y
+
+Y
+
+Y
+
+Y
+
+EE and EE-Exa: Extra cost option, also requires Oracle Diagnostics Pack
+
+
+-----------
+
+https://docs.oracle.com/en/database/oracle/oracle-database/12.2/dblic/Licensing-Information.html#GUID-C3042D9A-5596-41A3-A08A-4581FED7634F
+
+1.2.5 Checking for Feature, Option, and Management Pack Usage
+Oracle provides the script options_packs_usage_statistics.sql, which enables you to check feature usage, Oracle Database option usage, and Oracle management pack usage on your database. This script lists, in two distinct sections:
+
+Oracle Database option and Oracle management pack usage
+
+Features used by each option and management pack
+
+You can obtain the script from My Oracle Support as follows:
+
+Use a Web browser to view the My Oracle Support Web site:
+https://support.oracle.com
+Log in to My Oracle Support.
+If you are not a My Oracle Support registered user, then click Register and follow the registration instructions.
+
+Search for Document ID 1317265.1, or access it directly with the following URL:
+https://support.oracle.com/CSP/main/article?cmd=show&type=NOT&id=1317265.1
+You can manually run the script on an individual database or use Oracle Enterprise Manager Job System to automatically run the script on multiple databases. Refer to Oracle Enterprise Manager Cloud Control Administrator's Guide for information on Oracle Enterprise Manager Job System.
+
+--
+
+Database Options/Management Packs Usage Reporting for Oracle Databases 11gR2, 12c, 12cR2 and 18c (Doc ID 1317265.1)	To BottomTo Bottom	
+
+APPLIES TO:
+Oracle Database - Enterprise Edition - Version 11.2.0.1 and later
+Oracle Database Cloud Schema Service - Version N/A and later
+Oracle Database Exadata Cloud Machine - Version N/A and later
+Oracle Cloud Infrastructure - Database Service - Version N/A and later
+Oracle Database Cloud Exadata Service - Version N/A and later
+Information in this document applies to any platform.
+This Document is applicable to Oracle Databases from 11g Release 2.
+
+GOAL
+This note describes how to check the usage of separately licensed Oracle Database Options/Management Packs.
+The note describes scripts: options_packs_usage_statistics.sql.
+More details on Oracle Database Options and Packs can be found in the Oracle Database Licensing Information guide.
+
+SOLUTION
+Database Options/Management Packs Usage Report
+
+You can determine whether an option is currently in use in a database by running options_packs_usage_statistics.sql, which replaces both former scripts option_usage.sql and used_options_details.sql.
+You can manually run options_packs_usage_statistics.sql in an individual database or use Oracle Enterprise Manager Job System to automatically run options_packs_usage_statistics.sql on multiple databases.
+
+For Container Databases (CDB):
+ - when connected to CDB$ROOT container, the script lists data for all the open PDBs, properly detecting if Multitenant Option licensing is needed.
+ - when connected to a PDB, the script lists only local data,  as there is no visibility to other PDBs, due to the isolation  provided by the Multitenant Architecture. For the same reason,  Multitenant Option usage (more than one PDB) cannot be detected.
+
+Description 
+
+The report is divided into two main sections PRODUCT USAGE and FEATURE USAGE DETAILS which reports overview and detailed information for Database Options/Management Packs usage for Oracle Databases for 11.2 and later. You need the "SELECT ANY DICTIONARY" privilege to execute the script.
+The report is based on the DBA_FEATURE_USAGE_STATISTICS view. Note that the feature usage data in the view is updated once a week, so it may take up to 7 days for the report to show recent usage of options and/or packs. 
+The output can be easily opened in a spreadsheet, if needed.
+
+Please review the Description & Disclaimer section in the script before executing the script.
+Kindly note the report generated is to be used for informational purposes only and this does not represent your license entitlement or requirement. for known issues with this check MOS DOC ID 1309070.1
+ 
+PRODUCT USAGE
+
+Description 
+
+This section provides an overview of each option/pack that has been used in the database and if they are currently in use. It will also provide information when the product was first used and when it was used last time. 
+
+FEATURE USAGE DETAILS
+
+Description 
+
+This section provides a detailed report of features used that has triggered the usage of a product.
+The report is based on the DBA_FEATURE_USAGE_STATISTICS view.
+The CURRENTLY_USED column of DBA_FEATURE_USAGE_STATISTICS view  indicates if the feature in question was used during the last sampling interval by VERSION and DBID
+
+ 
+
+Click here to download the options_packs_usage_statistics.sql script
+
+
+How to generate the Database Options/Management Packs Reports?
+
+sqlplus -s <UserName/Password> @options_packs_usage_statistics.sql
+
+
+
+@C:\WORK\OracleScript\options_packs_usage_statistics.sql

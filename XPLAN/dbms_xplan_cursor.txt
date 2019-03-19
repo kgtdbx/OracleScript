@@ -219,3 +219,19 @@ select t.*
           where sql_text like 'select prod_category%') pb,
          table(dbms_xplan.display_sql_plan_baseline(pb.sql_handle,
                                                     null,'basic')) t;
+                                                    
+
+
+--############################################
+
+See more
+https://blogs.oracle.com/optimizer/how-to-generate-a-useful-sql-execution-plan
+https://blogs.oracle.com/optimizer/how-do-i-display-and-read-the-execution-plans-for-a-sql-statement
+
+
+set linesize 250 pagesize 0 trims on tab off long 1000000
+set timing on
+set autotrace traceonly explain
+
+alter session set statistics_level=all;
+

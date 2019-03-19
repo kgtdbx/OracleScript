@@ -1,0 +1,74 @@
+Where do my trace files go? V$DIAG_INFO
+https://mwidlake.wordpress.com/2015/10/19/where-do-my-trace-file-go-vdiag_info/	
+October 19, 2015
+Posted by mwidlake in development, performance, SQL Developer. 
+Tags: performance, SQL, SQL developer
+trackback
+Where do oracle trace files go? I don’t know why this piece of info will not stick in my head, I seem to have to look it up 3 or 4 times a year.
+
+If only I had an easy way to find out. There is a very easy way to find out – and that piece of info won’t stay in my head either. So this really is a blog post just for stupid, forgetful me.
+
+V$DIAG_INFO has been available since oracle V11. All the trace files go into the Automatic Diagnostic Repository (ADR) by default.
+
+ora122> desc v$diag_info
+ Name                                                                Null?    Type
+ ------------------------------------------------------------------- -------- ---------------
+ INST_ID                                                                      NUMBER
+ NAME                                                                         VARCHAR2(64)
+ VALUE                                                                        VARCHAR2(512)
+ CON_ID                                                                       NUMBER
+Quick sql*plus script to get it out:
+
+-- diag_info
+-- quick check of the new v$diag_info view that came in with 11
+col inst_id form 9999 head inst
+col name form a25
+col value form a60 wrap
+spool diag_info.lst
+set lines 120
+select * from v$diag_info
+order by name
+/
+spool off
+Contents:
+
+INST_ID NAME                 VALUE                                                            CON_ID
+-------- -------------------- ---------------------------------------------------------------- -------
+       1 Diag Enabled          TRUE                                                                  0
+       1 ADR Base              D:\APP\ORACLE                                                         0
+       1 ADR Home              D:\APP\ORACLE\diag\rdbms\ora122\ora122                                0
+       1 Diag Trace            D:\APP\ORACLE\diag\rdbms\ora122\ora122\trace                          0
+       1 Diag Alert            D:\APP\ORACLE\diag\rdbms\ora122\ora122\alert                          0
+       1 Diag Incident         D:\APP\ORACLE\diag\rdbms\ora122\ora122\incident                       0
+       1 Diag Cdump            D:\app\oracle\diag\rdbms\ora122\ora122\cdump                          0
+       1 Health Monitor        D:\APP\ORACLE\diag\rdbms\ora122\ora122\hm                             0
+       1 Default Trace File    D:\APP\ORACLE\diag\rdbms\ora122\ora122\trace\ora122_ora_7416.trc      0
+       1 Active Problem Count  0                                                                     0
+       1 Active Incident Count 0                                                                     0
+I should add some notes later about setting the trace file identifier…
+Ohhh, OK, I’ll do it now. To make it easier to identify your trace file, set tracefile_identifier
+
+alter session set tracefile_identifier = 'mdw151019'
+ 
+--Now if I create a quick trace file
+alter session set sql_trace=true
+ 
+@test_code
+ 
+alter session set sql_trace=false
+I now go to the Diag trace directory I identified via V$DIAG_INFO and look for my trace files. I could just look for the latest ones or do a wilcard search on my tracefile_identifier string and, pop, there we are:
+
+19/10/2015 13:59 39,751 ora122_ora_7416_mdw151019.trc
+19/10/2015 13:59 426 ora122_ora_7416_mdw151019.trm
+
+If you want a taste of the numerous ways of initiating a 10046 trace, sometimes called a SQL trace, see Tim Hall’s excellent post on his Oracle Base website:
+
+https://oracle-base.com/articles/misc/sql-trace-10046-trcsess-and-tkprof
+
+Oh, one final nice thing. You can open trace files in SQL Developer and play with what information is shown. Maybe I should do a whole piece on that…
+
+Actually, these two post from Oracelnerd and Orastory will get you going, it’s pretty simple to use in any case:
+
+http://www.oraclenerd.com/2010/02/soug-sql-developer-with-syme-kutz.html
+https://orastory.wordpress.com/2015/02/27/sql-developer-viewing-trace-files/
+

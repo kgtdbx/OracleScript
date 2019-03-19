@@ -1,3 +1,8 @@
+set linesize 250 pagesize 0 trims on tab off long 1000000
+set timing on
+set autotrace traceonly explain
+
+********************************
 Autotrace in SQLPLUS
 Here is what I like to do to get autotrace working:
 cd $oracle_home/rdbms/admin

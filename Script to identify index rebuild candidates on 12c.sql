@@ -35,10 +35,12 @@ VAR minimum_size_mb NUMBER;
 EXEC :minimum_size_mb := 1;
  
 SET SERVEROUT ON ECHO OFF FEED OFF VER OFF TAB OFF LINES 300;
+SPOOL ON;
  
 COL report_date NEW_V report_date;
 SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD"T"HH24:MI:SS') report_date FROM DUAL;
-SPO /tmp/indexes_2b_shrunk_&&report_date..txt;
+--SPO /tmp/indexes_2b_shrunk_&&report_date..txt;
+SPO "C:\oracle\product\11.2.0\client_32\bin\indexes_2b_shrunk_&&report_date..txt";
  
 DECLARE
 l_used_bytes NUMBER;
@@ -62,6 +64,7 @@ REPLACE(DBMS_METADATA.GET_DDL('INDEX',x.index_name,x.owner),CHR(10),CHR(32)) ddl
 FROM dba_ind_statistics s, dba_indexes x, dba_users u, v$parameter p
 WHERE u.oracle_maintained = 'N'
 AND x.owner = u.username
+--AND x.owner = 'EXTSTG'
 AND x.tablespace_name NOT IN ('SYSTEM','SYSAUX')
 AND x.index_type LIKE '%NORMAL%'
 AND x.table_type = 'TABLE'

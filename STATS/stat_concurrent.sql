@@ -1,3 +1,12 @@
+alter system set parallel_adaptive_multi_user=false;
+
+begin
+dbms_stats.set_global_prefs('CONCURRENT', 'TRUE');
+end;
+/
+
+select dbms_stats.get_prefs('concurrent') from dual
+
 BEGIN
   SYS.DBMS_STATS.GATHER_SCHEMA_STATS (
      OwnName           => 'BARS'
@@ -8,9 +17,6 @@ BEGIN
     ,Method_Opt        => 'FOR ALL INDEXED COLUMNS'
     ,Degree            => 16
     ,Cascade           => TRUE
-    ,No_Invalidate  => FALSE);
+    ,No_Invalidate     => FALSE);
 END;
 
-exec dbms_stats.set_global_prefs('concurrent','true');
-
-select dbms_stats.get_prefs('concurrent') from dual

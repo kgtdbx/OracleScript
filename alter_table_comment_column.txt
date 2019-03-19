@@ -3,3 +3,5 @@ alter table ETD_OPTION_CONTRACT add last_trdd_dt date;
 -- Add comments to the columns 
 comment on column ETD_OPTION_CONTRACT.last_trdd_dt
   is 'Last traded date of the option contract';
+  
+  

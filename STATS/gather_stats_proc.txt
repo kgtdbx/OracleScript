@@ -1,3 +1,34 @@
+ /*
+Statistics should be gathered as a part of any process that significantly changes the data. Do not rely on nightly jobs to gather statistics, especially in a large data warehouse.
+
+Gathering statistics only in nightly jobs has many potential disadvantages:
+
+The processing has a weird time dependency. Statistics windows can be tricky to coordinate. And sometimes if there's too much work the table you care about may not have time to get analyzed.
+There are several types of statistics jobs (scheduler jobs, DBA_JOBS, auto_tasks), all of which tend to get disabled more than they should.
+Gathering statistics at the wrong time is much worse than not having statistics at all. If there are no statistics then Oracle can use dynamic sampling to do a decent job. But if the nightly job just happens to gather statistics during the brief period where the table is empty, the statistics may be horribly wrong and performance will suffer. I've seen this happen many times; these errors tend to get blamed on "environmental differences", but if you leave a critical step up to chance then environments are going to randomly fail.
+Gathering statistics as part of your data load process has many potential advantages. Since you understand the process and the table better than some generic nightly statistics job you can take advantage of many advanced features:
+
+If the system isn't busy after the data load then parallelism can be used with a parameter like DEGREE=>8.
+If it's a direct-path write in 12c you may be able to automatically gather stats while loading data with the GATHER_OPTIMIZER_STATISTICS hint.
+If it's an interval partitioned table you may want to setup incremental statistics gathering. This lets the process only spend time gathering statistics for the partition and the global statistics are updated for free.
+If the process disabled and rebuilds indexes it can avoid re-gathering index statistics with the parameter NOCASCADE=>TRUE.
+Don't outsource statistics gathering to some other scheduled job. Statistics are so important and tricky that they should be fully integrated with any program that is making significant data changes.
+
+ */
+ 
+/*
+In this scenario the new AUTO_SAMPLE_SIZE algorithm was 9 times faster than the 100% sample and
+only 2.4 times slower than the 1 % sample, while the quality of the statistics it produced were nearly
+identical to a 100% sample (not different enough to change the execution plans). Note the timings for
+this experiment may vary on your system and the larger the data set, the more speedup you will
+encounter from the new algorithm.
+It is highly recommended from Oracle Database 11g onward you let ESTIMATE_PERCENT default. If
+you manually set the ESTIMATE_PERCENT parameter, even if it is set to 100%, you will get the old
+statistics gathering algorithm. 
+*/
+ 
+ 
+ 
  procedure p_gather_stat_pdm
   is
     l_estimate_percent pls_integer default 10;
@@ -76,3 +107,150 @@
                                    no_invalidate      => FALSE);               
    END;
    -----------------------------
+   
+   
+----###################################################################
+
+declare
+v_owner_nm      all_tables.owner%type := 'DEPOSITS';
+v_table_nm      all_tables.table_name%type := 'PRT_AG_DEPOSIT_AGREEMENTS';
+v_date          date := date '2018-11-14';--date:=  bifrost.dagar.bankadagur_nidur(SYSDATE - 1);
+--
+function getPrtNmByDate(inOwnerNm  in all_tab_partitions.table_owner%type, inTableNm in all_tab_partitions.table_name%type, inDate in date)
+    return varchar2
+  is
+    l_prt_name varchar2(30 char);
+  begin
+    with stmt as (
+    select table_name,
+           partition_name,
+           to_date (
+              trim (
+              '''' from regexp_substr (
+                         extractvalue (
+                           dbms_xmlgen.getxmltype (
+                           'select high_value from all_tab_partitions where table_name='''
+                                    || table_name
+                                    || ''' and table_owner = '''
+                                    || table_owner
+                                    || ''' and partition_name = '''
+                                    || partition_name
+                                    || ''''),
+                                 '//text()'),
+                              '''.*?''')),
+              'syyyy-mm-dd hh24:mi:ss')
+              high_value_in_date_format
+      from all_tab_partitions
+     where table_name = inTableNm and table_owner = inOwnerNm)
+    select partition_name into l_prt_name
+      from stmt
+     where high_value_in_date_format = inDate+1;
+    if ( l_prt_name is not null )
+    then
+        return l_prt_name;
+    else
+        return null;
+    end if;
+    exception when NO_DATA_FOUND then return null;
+              when TOO_MANY_ROWS then return null;
+              when others then raise;
+  end getPrtNmByDate;
+
+--
+PROCEDURE gatherStatsPrt (inOwnerNm in all_tab_partitions.table_owner%type default 'DEPOSITS', inTableNm in all_tab_partitions.table_name%type, inDate in date, inEstimatePercent in number default 10)
+  IS
+  v_prt_name varchar2(50 char);
+  begin
+           begin
+               select getPrtNmByDate(inOwnerNm,inTableNm, inDate) into v_prt_name from dual;
+               exception 
+                 when NO_DATA_FOUND then null;
+                 when TOO_MANY_ROWS then null;
+                 when others then raise;
+             end;
+  case when v_prt_name is null 
+       then return;
+       else null;
+  end case;
+  
+  DBMS_STATS.gather_table_stats (ownname            => inOwnerNm,
+                                 tabname            => inTableNm,
+                                 partname           => v_prt_name,
+                                 estimate_percent   => inEstimatePercent,
+                                 cascade            => TRUE,
+                                 granularity        => 'PARTITION',
+                                 no_invalidate      => FALSE);
+end gatherStatsPrt;
+--
+begin
+gatherStatsPrt(inTableNm => v_table_nm, inDate => v_date);
+end;
+/
+
+----###################################################################
+
+declare
+  v_table_name varchar2(64) := ''; --your table
+  v_key_value number := ;  -- your range value
+
+  v_data_object_id number;
+  v_object_name varchar2(64);
+  v_object_type varchar2(64);
+  v_granularity varchar2(64);
+  v_part_name   varchar2(64);
+begin
+  begin
+    for i in (select kc.column_name
+              from user_part_key_columns kc
+              where kc.name = upper(v_table_name)
+                and kc.object_type = 'TABLE')
+     loop
+       execute immediate 'select /*+ first_rows */ dbms_rowid.rowid_object(rowid)
+
+                          from ' || v_table_name || '
+                          where '|| i.column_name || ' = '|| v_key_value || 
+                          ' and rownum = 1'
+        into v_data_object_id;
+     end loop;
+  exception
+    when no_data_found then
+      v_data_object_id := null;
+  end;
+
+  begin
+    select t.subobject_name, t.OBJECT_TYPE
+      into v_object_name, v_object_type
+    from user_objects t
+    where t.data_object_id = v_data_object_id;
+    exception
+      when no_data_found then
+        v_object_name := null;
+  end;
+
+  if v_object_name is null
+    then
+      dbms_output.put_line ('no data found');
+    else
+      if v_object_type = 'TABLE SUBPARTITION'
+        then 
+          v_granularity := 'SUBPARTITION';
+
+          select t.partition_name
+            into v_part_name
+          from user_tab_subpartitions t
+          where t.subpartition_name = v_object_name;
+
+        else
+          v_granularity := 'PARTITION';
+          v_part_name := v_object_name;
+      end if;
+
+      dbms_stats.gather_table_stats (ownname => user
+                                    ,tabname => upper(v_table_name)
+                                    ,partname => v_part_name
+                                    ,granularity => v_granularity
+                                    ,cascade => true
+                                    ,no_invalidate => false);
+  end if;
+end;
+---------------------------------

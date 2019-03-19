@@ -8,7 +8,8 @@ Solution
 
  1. Perform Online Segment Shrink
 
-The Online Segment Shrink process consolidates fragmented free space below the high water mark and compacts the segment. After compaction, the high water mark is moved, resulting in new free space above the high water mark. That space above the high water mark is then deallocated.
+The Online Segment Shrink process consolidates fragmented free space below the high water mark and compacts the segment. After compaction, the high water mark is moved, resulting in new free space above the high water mark. 
+That space above the high water mark is then deallocated.
 
 1.1 Benefits
 
@@ -16,7 +17,8 @@ Compaction of data leads to better cache utilization, which in turn leads to bet
 The compacted data requires fewer blocks to be scanned in full table scans, which in turns leads to better decision support system (DSS) performance.
 1.2 Downtime
 
-Segment shrink is an online, in-place operation. DML operations and queries can be issued during the data movement phase of segment shrink. Concurrent DML operation are blocked for a short time at the end of the shrink operation, when the space is deallocated. Indexes are maintained during the shrink operation and remain usable after the operation is complete. Segment shrink does not require extra disk space to be allocated.
+Segment shrink is an online, in-place operation. DML operations and queries can be issued during the data movement phase of segment shrink. Concurrent DML operation are blocked for a short time at the end of the shrink operation, when the space is deallocated. 
+Indexes are maintained during the shrink operation and remain usable after the operation is complete. Segment shrink does not require extra disk space to be allocated.
 
 1.3 Limitation
 
@@ -31,25 +33,31 @@ As with other DDL operations, segment shrink causes subsequent SQL statements to
 
 Two optional clauses let you control how the shrink operation proceeds:
 
-The COMPACT clause lets you divide the shrink segment operation into two phases. When you specify COMPACT, Oracle Database defragments the segment space and compacts the table rows but postpones the resetting of the high water mark and the deallocation of the space until a future time. This option is useful if you have long-running queries that might span the operation and attempt to read from blocks that have been reclaimed. The defragmentation and compaction results are saved to disk, so the data movement does not have to be redone during the second phase. You can reissue the SHRINK SPACE clause without the COMPACT clause during off-peak hours to complete the second phase.
-The CASCADE clause extends the segment shrink operation to all dependent segments of the object. For example, if you specify CASCADE when shrinking a table segment, all indexes of the table will also be shrunk. (You need not specify CASCADE to shrink the partitions of a partitioned table.) To see a list of dependent segments of a given object, you can run the OBJECT_DEPENDENT_SEGMENTS procedure of the DBMS_SPACE package.
+The COMPACT clause lets you divide the shrink segment operation into two phases. 
+When you specify COMPACT, Oracle Database defragments the segment space and compacts the table rows but postpones the resetting of the high water mark and the deallocation of the space until a future time. 
+This option is useful if you have long-running queries that might span the operation and attempt to read from blocks that have been reclaimed. 
+The defragmentation and compaction results are saved to disk, so the data movement does not have to be redone during the second phase. You can reissue the SHRINK SPACE clause without the COMPACT clause during off-peak hours to complete the second phase.
+The CASCADE clause extends the segment shrink operation to all dependent segments of the object. For example, if you specify CASCADE when shrinking a table segment, all indexes of the table will also be shrunk. 
+(You need not specify CASCADE to shrink the partitions of a partitioned table.) To see a list of dependent segments of a given object, you can run the OBJECT_DEPENDENT_SEGMENTS procedure of the DBMS_SPACE package.
 1.5 Perform Shrink
-Segment shrink requires that rows be moved to new locations. Therefore, you must first enable row movement in the object you want to shrink and disable any rowid-based triggers defined on the object. You enable row movement in a table with the ALTER TABLE … ENABLE ROW MOVEMENT command.
+Segment shrink requires that rows be moved to new locations. Therefore, you must first enable row movement in the object you want to shrink and disable any rowid-based triggers defined on the object. 
+You enable row movement in a table with the ALTER TABLE … ENABLE ROW MOVEMENT command.
  
 Shrink a table and all of its dependent segments (including BASICFILE LOB segments):
 ALTER TABLE employees SHRINK SPACE CASCADE;
+
 Shrink a BASICFILE LOB segment only:
-
 ALTER TABLE employees MODIFY LOB (perf_review) (SHRINK SPACE);
+
 Shrink a single partition of a partitioned table:
-
 ALTER TABLE customers MODIFY PARTITION cust_P1 SHRINK SPACE;
+
 Shrink an IOT index segment and the overflow segment:
-
 ALTER TABLE cities SHRINK SPACE CASCADE;
-Shrink an IOT overflow segment only:
 
+Shrink an IOT overflow segment only:
 ALTER TABLE cities OVERFLOW SHRINK SPACE;
+
 Generate Shrink script for all the tables of a schema
  
 set lines 300
@@ -72,7 +80,11 @@ Also the expected size of the tables and indexes seem to be very high with respe
 
 Check using the following query:
 
-select segment_name,sum(bytes)/1024/1024 size_mb from dba_segments where owner='<owner of the schema/schema name>' order by sum(bytes)/1024/1024 desc;
+select segment_name,sum(bytes)/1024/1024 size_mb 
+from dba_segments 
+where owner='<owner of the schema/schema name>'
+group by segment_name 
+order by 2 desc;
 
  To reclaim the space further we need to perform the following:
 
@@ -92,7 +104,9 @@ spool rebuild_indexes.txt
 spool off
  1.6.2.  Perform Deallocate unused
 
-It has been observed that the storage clause INITIAL in table definition remains high although space has been reclaimed using shrink and rebuild, which in turn keeps more space than required for tables and indexes of a schema resulting in drastic space usage by the schema.All the delete,row movement, shrink and index rebuild operation seems to have no effect in reducing the size of the schema.
+It has been observed that the storage clause INITIAL in table definition remains high although space has been reclaimed using shrink and rebuild, 
+which in turn keeps more space than required for tables and indexes of a schema resulting in drastic space usage by the schema.
+All the delete,row movement, shrink and index rebuild operation seems to have no effect in reducing the size of the schema.
 
 Suppose if a table  requires only 2 MB of space after delete,shrink etc. but in the table create definition the storage initial is set to 4 GB
 

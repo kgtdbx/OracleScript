@@ -1,3 +1,8 @@
+
+set linesize 250 pagesize 0 trims on tab off long 1000000
+set timing on
+set autotrace traceonly explain
+
 Formatting SQL*Plus Reports
 This chapter explains how to format your query results to produce a finished report. This chapter does not discuss HTML output, but covers the following topics:
 

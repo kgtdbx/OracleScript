@@ -18,6 +18,81 @@ ON prints column headings in reports; OFF suppresses column headings.
 
 The SET HEADING OFF command does not affect the column width displayed, it only suppresses the printing of the column header itself.>
 
+--
+*SET TAB {ON | OFF} Determines how SQL*Plus formats white space in terminal output.
+--
+
+COLUMN NOPRINT
+COLUMN NOPRINT turns off screen output and printing of the column heading and all values selected for the column.
+
+It is better to remove an unneeded column from a SELECT then it is to use COLUMN NOPRINT to stop it displaying. Removing the column from the query means the SQL engine does not need to process it, or need to transfer the column data back to SQL*Plus.
+
+SET APPINFO OFF
+Sets automatic registering of scripts through the DBMS_APPLICATION_INFO package. Setting APPINFO OFF prevents administrators monitoring the performance and resource usage of scripts.
+
+If many SQL scripts are being called, then turning APPINFO OFF stops internal SQL*Plus calls to the database DBMS_APPLICATION_INFO package.
+
+SET ARRAYSIZE
+Sets the number of rows that SQL*Plus will fetch from the database at one time. Valid values are 1 to 5000.
+
+The effectiveness of setting ARRAYSIZE depends on how well Oracle Database fills network packets and your network latency and throughput. In recent versions of SQL*Plus and Oracle Database, ARRAYSIZE may have little effect. Overlarge sizes can easily take more SQL*Plus memory which may decrease overall performance.
+
+SET DEFINE OFF
+SET DEFINE OFF disables the parsing of commands to replace substitution variables with their values.
+
+SET FLUSH OFF
+SET FLUSH OFF enables the operating system to buffer output. ON disables buffering and flushes output to the screen. Any benefit from setting FLUSH either ON or OFF depends on your operating system and data. The gain may be marginal.
+
+Use OFF only when you run a script that does not require user interaction and whose output you do not need to see until the script finishes running.
+
+SET LINESIZE
+SET LINESIZE sets the total number of characters that SQL*Plus displays on one line before beginning a new line.
+
+Keep LINESIZE as small as possible to avoid extra memory allocations and memory copying.
+
+However, if LINESIZE is too small, columns that cannot fit next to each other are put on separate lines. This may reduce performance significantly.
+
+SET LONGCHUNKSIZE
+SET LONGCHUNKSIZE sets the size of the increments SQL*Plus uses to retrieve a BLOB, BFILE, CLOB, LONG, NCLOB or XMLType value.
+
+Experiment with different sizes if LONGS or LOBs are being fetched.
+
+SET PAGESIZE
+Sets the number of lines on each page of output.
+
+Increase PAGESIZE to avoid printing headings frequently, or set it to 0 to prevent headings being displayed.
+
+SET SERVEROUTPUT
+SET SERVEROUTPUT OFF suppresses the display output (DBMS_OUTPUT.PUT_LINE) of stored procedures or PL/SQL blocks in SQL*Plus.
+
+Setting SERVEROUTPUT OFF stops internal SQL*Plus calls to the DBMS_OUTPUT package done after user SQL statements.
+
+SET SQLPROMPT
+Sets the SQL*Plus command prompt.
+
+Use the default prompt, "SQL> " to stop variable substitution occurring each time the prompt is displayed.
+
+SET TAB
+Determines how SQL*Plus formats white space in terminal output.
+
+Setting TAB ON causes multiple spaces to be compressed in terminal output. Unless this significantly reduces the written data, the processing required may marginally outweigh any benefit.
+
+SET TERMOUT
+SET TERMOUT OFF suppresses the display so that you can spool output from a script without seeing it on the screen.
+
+If both spooling to file and writing to terminal are not required, use SET TERMOUT OFF in SQL scripts to disable terminal output.
+
+SET TRIMOUT ON SET TRIMSPOOL ON
+SET TRIMOUT ON or SET TRIMSPOOL ON removes trailing blanks at the end of each displayed or spooled line.
+
+Setting these variables ON can reduce the amount of data written. However, if LINESIZE is optimal, it may be faster to set the variables OFF. The SQL*Plus output line is blank filled throughout the query processing routines so removing the spaces could take extra effort.
+
+UNDEFINE
+Deletes substitution variables that you defined either explicitly (with the DEFINE command) or implicitly (with an argument to the START command or COLUMN NEW_VAL|OLD_VAL).
+
+Use the UNDEFINE command to remove unnecessary substitution variables. This can reduce the time taken for any operation that uses '&', new_value or old_value variables.
+
+
 ******************
 I used 
 
@@ -71,4 +146,10 @@ If you are executing a SQL*Plus script, it is not necessary to change directorie
        SQL> host  c:\u01\app\oracle\mysid\bin\xxxx.sql
        
 ******************
+
+set linesize 250 pagesize 0 trims on tab off long 1000000
+set timing on
+set autotrace traceonly explain
+
+*******************
        

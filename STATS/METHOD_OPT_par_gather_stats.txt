@@ -1,0 +1,129 @@
+--How does the METHOD_OPT parameter work
+https://blogs.oracle.com/optimizer/how-does-the-methodopt-parameter-work
+
+In last week’s post we addressed the most popular question surrounding statistics gathering, what sample size should be used? Once that decision has been made, folks typically turn their attention to histograms and the time honored question of, do I need histograms or not?
+
+Regardless of which side of this religious debate you come down on, you are going to need to figure out what to set the METHOD_OPT parameter to.
+
+This post explains in detail what the METHOD_OPT parameter controls and how it can be used to influence which columns get statistics and what type of statistics they get.
+
+The METHOD_OPT parameter is probably the most misunderstood parameter in the DBMS_STATS.GATHER_*_STATS procedures. It’s most commonly known as the parameter that controls the creation of histograms but it actually does so much more than that. The METHOD_OPT parameter actually controls the following,
+which columns will or will not have base column statistics gathered on them
+the histogram creation,
+the creation of extended statistics
+The METHOD_OPT parameter syntax is made up of multiple parts. The first two parts are mandatory and are broken down in the diagram below.
+
+
+
+The leading part of the METHOD_OPT syntax controls which columns will have base column statistics (min, max, NDV, number of nulls, etc) gathered on them. The default, FOR ALL COLUMNS, will collects base column statistics for all of the columns (including hidden columns) in the table.  The alternative values limit the collection of base column statistics as follows;
+
+FOR ALL INDEXED COLUMNS limits base column gathering to only those columns that are included in an index. This value is not recommended as it is highly unlikely that only index columns will be used in the select list, where clause predicates, and group by clause of all of the SQL statement executed in the environment.
+
+FOR ALL HIDDEN COLUMNS limits base column statistics gathering to only the virtual columns that have been created on a table. This means none of the actual columns in the table will have any column statistics gathered on them. Again this value is not recommended for general statistics gathering purposes. It should only be used when statistics on the base table columns are accurate and a new virtual column(s) has been created (e.g. a new column group is created). Then gathering statistics in this mode will gather statistics on the new virtual columns without re-gathering statistics on the base columns.
+
+Note that if a column is not included in the list to have statistics gathered on it, then only its average column length is gathered. The average column length is used to correctly compute average row length and discarded (i.e., not saved to disk) after use.
+
+The SIZE part of the METHOD_OPT syntax controls the creation of histograms and can have the following settings;
+
+AUTO means Oracle will automatically determines the columns that need histograms based on the column usage information (SYS.COL_USAGE$), and the presence of a data skew. 
+
+An integer value indicates that a histogram will be created with at most the specified number of buckets. Must be in the range [1,254]. To force histogram creation it is recommend that the number of buckets be left at 254. Note SIZE 1 means no histogram will be created.
+
+REPEAT ensures a histogram will only be created for any column that already has one. If the table is a partitioned table, repeat ensures a histogram will be created for a column that already has one on the global level.  However, this is not a recommended setting, as the number of buckets currently in each histogram will limit the maximum number of buckets used for the newly created histograms. Lets assume there are 5 buckets currently in a histogram. When the histogram is re-gathered with SIZE REPEAT, the newly created histogram will use at most 5 buckets and may not been of good quality.  
+
+SKEWONLY automatically creates a histogram on any column that shows a skew in its data distribution.
+
+If the default value of METHOD_OPT parameter, FOR ALL COLUMNS SIZE AUTO, doesn’t work in your particular environment then you most likely fall into one of the following categories,
+
+Automatically create a histogram on any column in the table except a specific column
+Only create a histogram on this specific column(s)
+In an earlier blog post we showed an example of how to prevent Oracle from creating a histogram on a specific column, so let’s look at option 2, creating a histogram only on specific columns.  Let’s assume we only wanted to create a histogram on the CUST_ID of the SALES table. Remember, the METHOD_OPT parameter controls which columns get basic statistics as well as which columns get histograms, so we need to think about setting the METHOD_OPT parameter in two parts.
+
+The first part will specify which columns will have base statistics gathered on them. In this case we wanted all of the columns in the table to have base statistics so we should use FOR ALL COLUMNS.  But what about the SIZE part of the parameter? We only want a histogram on one column, so for this leading edge of the parameter setting we need to specify SIZE 1 to prevent a histogram from being created on any column.
+
+The second part of the parameter setting needs to specify that a histogram is needed on the CUST_ID column. This is achieved using an additional part of the METHOD_OPT syntax that we haven’t mentioned yet, called FOR COLUMNS. The FOR COLUMNS syntax allows us to provide explicit instructions for specific columns listed in this part of the parameter setting. In this case we would use, FOR COLUMNS SIZE 254 CUST_ID to specify we need a histogram on the CUST_ID column. So the final METHOD_OPT parameter setting will be;
+
+
+
+Below is the DBMS_STATS.GATHER_TABLE_STATS command in action. The only column that has a histogram created on it is the CUST_ID, even though several of the columns in the SALES table were used in the where clause of queries executed on the system.
+
+BEGIN dbms_stats.Gather_table_stats('SH', 'SALES', - method_opt => 'FOR ALL COLUMNS SIZE 1 FOR COLUMNS SIZE 254 CUST_ID'); 
+END; 
+/
+
+PL/SQL procedure successfully completed.
+SELECT column_name, num_distinct, histogram 
+FROM   user_tab_col_statistics 
+WHERE  table_name = 'SALES'; 
+ 
+
+There are several other cases where you may need to provide a more complex setting for the METHOD_OPT parameter. Take for example a scenario where you don’t want any form of statistics on a column. There is no way to tell Oracle don’t gather statistics on a particular column, so you need to do the reverse and explicitly list the column you want to have statistics gathered on using the FOR COLUMNS syntax. Let’s assume we don’t want statistics of any kind on the PROD_ID column of the SALES TABLE. Then the DBMS_STATS.GATHER_TABLE_STATS command would be as follows;
+
+BEGIN 
+ dbms_stats.delete_column_stats('SH', 'SALES', 'PROD_ID'); 
+END; 
+/
+PL/SQL procedure completed successfully. 
+BEGIN 
+ dbms_stats.Gather_table_stats('SH', 'SALES',-
+ method_opt => 'FOR COLUMNS SIZE 254 CUST_ID TIME_ID CHANNEL_ID PROMO_ID 
+ QUANTITY_SOLD AMOUNT_SOLD'); 
+END; 
+/
+PL/SQL procedure completed successfully.   
+-- The average row length still got recorded accurately even though we did not gather statistics on the PROD_ID column. 
+
+SELECT num_rows, avg_row_len 
+FROM   user_tables 
+WHERE  table_name = 'SALES';
+
+ 
+
+SELECT column_name, num_distinct, histogram 
+FROM   user_tab_col_statistics 
+WHERE  table_name = 'SALES';
+ 
+
+Note the FOR COLUMNS syntax is only valid for the GATHER_TABLE_STATS procedure.
+
+Finally, at the start of this post I mentioned that the METHOD_OPT parameter can also be used to create extended statistics. Extended statistics encompasses two additional types of column statistics; column groups and expression statistics. In the example below, a column group will be automatically created on the PROD_ID and CUST_ID column in the SALES table. It will be given a system-generated name and will have all of the base column statistics gathered on it.
+
+
+BEGIN
+dbms_stats.Gather_table_stats('SH', 'SALES',
+method_opt => 'FOR ALL COLUMNS SIZE 254 FOR COLUMNS SIZE 254(PROD_ID, CUST_ID)');
+END;
+/
+ PL/SQL procedure successfully completed.  
+SELECT column_name, num_distinct, histogram 
+FROM   user_tab_col_statistics 
+WHERE  table_name = 'SALES';
+
+ 
+
+Rather than specifying the METHOD_OPT parameter in the statistics gathering command it is highly recommended that you specify any non-default value for the METHOD_OPT via DBMS_STATS.SET_TABLE_PREFS.
+
+
+BEGIN
+ dbms_stats.Set_table_prefs('SH', 'SALES', 'METHOD_OPT', -
+ 'FOR ALL COLUMNS SIZE 254 FOR COLUMNS SIZE 1 PROD_ID');
+END;
+/ 
+In summary:
+
+The METHOD_OPT parameter in the GATHER_DICTIONARY_STATS, GATHER_DATABASE_STATS, and GATHER_SCHEMA_STATS procedures only accepts 'FOR ALL [INDEXED|HIDDEN] columns' syntax. No specific column names can be specified.
+
+When used in the GATHER_TABLE_STATS procedure, the METHOD_OPT parameter can accept an additional argument in the form of ‘FOR columns …'. Using this syntax allows you to controls;
+
+
+which columns to gather basic statistics 
+which columns to gather histograms and the bucket size 
+which extended statistics to create
+
+
+
+--#####################################--
+--additional info
+https://blog.dbi-services.com/a-migration-pitfall-with-all-column-size-auto/
+http://www.dba-oracle.com/oracle_tips_histograms.htm
+

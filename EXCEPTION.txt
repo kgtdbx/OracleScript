@@ -59,6 +59,8 @@ BEGIN
 EXCEPTION
     when name_in_use then
        null; --suppress ORA-00955 exception
+    when others then
+          raise;
 END; 
 ----------------------
 Функция dbms_utility.format_error_backtrace возвращает список вызовов функций и процедур от места генерации исключения до места его обработки.	

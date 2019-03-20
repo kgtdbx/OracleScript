@@ -1,0 +1,1878 @@
+ID=PL/SQL Developer Preference File
+
+[General]
+Name=General user preferences
+Enabled=True
+Order=-1
+Rules=
+
+[Preferences]
+LastNewsRead=20122018
+LastNewsItem=21112018
+PlanViewType=0
+
+[LogonHistory]
+21864492427844644122411641584312360243004470419244424148439840884178
+22714273417142294111455341154173403943854107453343674105438741414135
+298750855079478548754821495947614787482930633425321131413423306534273325
+
+[BrowserFilters]
+Name=All objects
+User=
+WhereClause=
+OrderByClause=decode(owner, user, 0, 1),
+=owner,
+=object_name
+IsDefault=1
+Name=All non-system objects
+User=
+WhereClause=owner not in ('SYS', 'SYSTEM')
+OrderByClause=decode(owner, user, 0, 1),
+=owner,
+=object_name
+IsDefault=0
+Name=My objects
+User=
+WhereClause=owner = user
+OrderByClause=decode(owner, user, 0, 1),
+=owner,
+=object_name
+IsDefault=0
+Name=My objects + sys.packages
+User=
+WhereClause=owner = user
+=or (owner = 'SYS' and object_type = 'PACKAGE')
+OrderByClause=decode(owner, user, 0, 1),
+=owner,
+=object_name
+IsDefault=0
+Name=My invalid objects
+User=
+WhereClause=owner = user
+=and status = 'INVALID'
+OrderByClause=decode(owner, user, 0, 1),
+=owner,
+=object_name
+IsDefault=0
+Name=All objects modified today
+User=
+WhereClause=last_ddl_time >= trunc(sysdate)
+OrderByClause=decode(owner, user, 0, 1),
+=owner,
+=object_name
+IsDefault=0
+
+
+[Connections]
+DisplayName=Imported Fixed Users
+IsFolder=1
+Number=0
+Parent=-1
+Username=
+Database=
+ConnectAs=
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Color=65535
+DisplayName=Imported History
+IsFolder=1
+Number=1
+Parent=-1
+Username=
+Database=
+ConnectAs=
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Color=65535
+DisplayName=ISB
+IsFolder=1
+Number=2
+Parent=1
+Username=
+Database=
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Color=255
+DisplayName=VHGDEV
+IsFolder=1
+Number=3
+Parent=2
+Username=
+Database=
+ConnectAs=
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Color=16776960
+DisplayName=SERHIIB
+IsFolder=0
+Number=4
+Parent=3
+Username=SERHIIB
+Database=vhgdev
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2348
+IdentifiedExt=0
+Color=255
+DisplayName=BIFROST
+IsFolder=0
+Number=5
+Parent=3
+Username=BIFROST
+Database=vhgdev
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=200115071373139912174827490149273865400338533927
+IdentifiedExt=0
+Color=65535
+DisplayName=VALHOLL
+IsFolder=0
+Number=6
+Parent=3
+Username=VALHOLL
+Database=vhgdev
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=277944614327412944594581454345533107321330953073
+IdentifiedExt=0
+Color=65535
+DisplayName=DEPOSITS
+IsFolder=0
+Number=7
+Parent=3
+Username=DEPOSITS
+Database=vhgdev
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=297750755069477548974811491747514777
+IdentifiedExt=0
+Color=65535
+DisplayName=PRODUCTS
+IsFolder=0
+Number=8
+Parent=3
+Username=PRODUCTS
+Database=vhgdev
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=253743154293483146654915460549514849
+IdentifiedExt=0
+Color=65535
+DisplayName=PAYMENTS
+IsFolder=0
+Number=9
+Parent=3
+Username=PAYMENTS
+Database=vhgdev
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=260348934631505747154597471948894915
+IdentifiedExt=0
+Color=65535
+DisplayName=EXTSTG
+IsFolder=0
+Number=10
+Parent=3
+Username=EXTSTG
+Database=vhgdev
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=25054459416542394265425947013335344133553429
+IdentifiedExt=0
+Color=65535
+DisplayName=VHGTEST
+IsFolder=1
+Number=11
+Parent=2
+Username=
+Database=
+ConnectAs=
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Color=65280
+DisplayName=EXTSTG
+IsFolder=0
+Number=12
+Parent=11
+Username=EXTSTG
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=24484530410843104208420245163758367238103724
+IdentifiedExt=0
+Color=65535
+DisplayName=SERHIIB
+IsFolder=0
+Number=13
+Parent=11
+Username=SERHIIB
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2407
+IdentifiedExt=0
+Color=255
+DisplayName=BIFROST
+IsFolder=0
+Number=14
+Parent=11
+Username=BIFROST
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=20371415475348114901468749374803463749674657474746294687
+IdentifiedExt=0
+Color=65535
+DisplayName=DEPOSITS
+IsFolder=0
+Number=15
+Parent=11
+Username=DEPOSITS
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=268844984252349434404266414842544120
+IdentifiedExt=0
+Color=65535
+DisplayName=VALHOLL
+IsFolder=0
+Number=16
+Parent=11
+Username=VALHOLL
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=23924858490050704744507447804966507250024740
+IdentifiedExt=0
+Color=65535
+DisplayName=VERDANDI
+IsFolder=0
+Number=17
+Parent=11
+Username=VERDANDI
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=20954177474746454783471349314781488746574795
+IdentifiedExt=0
+Color=65535
+DisplayName=GLADHEIMUR
+IsFolder=0
+Number=18
+Parent=11
+Username=GLADHEIMUR
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=243050085034475648144872379447165062499247624788494242964306
+IdentifiedExt=0
+Color=65535
+DisplayName=MIMIR
+IsFolder=0
+Number=19
+Parent=11
+Username=MIMIR
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=29004134448041543124324645204258
+IdentifiedExt=0
+Color=65535
+DisplayName=KVASIR
+IsFolder=0
+Number=20
+Parent=11
+Username=KVASIR
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=21024616481847484742364846344820
+IdentifiedExt=0
+Color=65535
+DisplayName=PAYMENTS
+IsFolder=0
+Number=21
+Parent=11
+Username=PAYMENTS
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=298542194485329532734499434944874353
+IdentifiedExt=0
+Color=65535
+DisplayName=DEPOSITS_ACC
+IsFolder=0
+Number=22
+Parent=11
+Username=DEPOSITS_ACC
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=298142154481327532854495434544834349
+IdentifiedExt=0
+Color=65535
+DisplayName=UTGARDUR
+IsFolder=0
+Number=23
+Parent=11
+Username=UTGARDUR
+Database=VHGTEST
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=23124618507649904968393849244662
+IdentifiedExt=0
+Color=65535
+DisplayName=VHGSTBCLONE
+IsFolder=1
+Number=24
+Parent=2
+Username=
+Database=
+ConnectAs=
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Color=16711680
+DisplayName=EXTSTG
+IsFolder=0
+Number=25
+Parent=24
+Username=EXTSTG
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2055485745954861487145934715477347674633393939013895
+IdentifiedExt=0
+Color=65535
+DisplayName=PRODUCTS
+IsFolder=0
+Number=26
+Parent=24
+Username=PRODUCTS
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2315460548554609458748534975500150274893368736493739
+IdentifiedExt=0
+Color=65535
+DisplayName=PAYMENTS
+IsFolder=0
+Number=27
+Parent=24
+Username=PAYMENTS
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2961422745094231420945714341436743294515327732714897
+IdentifiedExt=0
+Color=65535
+DisplayName=DEPOSITS
+IsFolder=0
+Number=28
+Parent=24
+Username=DEPOSITS
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2373466349134667467749114905496349575047374537073701
+IdentifiedExt=0
+Color=65535
+DisplayName=VERDANDI
+IsFolder=0
+Number=29
+Parent=24
+Username=VERDANDI
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2748452642644562454042944128457045644398309630583052
+IdentifiedExt=0
+Color=65535
+DisplayName=BIFROST
+IsFolder=0
+Number=30
+Parent=24
+Username=BIFROST
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2585436341334335444141954221424742094107341334713465
+IdentifiedExt=0
+Color=65535
+DisplayName=VALHOLL
+IsFolder=0
+Number=31
+Parent=24
+Username=VALHOLL
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2658443641744504451442364166416041544308351835443538
+IdentifiedExt=0
+Color=65535
+DisplayName=UTGARDUR
+IsFolder=0
+Number=32
+Parent=24
+Username=UTGARDUR
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2243
+IdentifiedExt=0
+Color=65535
+DisplayName=KVASIR
+IsFolder=0
+Number=33
+Parent=24
+Username=KVASIR
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2301459148414627460548715089501950134847367336353629
+IdentifiedExt=0
+Color=65535
+DisplayName=MIMIR
+IsFolder=0
+Number=34
+Parent=24
+Username=MIMIR
+Database=vhgstbclone
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2731450942474577455543094111407340994413307931053067
+IdentifiedExt=0
+Color=65535
+DisplayName=VHGPROD
+IsFolder=1
+Number=35
+Parent=2
+Username=
+Database=
+ConnectAs=
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Color=255
+DisplayName=MIMIR
+IsFolder=0
+Number=36
+Parent=35
+Username=MIMIR
+Database=VHGPROD
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=220349734647468946674629463940094019
+IdentifiedExt=0
+Color=65535
+DisplayName=KVASIR
+IsFolder=0
+Number=37
+Parent=35
+Username=KVASIR
+Database=VHGPROD
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2587434942634193351541014447
+IdentifiedExt=0
+Color=65280
+DisplayName=SERHIIB
+IsFolder=0
+Number=38
+Parent=35
+Username=SERHIIB
+Database=VHGPROD
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2853
+IdentifiedExt=0
+Color=255
+DisplayName=ISDEV
+IsFolder=1
+Number=39
+Parent=2
+Username=
+Database=
+ConnectAs=
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Color=65535
+DisplayName=SERHIIB
+IsFolder=0
+Number=40
+Parent=39
+Username=SERHIIB
+Database=ISDEV
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2309
+IdentifiedExt=0
+Color=255
+DisplayName=PRODUCTS
+IsFolder=0
+Number=41
+Parent=39
+Username=PRODUCTS
+Database=ISDEV
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=243047204762494850704808497847164838
+IdentifiedExt=0
+Color=65535
+DisplayName=PROFUN
+IsFolder=1
+Number=42
+Parent=2
+Username=
+Database=
+ConnectAs=
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Color=65535
+DisplayName=SERHIIB
+IsFolder=0
+Number=43
+Parent=42
+Username=SERHIIB
+Database=PROFUN
+ConnectAs=Normal
+Edition=
+Workspace=
+AutoConnect=0
+ConnectionMatch=536870911
+Password=2582
+IdentifiedExt=0
+Color=255
+
+[BrowserFolders]
+Name=Recent objects
+Number=1
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Recycle bin
+Number=2
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Functions
+Number=3
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Procedures
+Number=4
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Packages
+Number=5
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Package bodies
+Number=6
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Types
+Number=7
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Type bodies
+Number=8
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Triggers
+Number=9
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Java sources
+Number=10
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Java classes
+Number=11
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=DBMS_Jobs
+Number=12
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Queues
+Number=13
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Queue tables
+Number=14
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Libraries
+Number=15
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Directories
+Number=16
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Tables
+Number=17
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Indexes
+Number=18
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Constraints
+Number=19
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Views
+Number=20
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Materialized views
+Number=21
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Sequences
+Number=22
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Users
+Number=23
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Profiles
+Number=24
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Roles
+Number=25
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Synonyms
+Number=26
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Database links
+Number=27
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Tablespaces
+Number=28
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Clusters
+Number=29
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Window groups
+Number=30
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Windows
+Number=31
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Schedules
+Number=32
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Programs
+Number=33
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Chains
+Number=34
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Jobs
+Number=35
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+Name=Job classes
+Number=36
+Type=0
+Connection=
+WhereClause=
+OrderByClause=
+Parent=0
+Color=65535
+Visible=1
+SuppressOwner=0
+Objects=
+
+
+[Documents]
+UseMainMenu=0
+
+
+[WebSearches]
+Description=Google
+URL=http://www.google.com/search?as_q="%s"
+InternalHTML=0
+ReuseWindow=0
+
+Description=OTN Forums
+URL=http://www.google.com/search?as_q="%s" site:oracle.com/forums
+InternalHTML=0
+ReuseWindow=0
+
+Description=OraFAQ
+URL=http://www.google.com/search?as_q="%s" site:orafaq.com
+InternalHTML=0
+ReuseWindow=0
+
+Description=Oracle 10.1 Documentation
+URL=http://www.google.com/search?as_q="%s" site:docs.oracle.com/cd/B14117_01
+InternalHTML=0
+ReuseWindow=0
+
+Description=Oracle 10.2 Documentation
+URL=http://www.google.com/search?as_q="%s" site:docs.oracle.com/cd/B19306_01
+InternalHTML=0
+ReuseWindow=0
+
+Description=Oracle 11.1 Documentation
+URL=http://www.google.com/search?as_q="%s" site:docs.oracle.com/cd/B28359_01
+InternalHTML=0
+ReuseWindow=0
+
+Description=Oracle 11.2 Documentation
+URL=http://www.google.com/search?as_q="%s" site:docs.oracle.com/cd/E11882_01
+InternalHTML=0
+ReuseWindow=0
+
+Description=Oracle 12.1 Documentation
+URL=http://www.google.com/search?as_q="%s" site:docs.oracle.com/database/121
+InternalHTML=0
+ReuseWindow=0
+
+
+
+[Reports]
+UseMainMenu=0
+DefaultPath=-1
+Paths=
+
+
+[CurrentConnections]
+206241604186437242704440429043484438372837384356407842964546431644864576356235723582
+2177451542694519411341074117430335773587497346954721490749334703404140514061
+22114213411142334563410945674497361136214175447344354173445540814075395739673977
+22654539426145434457448344614391404940594165452743614099438141674129388338933903
+2248420244204494452045144444402240324138450043984072435441724102398439944004
+2399436943634197444742334339430142313937381947574927498548034765506341294283430942714169329931813191
+292249245078507247624948473448243426330842464416447442924254359236183772379837603658483647184728
+
+[Logon]
+Database=VHGTEST
+Username=DEPOSITS
+
+[SessionQueries]
+Name=Cursors
+Type=DETAIL
+SQL=select * from v$open_cursor where sid = :sid
+Name=SQL Text
+Type=DETAIL
+SQL=select sql_text from v$sqltext_with_newlines
+=where address = hextoraw(:sql_address)
+=and hash_value = :sql_hash_value
+=order by piece
+=/* concatenate */
+Name=Statistics
+Type=DETAIL
+SQL=select names.name, stats.statistic#, stats.value
+=from v$sesstat stats, v$statname names
+=where stats.sid = :sid
+=and names.Statistic# = stats.Statistic#
+=order by stats.statistic#
+Name=Locks
+Type=DETAIL
+SQL=select l.*, o.owner object_owner, o.object_Name
+=from  sys.all_objects o, v$lock l
+=where l.sid = :sid and l.type = 'TM' and o.object_id = l.id1
+Name=All sessions
+Type=FILTER
+SQL=select * from v$session
+=where username is not null
+=order by logon_time, sid
+Name=My sessions
+Type=FILTER
+SQL=select * from v$session
+=where  osuser = sys_context('userenv','os_user')
+Name=Active sessions
+Type=FILTER
+SQL=select * from v$session
+=where username is not null and status = 'ACTIVE'
+=order by logon_time, sid
+Name=Details session
+Type=DETAIL
+SQL=select pxs.qcsid as parent
+=     , se.sid
+=     , se.serial#
+=     , se.blocking_session as blocked_by
+=     , se.username
+=     , se.osuser
+=     , se.module
+=     , se.action
+=     , se.client_info
+=     , ( select aa.name from
+=                ( select action, name from audit_actions union select 189, 'MERGE' from dual ) aa
+=         where aa.action = se.command + case when se.command < 0 then 256 else 0 end) as command
+=     , se.program
+=     , se.state
+=     , se.wait_class
+=     -- From docs for v$session:
+=     -- If WAIT_TIME = 0, then SECONDS_IN_WAIT is the seconds spent in the current wait condition.
+=     -- If WAIT_TIME > 0, then SECONDS_IN_WAIT is the seconds since the start of the last wait, and SECONDS_IN_WAIT - WAIT_TIME / 100 is the active seconds since the last wait ended.
+=     , case when se.wait_time = 0 then se.seconds_in_wait end as current_wait_secs
+=     , case when se.wait_time > 0 then se.seconds_in_wait - se.wait_time / 100 end as secs_since_last_wait
+=     , se.event as current_wait
+=     , ( select rtrim(owner || '.' || object_name || '.' || o.subobject_name,'.') from dba_objects o
+=         where  o.object_id = row_wait_obj# ) as wait_object
+=     , se.lockwait
+=     , ( select rtrim(pro_entry.object_name || '.' || pro_entry.procedure_name,'.')
+=         from   dba_procedures pro_entry
+=         where  pro_entry.object_id = se.plsql_entry_object_id
+=         and    pro_entry.subprogram_id = se.plsql_entry_subprogram_id ) as entry_procedure
+=     , ( select rtrim(pro_current.object_name || '.' || pro_current.procedure_name,'.')
+=         from   dba_procedures pro_current
+=         where  pro_current.object_id = se.plsql_object_id
+=         and    pro_current.subprogram_id = se.plsql_subprogram_id ) as current_procedure
+=     --, row_wait_file#, row_wait_block#, row_wait_row#
+=     , se.row_wait_obj#  -- Needed for 'Current wait' detail query
+=     , se.logon_time
+=     --, last_call_et
+=     , se.pdml_enabled
+=     , se.pdml_status
+=     --, pddl_status
+=     , se.pq_status
+=     , ltrim(pxs.req_degree || ' (' || pxs.req_degree || ')','() ') as "Parallel (Reqested)"
+=     -- , resource_consumer_group  -- Uncomment if using Oracle Resource manager
+=     , se.current_queue_duration
+=     , se.client_identifier
+=     , se.service_name
+=     -- , sql_trace, sql_trace_waits, sql_trace_binds
+=     , se.saddr
+=     --, process  -- client process not normally useful
+=     , se.paddr
+=     , se.audsid
+=     , se.taddr
+=     , se.machine
+=     , se.terminal
+=     , se.sql_address
+=     , se.sql_hash_value
+=     , se.sql_id
+=     , se.sql_child_number
+=     --, se.sql_exec_id  -- 11g
+=     --, se.sql_exec_start  -- 11g
+=     --, se.prev_sql_addr
+=     --, prev_hash_value
+=     , prev_sql_id
+=     , prev_child_number
+=     --, failover_type, failover_method, failed_over
+=     --, blocking_session_status, blocking_instance
+=     --, server
+=     , user#
+=     , round(sm.cpu,1) as "CPU"
+=     , sm.physical_reads
+=     , sm.logical_reads
+=     , round(sm.pga_memory/1048576,1) as pga_memory_mb
+=     , sm.hard_parses, sm.soft_parses
+=     , round(sm.physical_read_pct,1) as physical_read_pct
+=     , round(sm.logical_read_pct,1)  as logical_read_pct
+=
+=     , ( select round(sum(tu.blocks) * ts.block_size / 1048576,1)
+=         from   gv$tempseg_usage tu
+=                join dba_tablespaces ts
+=                on   ts.tablespace_name = tu.tablespace
+=         where  tu.session_addr = se.saddr
+=         and    tu.inst_id = se.inst_id
+=         and    tu.session_addr = se.saddr
+=         and    tu.session_num = se.serial#
+=         group by ts.block_size ) as temp_mb
+=
+=     , row_number() over (order by sm.cpu desc nulls last) as rank_by_cpu
+=     , row_number() over (order by sm.physical_reads desc nulls last) as rank_by_physical_reads
+=     , row_number() over (order by sm.logical_reads desc nulls last) as rank_by_logical_reads
+=     , row_number() over (order by sm.pga_memory desc nulls last) as rank_by_pga
+=
+=     , row_number() over (order by sm.cpu desc nulls last) +
+=       row_number() over (order by sm.physical_reads desc nulls last) +
+=       row_number() over (order by sm.logical_reads desc nulls last) +
+=       row_number() over (order by sm.pga_memory desc nulls last) as ranks_combined
+=
+=     , se.inst_id as instance
+=     , se.status
+=
+=from   gv$session se
+=
+=       left join gv$px_session pxs
+=       on   pxs.sid = se.sid
+=       and  pxs.serial# = se.serial#
+=       and  pxs.inst_id = se.inst_id
+=
+=       left join gv$sessmetric sm
+=       on   sm.session_id = se.sid
+=       and  sm.serial_num = se.serial#
+=       and  sm.inst_id = se.inst_id
+=
+=       left join v$transaction tr
+=       on   tr.addr = se.taddr
+=
+=where  ( se.username is not null and 'ACTIVE' in (tr.status, se.status) and se.audsid != sys_context('USERENV','SESSIONID') )
+=or     se.sid in
+=       ( select blocking_session from v$session
+=         union
+=         select qcsid from gv$px_session )
+=order by se.inst_id, pxs.qcsid, pxs.qcserial# nulls first  -- PQ controller appears without serial# in v$px_session
+=      , se.sid, se.sid,se.serial#
+Name=SQL Stats
+Type=DETAIL
+SQL=select sql_id
+=     , plan_hash_value
+=     , last_active_time
+=     , executions
+=     , round(100 * parse_calls/nullif(executions,0),1)  as "Parsed%"
+=     , parse_calls
+=     , cast(numtodsinterval(elapsed_time/1E6,'SECOND')  as interval day(0) to second(0)) as elapsed_total
+=     , cast(numtodsinterval(elapsed_time / nullif(executions,0) / 1E6,'SECOND') as interval day(0) to second(0)) as elapsed_per_exec
+=     , round(100 * cpu_time / elapsed_time,1) "CPU%"
+=     , round(100 * user_io_wait_time / elapsed_time,1) "IO%"
+=     , round(100 * concurrency_wait_time / elapsed_time,1) "CONCURRRENCY%"
+=     , round(100 * application_wait_time / elapsed_time,1) "APPLICATION%"
+=     , round(100 * plsql_exec_time / elapsed_time,1) "PL/SQL%"
+=     , buffer_gets buffer_gets_total
+=     , round(buffer_gets / nullif(executions,0))        as buffer_gets_per_exec
+=     , disk_reads
+=     , round(rows_processed / nullif(fetches,0),1)      as rows_per_fetch
+=     , round(rows_processed / nullif(executions,0),1)   as rows_per_exec
+=     , direct_writes
+=     , rows_processed
+=     , fetches
+=     , end_of_fetch_count
+=     , loads
+=     , version_count
+=     , invalidations
+=     , px_servers_executions
+=     , round(avg_hard_parse_time / 1E6,2)               as avg_hard_parse_secs
+=     , cluster_wait_time
+=     , cast(numtodsinterval(plsql_exec_time/1E6,'SECOND') as interval day(0) to second(0)) as plsql_exec_time
+=     , cast(numtodsinterval(java_exec_time/1E6,'SECOND') as interval day(0) to second(0)) as java_exec_time
+=     , sorts
+=     , sharable_mem
+=     , total_sharable_mem
+=     , last_active_child_address
+=     , serializable_aborts
+=from   v$sqlstats s
+=where  s.sql_id = :sql_id
+Name=Perf history
+Type=DETAIL
+SQL=select case when s.plan_hash_value =
+=          ( select plan_hash_value from
+=                   ( select plan_hash_value, row_number() over (order by timestamp desc) as seq
+=                     from   gv$sql_plan p
+=                     where  p.sql_id = :sql_id
+=                     and    p.child_number = :sql_child_number
+=                     and    p.inst_id =  (select t.instance_number from v$instance t)  )
+=            where seq = 1 )
+=          then 'Y'
+=       end as current_plan
+=     , plan_hash_value
+=     , sum(executions_delta) executions
+=     , cast(numtodsinterval(sum(elapsed_time_delta)/1E6,'SECOND') as interval day(1) to second(2)) as total_run_time
+=     , cast(numtodsinterval(sum(elapsed_time_delta)/ nullif(sum(executions_delta),0)/1E6,'SECOND') as interval day(1) to second(1)) as avg_run_time
+=     , sum(buffer_gets_delta) buffer_gets
+=     , round(sum(buffer_gets_delta)/nullif(sum(executions_delta),0)) as buffer_gets_per_exec
+=     , sum(rows_processed_delta) as rows_processed
+=     , round(sum(rows_processed_delta) / nullif(sum(executions_delta),0),1) as rows_processed_per_exec
+=     , cast(numtodsinterval(sum(elapsed_time_delta)/nullif(sum(rows_processed_delta),0)/1E6,'SECOND') as interval day(1) to second(3)) as avg_time_per_row
+=     , round(sum(buffer_gets_delta)/nullif(sum(rows_processed_delta),0)) as buffer_gets_per_row
+=from   dba_hist_sqlstat s
+=where  sql_id = :sql_id
+=group by plan_hash_value
+=order by 1,2
+Name=Perf history this cursor by date
+Type=DETAIL
+SQL=select case when s.plan_hash_value =
+=          ( select plan_hash_value from
+=                   ( select plan_hash_value, row_number() over (order by timestamp desc) as seq
+=                     from   gv$sql_plan p
+=                     where  p.sql_id = :sql_id
+=                     and    p.child_number = :sql_child_number
+=                     and    p.inst_id = (select t.instance_number from v$instance t) )
+=            where seq = 1 )
+=          then 'Y'
+=       end as current_plan
+=     , trunc(cast (h.begin_interval_time as date)) as exec_date
+=     , plan_hash_value
+=     , sum(executions_delta) executions
+=     , cast(numtodsinterval(sum(elapsed_time_delta)/1E6,'SECOND') as interval day(1) to second(2)) as total_time
+=     , cast(numtodsinterval(sum(elapsed_time_delta)/ nullif(sum(executions_delta),0)/1E6,'SECOND') as interval day(1) to second(1)) as avg_time
+=     , sum(buffer_gets_delta) buffer_gets
+=     , round(sum(buffer_gets_delta)/nullif(sum(executions_delta),0)) as buffer_gets_per_exec
+=     , sum(rows_processed_delta) as "ROWS"
+=     , round(sum(rows_processed_delta) / nullif(sum(executions_delta),0),1) as rows_per_exec
+=     , cast(numtodsinterval(sum(elapsed_time_delta)/nullif(sum(rows_processed_delta),0)/1E6,'SECOND') as interval day(1) to second(3)) as avg_time_per_row
+=     , round(sum(buffer_gets_delta)/nullif(sum(rows_processed_delta),0)) as buffer_gets_per_row
+=from   dba_hist_sqlstat s
+=       join dba_hist_snapshot h on h.snap_id = s.snap_id and h.dbid = s.dbid
+=where  s.sql_id = :sql_id
+=group by trunc(cast (h.begin_interval_time as date)), s.plan_hash_value
+=order by trunc(cast (h.begin_interval_time as date)) desc, 1 nulls last, s.plan_hash_value
+Name=Binds
+Type=DETAIL
+SQL=select name, datatype_string, last_captured, value_string
+=from   ( select name
+=              , datatype_string
+=              , last_captured
+=              , value_string
+=              , row_number() over(partition by position order by last_captured nulls last) as seq
+=         from   v$sql_bind_capture
+=         where  sql_id = :sql_id
+=         and    child_number = :sql_child_number
+=         and    address = :sql_address
+=         and    hash_value = :sql_hash_value )
+=where seq = 1
+=order by last_captured
+Name=Binds2
+Type=DETAIL
+SQL=select t.name
+=     , t.position
+=     , t.dup_position
+=     , t.datatype_string
+=     , t.precision
+=     , t.scale
+=     , t.max_length
+=     , t.last_captured
+=     , t.value_string
+=from   v$sql s, table(dbms_sqltune.extract_binds(s.bind_data)) t
+=where  s.sql_id = :sql_id
+=and    s.child_number = :sql_child_number
+Name=Object stats
+Type=DETAIL
+SQL=select * from (
+=with plan_objects as
+=     ( select --+ materialize
+=              p.object_owner
+=            , p.object_name
+=            , p.object_type
+=            , p.partition_start
+=            , p.partition_stop
+=            , p.cardinality
+=            , p.operation
+=            , p.options
+=            , count(*) as occurs_in_plan
+=       from   v$sql_plan_statistics_all p
+=       where  p.sql_id = :sql_id
+=       and    p.child_number = :sql_child_number
+=       and    p.plan_hash_value =
+=              ( select plan_hash_value from
+=                       ( select plan_hash_value, row_number() over (order by timestamp desc) as seq
+=                         from   gv$sql_plan p
+=                         where  p.sql_id = :sql_id
+=                         and    p.child_number = :sql_child_number
+=                         and    p.inst_id =  (select t.instance_number from v$instance t)  )
+=                where seq = 1 )
+=       and    p.object_type != 'VIEW'
+=       group by p.object_owner, p.object_name, p.object_type, p.partition_start, p.partition_stop, p.cardinality, p.operation, p.options )
+=   , object_stats as
+=     ( select ts.owner as object_owner
+=            , ts.table_name as object_name
+=            , ts.table_name as display_name
+=            , ts.num_rows
+=            , ts.blocks
+=            , ts.last_analyzed
+=            , ts.stale_stats
+=       from   dba_tab_statistics ts
+=       where  (ts.owner, ts.table_name)  in
+=              (select object_owner, object_name from plan_objects where object_type like 'TABLE%')
+=       and    ts.partition_name is null
+=       union
+=       select xs.owner
+=            , xs.index_name
+=            , '(' || xs.table_name || ') ' || index_name as display_name
+=            , xs.num_rows
+=            , xs.leaf_blocks as blocks
+=            , xs.last_analyzed
+=            , xs.stale_stats
+=       from   dba_ind_statistics xs
+=       where  (xs.owner, xs.index_name) in
+=              (select object_owner, object_name from plan_objects where object_type like 'INDEX%')
+=       and    xs.partition_name is null
+=     )
+=select --+ dynamic_sampling(8)
+=       object_owner
+=     , o.object_type
+=     , nvl(s.display_name,object_name) as object_name
+=     , s.stale_stats as "Stale?"
+=     , o.operation || ' ' || o.options as operation
+=     , o.cardinality
+=     , s.num_rows as "Rows (global)"
+=     , s.blocks
+=     , s.last_analyzed
+=     , o.partition_start
+=     , o.partition_stop
+=from   plan_objects o
+=       left join object_stats s using(object_owner, object_name)
+=order by
+=      case object_owner when 'SYS' then 2 else 1 end
+=    , object_owner
+=    , ltrim(object_name,'(')
+=)
+Name=Cursors2
+Type=DETAIL
+SQL=select c.sql_id, c.sql_text, s.executions, s.executions - s.end_of_fetch_count as incomplete
+=     , ash.last_active
+=     , case when systimestamp - ash.last_active < interval '1' minute then 'Y' end as active_in_last_min
+=     , case when systimestamp - ash.last_active < interval '10' minute then 'Y' end as active_in_last_10_min
+=from   v$open_cursor c
+=       join v$sqlstats s on s.sql_id = c.sql_id
+=       left join
+=            ( select session_id, sql_id, max(sample_time) as last_active
+=              from   v$active_session_history
+=              group by session_id, sql_id ) ash
+=       on   ash.session_id = c.sid
+=       and  ash.sql_id = c.sql_id
+=where  sid = :sid
+=order by ash.last_active desc nulls last, incomplete desc, c.sql_id
+Name=Current plan
+Type=DETAIL
+SQL=select plan_table_output || chr(10) as plan
+=from   table(dbms_xplan.display_cursor(:sql_id, :sql_child_number, 'ADVANCED +peeked_binds +projection'))
+=/* concatenate */
+Name=Current plan GPS
+Type=DETAIL
+SQL=select plan_table_output || chr(10) as plan
+=from   table(dbms_xplan.display_cursor(:sql_id, :sql_child_number, 'ALLSTATS LAST +OUTLINE'))
+=/* concatenate */
+Name=Current wait
+Type=DETAIL
+SQL=select wait_time
+=     , seconds_in_wait, wait_class
+=     , state
+=     , event
+=     , ( select initcap(o.object_type) || ' ' || o.owner || '.' || o.object_name ||
+=                nvl2(o.subobject_name, ' (' || o.subobject_name || ')', null)
+=         from   all_objects o
+=         where  o.object_id = :row_wait_obj#
+=         and   :status = 'ACTIVE' ) as "Last wait obj (poss unrelated)"
+=from   v$session_wait
+=where sid = :sid
+=order by seq#
+Name=Last 10 waits
+Type=DETAIL
+SQL=select event
+=     , p1text, p1
+=     , case p1text when 'file#' then
+=          (select file_name from dba_data_files f where f.file_id = wh.p1)
+=       end as object_desc
+=     , p2text, p2
+=     , p3text, p3
+=     , nullif(wait_time,0) as wait_time
+=from   v$session_wait_history wh
+=where  wh.sid = :sid
+=order by wh.seq#
+Name=Long ops
+Type=DETAIL
+SQL=select sid
+=     , case when l.time_remaining > 0 or l.sofar < l.totalwork then 'Yes' end as "Active?"
+=     , l.opname as operation
+=     , l.totalwork || ' ' || l.units as totalwork
+=     , nvl(l.target,l.target_desc) as target
+=     , l.start_time
+=     , round(100 * l.sofar/greatest(l.totalwork,1),1) as "Complete %"
+=     , rtrim(rtrim(ltrim(ltrim(numtodsinterval(l.elapsed_seconds,'SECOND'),'+0'),' '),'0'),'.') as elapsed
+=     , ltrim(ltrim
+=       ( cast(numtodsinterval(l.elapsed_seconds * greatest(nullif((l.totalwork - l.sofar)/nullif(l.sofar,0),0),0),'SECOND')
+=              as interval day(2) to second(0))
+=       ,'+0'),' ') as remaining
+=     , case
+=           when l.sofar >= l.totalwork then l.last_update_time
+=           else sysdate + numtodsinterval( l.elapsed_seconds * greatest(nullif((l.totalwork - l.sofar)/nullif(l.sofar,0),0),0),'SECOND')
+=       end as est_completion
+=     , message
+=     , l.sql_id
+=     , l.sql_address
+=     , l.sql_hash_value
+=from v$session_longops l
+=where :sid in (sid,qcsid)
+=and  l.start_time >= to_date(:logon_time,'DD/MM/YYYY HH24:MI:SS')
+=order by l.start_time desc
+Name=ASH summary - session
+Type=DETAIL
+SQL=select case curr.sql_id when ash.sql_id then 'Y' end as "Current"
+=     , ash.sql_id
+=     , to_char(cast(min(ash.sample_time) as date),'HH24:MI:SS') as first_active
+=     , to_char(cast(max(ash.sample_time) as date),'HH24:MI:SS') as last_active
+=     , cast(numtodsinterval(count(*), 'SECOND') as interval day(1) to second(0)) as elapsed  -- assumes 1 sample per sec
+=     , cast(numtodsinterval(sum(s.elapsed_time)/nullif(sum(s.executions),0)/1E6,'SECOND') as interval day(1) to second(1)) as avg_for_cursor
+=     , case
+=          when count(*) > 1.1 * sum(s.elapsed_time)/nullif(sum(s.executions),0)/1E6
+=          and  count(*) - sum(s.elapsed_time)/nullif(sum(s.executions),0)/1E6 > 1
+=          and  ash.sql_id is not null then 'Y'
+=       end as over_avg
+=     , round(100 * ratio_to_report(count(*)) over(partition by grouping_id(ash.sql_id, s.sql_text, s.executions, s.rows_processed))) as percent
+=     , s.executions as "Executions (global)"
+=     , s.rows_processed as "Rows (global)"
+=     , round(s.rows_processed / nullif(s.executions,0),1) as "Rows/exec"
+=     , s.sql_text
+=from   gv$active_session_history ash
+=       left join v$sqlstats s on s.sql_id = ash.sql_id
+=       left join gv$session curr
+=            on curr.inst_id = ash.inst_id and curr.sid = ash.session_id and curr.serial# = ash.session_serial# and curr.sql_id = ash.sql_id
+=where  ash.inst_id =  (select t.instance_number from v$instance t) 
+=and    session_id = :sid
+=and    session_serial# = :serial#
+=and    user_id = :user#
+=group by grouping sets((ash.sql_id, curr.sql_id, s.sql_text, s.executions, s.rows_processed), ())
+=order by grouping_id(ash.sql_id, s.sql_text, s.executions, s.rows_processed), max(ash.sample_time) desc, min(ash.sample_time) desc
+Name=ASH summary - executions
+Type=DETAIL
+SQL=select case curr.sql_id when ash.sql_id then 'Y' end as "Current"
+=     , ash.sql_id
+=     , to_char(ash.sql_exec_start,'HH24:MI:SS') as started  -- 11g
+=     , to_char(ash.sql_exec_start + (count(*)/86400),'HH24:MI:SS') as ended  -- start + elapsed more accurate than next start - start
+=     , cast(numtodsinterval(count(*), 'SECOND') as interval day(1) to second(0)) as elapsed  -- assumes 1 sample per sec
+=     , cast(numtodsinterval(sum(s.elapsed_time)/nullif(sum(s.executions),0)/1E6,'SECOND') as interval day(1) to second(1)) as avg_for_cursor
+=     , case
+=          when count(*) > 1.1 * sum(s.elapsed_time)/nullif(sum(s.executions),0)/1E6
+=          and  count(*) - sum(s.elapsed_time)/nullif(sum(s.executions),0)/1E6 > 1
+=          and  ash.sql_id is not null then 'Y'
+=       end as over_avg
+=     , round(100 * ratio_to_report(count(*)) over(partition by grouping_id(ash.sql_id, s.sql_text, s.executions, s.rows_processed))) as percent
+=     , s.executions as "Executions (global)"
+=     , s.rows_processed as "Rows (global)"
+=     , round(s.rows_processed / nullif(s.executions,0),1) as "Rows/exec"
+=     , s.sql_text
+=from   gv$active_session_history ash
+=       left join v$sqlstats s on s.sql_id = ash.sql_id
+=       left join gv$session curr
+=            on curr.inst_id = ash.inst_id and curr.sid = ash.session_id and curr.serial# = ash.session_serial# and curr.sql_id = ash.sql_id
+=where  ash.inst_id =  (select t.instance_number from v$instance t) 
+=and    session_id = :sid
+=and    session_serial# = :serial#
+=and    user_id = :user#
+=group by grouping sets((ash.sql_id, curr.sql_id, ash.sql_exec_start, s.sql_text, s.executions, s.rows_processed), ())
+=order by grouping_id(ash.sql_id, ash.sql_exec_start, s.sql_text, s.executions, s.rows_processed), max(ash.sample_time) desc, min(ash.sample_time) desc
+Name=ASH summary - time / cursor object
+Type=DETAIL
+SQL=select case
+=          when grouping_id > 0 then '(Total:)'
+=          else sql_id
+=       end as sql_id
+=     , wait_class
+=     , ( select aa.name from
+=                ( select action, name from audit_actions union select 189, 'MERGE' from dual ) aa
+=         where aa.action = sql_opcode + case when sql_opcode < 0 then 256 else 0 end) as command
+=     , elapsed
+=     , round(100 * ratio_to_report(samples) over (partition by grouping_id),1) as percent
+=     , case when current_obj# > 0 then
+=          ( select distinct o.owner || '.' || o.object_name || rtrim('.' || o.subobject_name,'.')
+=            from   dba_objects o where o.object_id = current_obj# )
+=       end as wait_object
+=     , ( select st.sql_text from v$sqlstats st where st.sql_id = a.sql_id ) as sql_text
+=     , coalesce
+=       ( ( select pls.owner || '.' || pls.object_name || '.' || pls.procedure_name
+=           from   dba_procedures pls
+=           where  pls.object_id = plsql_entry_object_id and pls.subprogram_id = plsql_entry_subprogram_id )
+=       , to_char(plsql_entry_subprogram_id) ) as plsql_entry_object
+=from   ( select ash.sql_id
+=              , ash.wait_class
+=              , ash.sql_opcode
+=              , ash.plsql_entry_object_id
+=              , ash.plsql_entry_subprogram_id
+=              , ash.current_obj#
+=              , count(*) as samples
+=              , cast(numtodsinterval(count(*), 'SECOND') as interval day(1) to second(0)) as elapsed  -- assumes 1 sample per sec
+=              , grouping_id
+=                ( ash.sql_id
+=                , ash.wait_class
+=                , ash.plsql_entry_object_id
+=                , ash.plsql_entry_subprogram_id
+=                , ash.current_obj# ) as grouping_id
+=         from   gv$active_session_history ash
+= 
+=                left join gv$session ses
+=                on   ses.inst_id = ash.inst_id
+=                and  ses.sid = ash.session_id
+=                and  ses.serial# = ash.session_serial#
+=                and  ses.sql_id = ash.sql_id
+=                and  ses.row_wait_obj# = ash.current_obj#
+=                and  ses.plsql_object_id = ash.plsql_object_id
+=                and  ses.plsql_subprogram_id = ash.plsql_subprogram_id
+= 
+=         where  ash.session_id = :sid
+=         and    ash.session_serial# = :serial#
+=         and    ash.sql_id is not null
+=         and    ash.current_obj# is not null
+=         group by grouping sets
+=              ( ( ash.inst_id, ash.sql_id
+=                , ash.wait_class
+=                , ash.sql_opcode
+=                , ash.plsql_entry_object_id
+=                , ash.plsql_entry_subprogram_id
+=                , ash.current_obj#, ses.sid )
+=              , () )
+=       ) a
+=order by grouping_id asc, samples desc
+Name=ASH summary this query with caller
+Type=DETAIL
+SQL=select current_wait
+=     , case
+=          when grouping_id > 0 then '(Total:)'
+=          else session_state
+=       end as session_state
+=     , wait_class
+=     , elapsed
+=     , round(100 * ratio_to_report(samples) over (partition by grouping_id),1) as percent
+=     , case when current_obj# > 0 then
+=          ( select distinct o.owner || '.' || o.object_name || rtrim('.' || o.subobject_name,'.')
+=            from   dba_objects o where o.object_id = current_obj# )
+=       end as wait_object
+=     , coalesce
+=       ( ( select pls.owner || '.' || pls.object_name || '.' || pls.procedure_name
+=           from   dba_procedures pls
+=           where  pls.object_id = plsql_entry_object_id and pls.subprogram_id = plsql_entry_subprogram_id )
+=       , to_char(plsql_entry_subprogram_id) ) as plsql_entry_object
+=     , ( select pls.owner || '.' || pls.object_name || '.' || pls.procedure_name
+=         from   dba_procedures pls
+=         where  pls.object_id = plsql_object_id and pls.subprogram_id = plsql_subprogram_id ) as plsql_object
+=     , ( select sq.sql_text from v$sqlstats sq where sq.sql_id = top_level_sql_id ) as top_level_sql
+=from   ( select case when ses.sid is not null then 'Y' end as current_wait
+=              , ash.session_state
+=              , ash.wait_class
+=              , ash.plsql_object_id
+=              , ash.plsql_subprogram_id
+=              , ash.plsql_entry_object_id
+=              , ash.plsql_entry_subprogram_id
+=              , ash.current_obj#
+=              , ash.top_level_sql_id
+=              , count(*) as samples
+=              , cast(numtodsinterval(count(*), 'SECOND') as interval day(1) to second(0)) as elapsed  -- assumes 1 sample per sec
+=              , grouping_id
+=                ( ash.sql_id
+=                , ash.session_state
+=                , ash.wait_class
+=                , ash.plsql_object_id
+=                , ash.plsql_subprogram_id
+=                , ash.plsql_entry_object_id
+=                , ash.plsql_entry_subprogram_id
+=                , ash.current_obj#
+=                , ash.top_level_sql_id ) as grouping_id
+=         from   gv$active_session_history ash
+= 
+=                left join gv$session ses
+=                on   ses.inst_id = ash.inst_id
+=                and  ses.sid = ash.session_id
+=                and  ses.serial# = ash.session_serial#
+=                and  ses.sql_id = ash.sql_id
+=                and  ses.row_wait_obj# = ash.current_obj#
+=                and  ses.plsql_object_id = ash.plsql_object_id
+=                and  ses.plsql_subprogram_id = ash.plsql_subprogram_id
+= 
+=         where  ash.session_id = :sid
+=         and    ash.session_serial# = :serial#
+=         and    ash.sql_id = :sql_id
+=         group by grouping sets
+=              ( ( ash.inst_id, ash.sql_id, ash.session_state
+=                , ash.wait_class
+=                , ash.plsql_object_id
+=                , ash.plsql_subprogram_id
+=                , ash.plsql_entry_object_id
+=                , ash.plsql_entry_subprogram_id
+=                , ash.current_obj#
+=                , ses.sid
+=                , ash.top_level_sql_id )
+=              , () )
+=       )
+=order by grouping_id asc, samples desc
+Name=ASH summary this query SQL only
+Type=DETAIL
+SQL=select a.current_wait
+=     , case
+=          when a.grouping_id > 0 then '(Total:)'
+=          else a.session_state
+=       end as session_state
+=     , a.wait_class
+=     , a.elapsed
+=     , round(100 * ratio_to_report(a.samples) over (partition by a.grouping_id),1) as percent
+=     , case when a.current_obj# > 0 then
+=          ( select distinct o.owner || '.' || o.object_name || rtrim('.' || o.subobject_name,'.')
+=            from   dba_objects o where o.object_id = current_obj# )
+=       end as wait_object
+=from   ( select case ses.row_wait_obj# when ash.current_obj# then 'Y' end as current_wait
+=              , ash.session_state
+=              , ash.wait_class
+=              , ash.current_obj#
+=              , count(*) as samples
+=              , cast(numtodsinterval(count(*), 'SECOND') as interval day(1) to second(0)) as elapsed  -- assumes 1 sample per sec
+=              , ash.inst_id
+=              , grouping_id
+=                ( ash.sql_id
+=                , ash.session_state
+=                , ash.wait_class
+=                , ash.current_obj#
+=                , ses.row_wait_obj# ) as grouping_id
+=         from   gv$active_session_history ash
+=
+=                left join gv$session ses
+=                on   ses.inst_id = ash.inst_id
+=                and  ses.sid = ash.session_id
+=                and  ses.serial# = ash.session_serial#
+=                and  ses.sql_id = ash.sql_id
+=
+=         where  ash.session_id = :sid
+=         and    ash.session_serial# = :serial#
+=         and    ash.sql_id = :sql_id
+=         group by grouping sets
+=              ( ( ash.inst_id, ash.sql_id, ash.session_state
+=                , ash.wait_class
+=                , ash.current_obj#
+=                , ses.row_wait_obj# )
+=              , () )
+=       ) a
+=order by grouping_id asc, samples desc
+Name=ASH detail this session
+Type=DETAIL
+SQL=select ash.sample_time
+=     , ash.sql_id
+=     , ash.blocking_session, ash.session_state
+=     , ash.wait_class
+=     , case when ash.current_obj# > 0 then
+=          ( select o.owner || '.' || o.object_name || rtrim('.' || o.subobject_name,'.') from dba_objects o where o.object_id = nullif(ash.current_obj#,-1) )
+=       end as wait_object
+=     , case when ash.plsql_entry_object_id is not null then
+=          ( select pls.owner || '.' || pls.object_name || '.' || pls.procedure_name
+=            from   dba_procedures pls
+=            where  pls.object_id = ash.plsql_entry_object_id and pls.subprogram_id = ash.plsql_entry_subprogram_id )
+=       end as plsql_entry_object
+=     , case when ash.plsql_object_id is not null then
+=          ( select pls.owner || '.' || pls.object_name || '.' || pls.procedure_name
+=            from   dba_procedures pls
+=            where  pls.object_id = ash.plsql_object_id and pls.subprogram_id = ash.plsql_subprogram_id )
+=       end as plsql_object
+=from   gv$active_session_history ash
+=where  ash.inst_id =  (select t.instance_number from v$instance t) 
+=and    ash.session_id = :sid
+=and    ash.session_serial# = :serial#
+=order by sample_time desc
+Name=Locks2
+Type=DETAIL
+SQL=select decode(l.xidusn, 0,'Waiting','Held') as lock_status  -- xidusn is the undo segment ID
+=     , l.locked_mode
+=     , decode( l.locked_mode
+=             , 0, case when l.xidusn = 0 then 'Table-Exclusive' else 'None' end  -- from trial and error!
+=             , 1, 'NULL'
+=             , 2, 'Row-Shared (select for update) or table in share update mode'
+=             , 3, 'Row-Exclusive (insert/update/delete) or select for update'
+=             , 4, 'Table-Share (historically, unindexed FK)'
+=             , 5, 'Share Row-Exclusive'
+=             , 6, 'Table-Exclusive'
+=             , l.locked_mode ) AS locked_mode
+=     , o.owner as object_owner, o.object_name, o.subobject_name
+=     , to_date(t.start_time,'MM/DD/RR HH24:MI:SS') AS start_time
+=     , l.process
+=from   v$locked_object l
+=       join dba_objects o on o.object_id = l.object_id
+=       left join v$transaction t
+=       on t.xidusn = l.xidusn and t.xidslot = l.xidslot and t.xidsqn = l.xidsqn
+=where  l.session_id = :sid
+=and    l.oracle_username = :username
+=and    l.os_user_name = :osuser
+=order  by o.object_name
+Name=Optimizer nonstandard
+Type=DETAIL
+SQL=select sql_feature, name, sy.value as instance_setting, se.value as session_setting
+=from   v$ses_optimizer_env se join v$sys_optimizer_env sy using(name,sql_feature)
+=where  se.sid = :sid
+=and se.value <> sy.value
+=order by sql_feature, name
+Name=Temp space
+Type=DETAIL
+SQL=select s.tablespace
+=     , s.contents
+=     , s.segtype
+=     , s.sql_id
+=     , s.segfile#
+=     , s.extents
+=     , s.blocks
+=     , s.blocks * f.blocksize_k as KB
+=     , s.blocks * f.blocksize_m as MB
+=     , round(s.blocks * f.blocksize_g,1) as GB
+=from   v$tempseg_usage s
+=     , ( select distinct tablespace_name
+=              , bytes/blocks/1024 as blocksize_k
+=              , bytes/blocks/1048576 as blocksize_m
+=              , bytes/blocks/1073741824 as blocksize_g
+=         from   dba_temp_files ) f
+=where  s.session_addr = :saddr
+=and    s.session_num = :serial#
+=and    f.tablespace_name = s.tablespace
+Name=test
+Type=DETAIL
+SQL=select * from dual;
+
+
+[DSA]
+AutomaticStatisticsDisabled=1

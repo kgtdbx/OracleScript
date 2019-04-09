@@ -1,6 +1,9 @@
 --to download new Git version for Win64
 https://git-scm.com/download/win
 
+--A successful Git branching model
+https://nvie.com/posts/a-successful-git-branching-model/
+
 --###########--
 I've got a project checked locally from github, that remote repo has since had changes made to it. What's the correct command to update my local copy with the latest changes?
 --
@@ -148,7 +151,7 @@ To commit changes and automatically add modified files (doesn't add new files)
 git commit -am "commit message"
 */
 
-git commit -am "update from IS 20180907"
+git commit -am "update from IS 20190409"
 
 --pull the changes from remote repo
 git pull OracleScript master

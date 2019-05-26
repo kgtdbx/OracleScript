@@ -372,4 +372,234 @@ ALTER SESSION DISABLE PARALLEL DDL;
 DROP TABLE STG_STRUTUR_V_WRITOFF_G_ARC_T PURGE;
 DROP TABLE STG_STRUTUR_V_WRITOFF_G_ARC_O PURGE;
 
----------------------
+
+----------------------------------------------------------------------------------
+--1.1 Check count current table
+select count(*)
+from DEPOSITS.PRT_EV_EVENTS;
+/*
+  COUNT(*)
+----------
+ 250570875
+*/
+
+--1.2. Drop indexes (save in case if you do not have create stmt)
+DROP INDEX deposits.i0_prt_ev_events;
+DROP INDEX deposits.i1_prt_ev_events;
+
+
+--1.3. Copy constraints
+column text format a80 word_wrapped;
+select dbms_metadata.get_dependent_ddl( 'REF_CONSTRAINT', 'PRT_EV_EVENTS' ) text  from dual;
+
+select 'select dbms_metadata.get_ddl(''CONSTRAINT'','''||a.constraint_name||''') ddl from dual;'
+from
+user_constraints a
+where a.table_name='PRT_EV_EVENTS';
+
+--select dbms_metadata.get_ddl('CONSTRAINT','SYS_C00370021') ddl from dual;
+--select dbms_metadata.get_ddl('CONSTRAINT','SYS_C00370022') ddl from dual;
+
+--ALTER TABLE "DEPOSITS"."PRT_EV_EVENTS" MODIFY ("EVENT_DTTM" NOT NULL ENABLE); 
+--ALTER TABLE "DEPOSITS"."PRT_EV_EVENTS" MODIFY ("VALUE_DT" NOT NULL ENABLE);
+
+
+--1.4. Drop constraints
+ALTER TABLE deposits.prt_ev_events MODIFY event_dttm NULL;
+ALTER TABLE deposits.prt_ev_events MODIFY value_dt NULL;
+--or
+--ALTER TABLE deposits.prt_ev_events DROP CONSTRAINT prt_ev_events_PK;
+--ALTER TABLE deposits.prt_ev_events DROP CONSTRAINT prt_ev_events_FK;
+
+
+--2. Rename table
+ALTER TABLE DEPOSITS.PRT_EV_EVENTS RENAME TO PRT_EV_EVENTS_OLD;
+
+--2.1 Check count
+
+select count(*)
+from DEPOSITS.PRT_EV_EVENTS_OLD;
+
+
+ALTER USER serhiib QUOTA UNLIMITED ON ARCHIVE; 
+
+GRANT UNLIMITED TABLESPACE TO serhiib;
+
+--3. Create temp table with needed datatypes and partitioned  
+CREATE TABLE DEPOSITS.PRT_EV_EVENTS
+(HOST_EVENT_NUM
+,EVENT_TYPE_CD
+,EVENT_SUBTYPE_CD
+,ACTIVITY_TYPE_CD
+,ACTIVITY_SUBTYPE_CD
+,HOST_TRANSACTION_TYPE_NUM
+,HOST_EVENT_GROUP_NUM
+,CATEGORY_CODE_NUM
+,CATEGORY_CODE_DESC
+,REFERENCE_NUM
+,REFERENCE_TXT
+,EXTENDED_TXT
+,EXTERNAL_TXT
+,HOST_TELLER_NUM
+,GENERAL_LEDGER_NUM
+,VOID_IND
+,ATM_NUM
+,CHANNEL_TYPE_CD
+,CURRENCY_CD
+,EVENT_AC_AMT
+,EVENT_AMT
+,AGREEMENT_BALANCE_AC_AMT
+,EVENT_DTTM
+,REFERENCE_DATE
+,VALUE_DT
+,ENTITY_CD
+,TRANSACTION_ENTITY_CD
+,AGREEMENT_ID
+,HOST_AGREEMENT_NUM
+,OWNER_SSN
+,OWNER_PARTY_ID
+,COUNTERPARTY_SSN
+,COUNTERPARTY_PARTY_ID
+,COUNTERPARTY_HOST_AGR_NUM
+,COUNTERPARTY_AGREEMENT_ID
+,ORDERER_PARTY_ID
+,ORDERER_SSN
+,BENEFICIARY_PARTY_ID
+,BENEFICIARY_SSN
+,ORDERER_CROSS_RT
+,BENEFICIARY_CROSS_RT
+,HOST_MERCHANT_AGREEMENT_NUM
+,MERCHANT_PARTY_ID
+,MERCHANT_SSN
+,MERCHANT_NAME
+,MERCHANT_CATEGORY_CD
+,CARD_NUMBER_MASKED
+,HOST_AUTHORIZATION_NUM
+,HOST_BATCH_NUMBER
+,HOST_TRANSACTION_CD
+,OPERATION_REFERENCE_TXT
+   ) PCTFREE 2 PCTUSED 40 INITRANS 1 MAXTRANS 255 
+  STORAGE(
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+TABLESPACE "GAGNATORG" 
+  PARTITION BY RANGE ("REFERENCE_DATE") INTERVAL (NUMTODSINTERVAL(1,'DAY')) 
+ (PARTITION "OLD"  VALUES LESS THAN (TO_DATE(' 2000-01-01 00:00:00', 'SYYYY-MM-DD HH24:MI:SS', 'NLS_CALENDAR=GREGORIAN')) SEGMENT CREATION DEFERRED 
+  PCTFREE 0 PCTUSED 40 INITRANS 1 MAXTRANS 255 
+ COMPRESS BASIC LOGGING 
+  STORAGE(
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "GAGNATORG" )
+PARALLEL (DEGREE 4) 
+AS 
+SELECT
+  cast(HOST_EVENT_NUM               AS VARCHAR2(50 BYTE)    )  AS  HOST_EVENT_NUM
+, cast(EVENT_TYPE_CD                AS VARCHAR2(50 BYTE)    )  AS  EVENT_TYPE_CD
+, cast(EVENT_SUBTYPE_CD             AS VARCHAR2(50 BYTE)    )  AS  EVENT_SUBTYPE_CD
+, cast(ACTIVITY_TYPE_CD             AS VARCHAR2(50 BYTE)    )  AS  ACTIVITY_TYPE_CD
+, cast(ACTIVITY_SUBTYPE_CD          AS VARCHAR2(50 BYTE)    )  AS  ACTIVITY_SUBTYPE_CD
+, cast(HOST_TRANSACTION_TYPE_NUM    AS VARCHAR2(50 BYTE)    )  AS  HOST_TRANSACTION_TYPE_NUM
+, cast(HOST_EVENT_GROUP_NUM         AS VARCHAR2(50 BYTE)    )  AS  HOST_EVENT_GROUP_NUM
+, cast(CATEGORY_CODE_NUM            AS VARCHAR2(2 BYTE)     )  AS  CATEGORY_CODE_NUM
+, cast(CATEGORY_CODE_DESC           AS VARCHAR2(50 BYTE)    )  AS  CATEGORY_CODE_DESC
+, cast(REFERENCE_NUM                AS VARCHAR2(7 BYTE)     )  AS  REFERENCE_NUM
+, cast(REFERENCE_TXT                AS VARCHAR2(16 BYTE)    )  AS  REFERENCE_TXT
+, cast(EXTENDED_TXT                 AS VARCHAR2(140 BYTE)   )  AS  EXTENDED_TXT
+, cast(EXTERNAL_TXT                 AS VARCHAR2(35 BYTE)    )  AS  EXTERNAL_TXT
+, cast(HOST_TELLER_NUM              AS VARCHAR2(4 BYTE)     )  AS  HOST_TELLER_NUM
+, cast(GENERAL_LEDGER_NUM           AS VARCHAR2(2 BYTE)     )  AS  GENERAL_LEDGER_NUM
+, cast(VOID_IND                     AS VARCHAR2(3 BYTE)     )  AS  VOID_IND
+, cast(ATM_NUM                      AS VARCHAR2(50 BYTE)    )  AS  ATM_NUM
+, cast(CHANNEL_TYPE_CD              AS VARCHAR2(50 BYTE)    )  AS  CHANNEL_TYPE_CD
+, cast(CURRENCY_CD                  AS VARCHAR2(3 BYTE)     )  AS  CURRENCY_CD
+, cast(EVENT_AC_AMT                 AS NUMBER(30,15)        )  AS  EVENT_AC_AMT
+, cast(EVENT_AMT                    AS NUMBER(30,15)        )  AS  EVENT_AMT
+, cast(AGREEMENT_BALANCE_AC_AMT     AS NUMBER(30,15)        )  AS  AGREEMENT_BALANCE_AC_AMT
+, cast(EVENT_DTTM                   AS TIMESTAMP (6)        )  AS  EVENT_DTTM
+, cast(REFERENCE_DATE               AS DATE                 )  AS  REFERENCE_DATE
+, cast(VALUE_DT                     AS DATE                 )  AS  VALUE_DT
+, cast(ENTITY_CD                    AS VARCHAR2(5 BYTE)     )  AS  ENTITY_CD
+, cast(TRANSACTION_ENTITY_CD        AS VARCHAR2(5 BYTE)     )  AS  TRANSACTION_ENTITY_CD
+, cast(AGREEMENT_ID                 AS NUMBER(38,0)         )  AS  AGREEMENT_ID
+, cast(HOST_AGREEMENT_NUM           AS VARCHAR2(50 BYTE)    )  AS  HOST_AGREEMENT_NUM
+, cast(OWNER_SSN                    AS VARCHAR2(10 BYTE)    )  AS  OWNER_SSN
+, cast(OWNER_PARTY_ID               AS VARCHAR2(10 BYTE)    )  AS  OWNER_PARTY_ID
+, cast(COUNTERPARTY_SSN             AS VARCHAR2(10 BYTE)    )  AS  COUNTERPARTY_SSN
+, cast(COUNTERPARTY_PARTY_ID        AS VARCHAR2(10 BYTE)    )  AS  COUNTERPARTY_PARTY_ID
+, cast(COUNTERPARTY_HOST_AGR_NUM    AS VARCHAR2(50 BYTE)    )  AS  COUNTERPARTY_HOST_AGR_NUM
+, cast(COUNTERPARTY_AGREEMENT_ID    AS NUMBER(38,0)         )  AS  COUNTERPARTY_AGREEMENT_ID
+, cast(ORDERER_PARTY_ID             AS VARCHAR2(10 BYTE)    )  AS  ORDERER_PARTY_ID
+, cast(ORDERER_SSN                  AS VARCHAR2(10 BYTE)    )  AS  ORDERER_SSN
+, cast(BENEFICIARY_PARTY_ID         AS VARCHAR2(10 BYTE)    )  AS  BENEFICIARY_PARTY_ID
+, cast(BENEFICIARY_SSN              AS VARCHAR2(10 BYTE)    )  AS  BENEFICIARY_SSN
+, cast(ORDERER_CROSS_RT             AS NUMBER(30,15)        )  AS  ORDERER_CROSS_RT
+, cast(BENEFICIARY_CROSS_RT         AS NUMBER(30,15)        )  AS  BENEFICIARY_CROSS_RT
+, cast(HOST_MERCHANT_AGREEMENT_NUM  AS VARCHAR2(50 BYTE)    )  AS  HOST_MERCHANT_AGREEMENT_NUM
+, cast(MERCHANT_PARTY_ID            AS VARCHAR2(10 BYTE)    )  AS  MERCHANT_PARTY_ID
+, cast(MERCHANT_SSN                 AS VARCHAR2(10 BYTE)    )  AS  MERCHANT_SSN	
+, cast(MERCHANT_NAME                AS VARCHAR2(100 BYTE)   )  AS  MERCHANT_NAME
+, cast(MERCHANT_CATEGORY_CD         AS VARCHAR2(4 BYTE)     )  AS  MERCHANT_CATEGORY_CD
+, cast(CARD_NUMBER_MASKED           AS VARCHAR2(50 BYTE)    )  AS  CARD_NUMBER_MASKED
+, cast(HOST_AUTHORIZATION_NUM       AS VARCHAR2(50 BYTE)    )  AS  HOST_AUTHORIZATION_NUM
+, cast(HOST_BATCH_NUMBER            AS VARCHAR2(4 BYTE)     )  AS  HOST_BATCH_NUMBER
+, cast(HOST_TRANSACTION_CD          AS VARCHAR2(2 BYTE)     )  AS  HOST_TRANSACTION_CD
+, cast(OPERATION_REFERENCE_TXT      AS VARCHAR2(16 CHAR)    )  AS  OPERATION_REFERENCE_TXT
+FROM DEPOSITS.PRT_EV_EVENTS_OLD;
+
+--4. Create constraints
+
+ALTER TABLE deposits.prt_ev_events MODIFY event_dttm NOT NULL;
+
+ALTER TABLE deposits.prt_ev_events MODIFY value_dt NOT NULL;
+
+--5. Create indexes
+ 
+ALTER SESSION ENABLE PARALLEL DDL;
+
+CREATE INDEX deposits.i0_prt_ev_events on deposits.prt_ev_events (reference_date, agreement_id) LOCAL
+PARALLEL 4 
+COMPUTE STATISTICS;
+
+CREATE INDEX deposits.i1_prt_ev_events on deposits.prt_ev_events (reference_date, host_agreement_num) LOCAL 
+PARALLEL 4 
+COMPUTE STATISTICS;
+
+ALTER INDEX deposits.i0_prt_ev_events NOPARALLEL;
+
+ALTER INDEX deposits.i1_prt_ev_events NOPARALLEL;
+
+ALTER SESSION DISABLE PARALLEL DDL;
+
+--6. Do grants
+GRANT SELECT ON deposits.prt_ev_events TO deposits_all_obj_reader;
+
+GRANT SELECT ON deposits.prt_ev_events TO dw_admin_role;
+
+--7. Gather statistic
+set timing on
+set serveroutput on
+begin
+ dbms_stats.gather_table_stats(ownname             =>'DEPOSITS', 
+                               tabname             =>'PRT_EV_EVENTS', 
+                               method_opt          =>'FOR ALL COLUMNS SIZE 1', 
+                               degree              =>4, 
+                               cascade             =>dbms_stats.auto_cascade, 
+                               estimate_percent    =>DBMS_STATS.AUTO_SAMPLE_SIZE
+                               );
+end;
+/
+
+
+--8. Check if table was copied well
+select count(*) 
+from deposits.prt_ev_events;
+
+  
+--9. Drop temporary tables
+DROP TABLE deposits.prt_ev_events_old PURGE;
+
+
+
+
+----------------------------------------------------
+
+

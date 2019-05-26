@@ -116,7 +116,91 @@ alter table BARS.BANKS$BASE
 alter table BARS.BANKS$BASE
   add constraint CC_BANKS_MFO_NN
   check ("MFO" IS NOT NULL);
-  
+
+--or
+ALTER TABLE deposits.prt_ev_events MODIFY value_dt NOT NULL;  
+
+/*
+This depends on how the table was created.
+
+There are essentially three ways to define a not null column:
+
+film_title varchar(100) not null,
+film_title varchar(100) constraint nn_film_title not null
+film_title varchar(100) check (film_title is not null)
+With option 3 the column is still marked as "NULLABLE" in USER_TAB_COLUMNS. In that case running alter table film3 modify film_title null will not remove the check constraint.
+
+For option 1. and 2. the not null constraint can be removed either by using modify or by dropping the implicitly created check constraint by name.
+
+I would also agree that for 1. and 2. using modify film_title null is the more stable (and less error-prone) approach.
+
+However, dropping the check constraint is the only way that guarantees that the column is nullable afterwards - regardless on how the restriction was defined.
+
+But it's extremely difficult to actually find out if a check constraint defines (only) a not null condition.
+*/
+
+---------------
+
+Examples
+-- Add a new column with a column-level constraint
+-- to an existing table
+-- An exception will be thrown if the table
+-- contains any rows
+-- since the newcol will be initialized to NULL
+-- in all existing rows in the table
+ALTER TABLE CITIES ADD COLUMN REGION VARCHAR(26)
+CONSTRAINT NEW_CONSTRAINT CHECK (REGION IS NOT NULL);
+
+-- Add a new unique constraint to an existing table
+-- An exception will be thrown if duplicate keys are found
+ALTER TABLE SAMP.DEPARTMENT
+ADD CONSTRAINT NEW_UNIQUE UNIQUE (DEPTNO);
+
+-- add a new foreign key constraint to the
+-- Cities table. Each row in Cities is checked
+-- to make sure it satisfied the constraints.
+-- if any rows don't satisfy the constraint, the
+-- constraint is not added
+ALTER TABLE CITIES ADD CONSTRAINT COUNTRY_FK
+Foreign Key (COUNTRY) REFERENCES COUNTRIES (COUNTRY);
+
+-- Add a primary key constraint to a table
+-- First, create a new table
+CREATE TABLE ACTIVITIES (CITY_ID INT NOT NULL,
+SEASON CHAR(2), ACTIVITY VARCHAR(32) NOT NULL);
+-- You will not be able to add this constraint if the
+-- columns you are including in the primary key have
+-- null data or duplicate values.
+ALTER TABLE Activities ADD PRIMARY KEY (city_id, activity);
+
+-- Drop the city_id column if there are no dependent objects:
+ALTER TABLE Cities DROP COLUMN city_id RESTRICT;
+-- Drop the city_id column, also dropping all dependent objects:
+ALTER TABLE Cities DROP COLUMN city_id CASCADE;
+
+-- Drop a primary key constraint from the CITIES table
+
+ALTER TABLE Cities DROP CONSTRAINT Cities_PK;
+-- Drop a foreign key constraint from the CITIES table
+ALTER TABLE Cities DROP CONSTRAINT COUNTRIES_FK;
+-- add a DEPTNO column with a default value of 1
+ALTER TABLE SAMP.EMP_ACT ADD COLUMN DEPTNO INT DEFAULT 1;
+-- increase the width of a VARCHAR column
+ALTER TABLE SAMP.EMP_PHOTO ALTER PHOTO_FORMAT SET DATA TYPE VARCHAR(30);
+-- change the lock granularity of a table
+ALTER TABLE SAMP.SALES LOCKSIZE TABLE;
+
+-- Remove the NOT NULL constraint from the MANAGER column
+ALTER TABLE Employees ALTER COLUMN Manager NULL;
+-- Add the NOT NULL constraint to the SSN column
+ALTER TABLE Employees ALTER COLUMN ssn NOT NULL;
+
+-- Change the default value for the SALARY column
+ALTER TABLE Employees ALTER COLUMN Salary DEFAULT 1000.0
+ALTER TABLE Employees ALTER COLUMN Salary DROP DEFAULT
+
+
+
 -----------Manually Specifying the Degree of Parallelism-----------
 ALTER TABLE customers PARALLEL 4;
   

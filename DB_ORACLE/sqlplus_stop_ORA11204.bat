@@ -2,7 +2,7 @@ set path=C:\app\11204\product\11.2.0\dbhome_2\bin;%path%;
 c:
 cd \
 cd "C:\app\11204\product\11.2.0\dbhome_2\bin"
-sqlplus / as sysdba
+sqlplus / as sysdba 
 shutdown immediate
 net stop OracleVssWriterORA11204
 net stop OracleJobSchedulerORA11204

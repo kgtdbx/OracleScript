@@ -195,3 +195,14 @@ USING
       (SERVICE_NAME = ORAW2K8)
     )
   )';  
+  
+  
+-----------------
+
+--ORA-02019: connection description for remote database not found
+
+This error will occur when a database link is not made PUBLIC, and the user who created the link is different to the user attempting to use the link. 
+For example, creating the link as the SYS user and then trying to use the link as the AM_ADMIN user.
+
+In this instance either make the link PUBLIC (which all users can then access), or grant the AM_ADMIN user the privileges to create a database link. 
+------------------ 

@@ -2,7 +2,70 @@
 !!!!!!!!!!!!!!!!!
 We use EXIT WHEN cur%NOTFOUND; when doing FETCH cur INTO cur_collection; based on cursor ;
 
-We use EXIT WHEN l_table_rowtype.COUNT = 0; when we doing FETCH cur BULK COLLECT INTO l_table_rowtype LIMIT c_limit; based on index by collection type; 
+We use EXIT WHEN l_table_rowtype.COUNT = 0; when we doing FETCH cur BULK COLLECT INTO l_table_rowtype LIMIT c_limit; based on index by collection type;
+
+!!!!!!!!!!!!!!!!
+Kicking the %NOTFOUND Habit 
+I was very happy to learn that Oracle Database 10g will automatically optimize my cursor FOR loops to perform at speeds comparable to BULK COLLECT. 
+Unfortunately, my company is still running on Oracle9i Database, so I have started converting my cursor FOR loops to BULK COLLECTs. 
+I have run into a problem: I am using a LIMIT of 100, and my query retrieves a total of 227 rows, but my program processes only 200 of them. 
+[The query is shown in Listing 2.] What am I doing wrong? 
+
+Code Listing 2: BULK COLLECT, %NOTFOUND, and missing rows
+PROCEDURE process_all_rows
+IS
+   CURSOR table_with_227_rows_cur 
+   IS 
+      SELECT * FROM table_with_227_rows;
+   TYPE table_with_227_rows_aat IS 
+      TABLE OF table_with_227_rows_cur%ROWTYPE
+      INDEX BY PLS_INTEGER;
+   l_table_with_227_rows table_with_227_rows_aat;
+BEGIN   
+   OPEN table_with_227_rows_cur;
+   LOOP
+      FETCH table_with_227_rows_cur 
+         BULK COLLECT INTO l_table_with_227_rows LIMIT 100;
+         EXIT WHEN table_with_227_rows_cur%NOTFOUND;     /* cause of missing rows */
+      FOR indx IN 1 .. l_table_with_227_rows.COUNT 
+      LOOP
+         analyze_compensation (l_table_with_227_rows(indx));
+      END LOOP;
+   END LOOP;
+   CLOSE table_with_227_rows_cur;
+END process_all_rows;
+You came so close to a completely correct conversion from your cursor FOR loop to BULK COLLECT! 
+Your only mistake was that you didn''t give up the habit of using the %NOTFOUND cursor attribute in your EXIT WHEN clause.
+The statement
+EXIT WHEN 
+table_with_227_rows_cur%NOTFOUND;
+makes perfect sense when you are fetching your data one row at a time. With BULK COLLECT, however, that line of code can result in incomplete data processing, 
+precisely as you described.
+Let''s examine what is happening when you run your program and why those last 27 rows are left out. After opening the cursor and entering the loop, 
+here is what occurs:
+1. The fetch statement retrieves rows 1 through 100.
+2. table_with_227_rows_cur%NOTFOUND evaluates to FALSE, and the rows are processed.
+3. The fetch statement retrieves rows 101 through 200.
+4. table_with_227_rows_cur%NOTFOUND evaluates to FALSE, and the rows are processed.
+5. The fetch statement retrieves rows 201 through 227.
+6. table_with_227_rows_cur%NOTFOUND evaluates to TRUE , and the loop is terminated?with 27 rows left to process!
+When you are using BULK COLLECT and collections to fetch data from your cursor, 
+you should never rely on the cursor attributes to decide whether to terminate your loop and data processing. 
+So, to make sure that your query processes all 227 rows, replace this statement:
+EXIT WHEN 
+table_with_227_rows_cur%NOTFOUND; 
+with
+EXIT WHEN 
+l_table_with_227_rows.COUNT = 0; 
+Generally, you should keep all of the following in mind when working with BULK COLLECT:
+The collection is always filled sequentially, starting from index value 1.
+It is always safe (that is, you will never raise a NO_DATA_FOUND exception) 
+to iterate through a collection from 1 to collection .COUNT when it has been filled with BULK COLLECT.
+The collection is empty when no rows are fetched.
+Always check the contents of the collection (with the COUNT method) to see if there are more rows to process.
+Ignore the values returned by the cursor attributes, especially %NOTFOUND.
+
+
 !!!!!!!!!!!!!!!!!!          
 
 /*  --https://blogs.oracle.com/oraclemagazine/working-with-cursors

@@ -185,4 +185,43 @@ DECLARE
                                   );
            -- Clear collection for vv_cur_oper
            vv_cur_oper.delete;
-END;           
+END;   
+
+
+--###################################--
+
+set serveroutput on
+declare
+  type t_pk is table of t1.pk%type;
+  type t_c1 is table of t1.c1%type;
+  v_pks t_pk;
+  v_c1s  t_c1;
+  v_new_pks t_pk;
+
+  ex_dml_errors EXCEPTION;
+  PRAGMA EXCEPTION_INIT(ex_dml_errors, -24381);
+
+begin
+  -- get the batch of rows you want to insert
+  select level newpk, 'value' c1
+  bulk collect into v_pks, v_c1s
+  from dual connect by level <= 10;
+
+  -- bulk bind insert, saving exceptions and capturing the newly inserted
+  -- records
+  forall i in v_pks.first .. v_pks.last save exceptions 
+    insert into t1 (pk, c1)
+    values (v_pks(i), v_c1s(i)) returning pk bulk collect into v_new_pks;
+
+exception
+ -- Process the exceptions 
+  when ex_dml_errors then
+    for i in 1..SQL%BULK_EXCEPTIONS.count loop
+      DBMS_OUTPUT.put_line('Error: ' || i || 
+          ' Array Index: ' || SQL%BULK_EXCEPTIONS(i).error_index ||
+          ' Message: ' || SQLERRM(-SQL%BULK_EXCEPTIONS(i).ERROR_CODE));
+    end loop;
+end;
+/
+
+        

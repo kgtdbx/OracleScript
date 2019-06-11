@@ -122,3 +122,80 @@ ID  PARENT_ID
 2   3
 
 6 row(s) retrieved
+
+
+
+-------
+
+insert 
+  when 
+        exists (SELECT  distinct dbr.code             AS blocking_reason_cd, 
+                            (CASE 
+                            WHEN d.is_deposit_blocked = 0 AND d.is_withdrawal_blocked = 0 
+                                THEN 'NO_BLOCKING' 
+                            WHEN d.is_deposit_blocked = 0 AND d.is_withdrawal_blocked = 1 
+                                THEN 'BLOCKED_DEBITS' 
+                            WHEN d.is_deposit_blocked = 1 AND d.is_withdrawal_blocked = 0 
+                                THEN 'BLOCKED_CREDITS' 
+                            WHEN d.is_deposit_blocked = 1 AND d.is_withdrawal_blocked = 1 
+                                THEN 'BLOCKED_DEBITS_AND_CREDITS' 
+                            ELSE 'UNKNOWN'
+                        END
+                        )                   AS blocking_type_cd
+                  FROM deposits.deposit_blocking_reasons dbr
+                  JOIN deposits.deposit_blockings d
+                    ON (dbr.blocking_reason_id = d.blocking_reason_id 
+                        AND dbr.reference_date = d.reference_date)
+                  JOIN deposits.agreements a
+                    ON d.agreement_pid = a.agreement_pid
+                   AND d.reference_date = a.reference_date
+                  LEFT JOIN deposits.tmp_agreements_id a_id
+                    ON a.agreement_id = a_id.host_agreement_num
+                   AND a_id.agr_source_system_cd = 29
+                 WHERE d.reference_date = date '2019-05-15'
+                    minus
+                    select abr.blocking_type_cd, abr.blocking_reason_cd
+                    from deposits.ag_blocking_reason abr
+                    where 1=1
+                    group by abr.blocking_type_cd, abr.blocking_reason_cd
+                    )
+
+  then
+  into deposits.ag_blocking_reason
+       (blocking_reason_cd, is_desc, en_desc, host_blocking_reason_num, blocking_type_cd)
+  values (blocking_reason_cd, is_desc, en_desc, host_blocking_reason_num, blocking_type_cd)
+SELECT  DISTINCT dbr.code             AS blocking_reason_cd,
+                       dbr.name             AS is_desc,
+                       ''                   AS en_desc,
+                       dbr.code             AS host_blocking_reason_num,
+                       (CASE 
+                            WHEN d.is_deposit_blocked = 0 AND d.is_withdrawal_blocked = 0 
+                                THEN 'NO_BLOCKING' 
+                            WHEN d.is_deposit_blocked = 0 AND d.is_withdrawal_blocked = 1 
+                                THEN 'BLOCKED_DEBITS' 
+                            WHEN d.is_deposit_blocked = 1 AND d.is_withdrawal_blocked = 0 
+                                THEN 'BLOCKED_CREDITS' 
+                            WHEN d.is_deposit_blocked = 1 AND d.is_withdrawal_blocked = 1 
+                                THEN 'BLOCKED_DEBITS_AND_CREDITS' 
+                            ELSE 'UNKNOWN'
+                        END
+                        )                   AS blocking_type_cd
+                  FROM deposits.deposit_blocking_reasons dbr
+                  JOIN deposits.deposit_blockings d
+                    ON (dbr.blocking_reason_id = d.blocking_reason_id 
+                        AND dbr.reference_date = d.reference_date)
+                  JOIN deposits.agreements a
+                    ON d.agreement_pid = a.agreement_pid
+                   AND d.reference_date = a.reference_date
+                  LEFT JOIN deposits.tmp_agreements_id a_id
+                    ON a.agreement_id = a_id.host_agreement_num
+                   AND a_id.agr_source_system_cd = 29
+                 WHERE d.reference_date = date '2019-05-15'
+                   and not exists (
+                                   select null
+                                     from deposits.ag_blocking_reason abr
+                                    where abr.blocking_reason_cd = dbr.code
+                                  );
+--commit;
+
+-------------

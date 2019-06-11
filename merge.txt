@@ -7,3 +7,63 @@ begin
     when not matched then insert (user_name, module, filter)
     values(n.a,n.m,n.b);  
 end;
+
+
+--#################--
+procedure syncAgBlockingReason(inReferenceDate in date)
+is
+  v_cnt   number;
+  fakeJobId number:=-1;
+
+  BEGIN
+    logInfo(fakeJobId,'stg','Sync ag_blocking_reason table');
+     MERGE
+          INTO deposits.ag_blocking_reason abr
+          USING (SELECT  DISTINCT dbr.code    AS blocking_reason_cd,
+                         dbr.name             AS is_desc,
+                         ''                   AS en_desc,
+                         dbr.code             AS host_blocking_reason_num,
+                         (CASE
+                              WHEN d.is_deposit_blocked = 0 AND d.is_withdrawal_blocked = 0
+                                  THEN 'NO_BLOCKING'
+                              WHEN d.is_deposit_blocked = 0 AND d.is_withdrawal_blocked = 1
+                                  THEN 'BLOCKED_DEBITS'
+                              WHEN d.is_deposit_blocked = 1 AND d.is_withdrawal_blocked = 0
+                                  THEN 'BLOCKED_CREDITS'
+                              WHEN d.is_deposit_blocked = 1 AND d.is_withdrawal_blocked = 1
+                                  THEN 'BLOCKED_DEBITS_AND_CREDITS'
+                              ELSE 'UNKNOWN'
+                          END
+                          )                   AS blocking_type_cd
+                    FROM deposits.deposit_blocking_reasons dbr
+                    JOIN deposits.deposit_blockings d
+                      ON (dbr.blocking_reason_id = d.blocking_reason_id
+                          AND dbr.reference_date = d.reference_date)
+                    JOIN deposits.agreements a
+                      ON d.agreement_pid = a.agreement_pid
+                     AND d.reference_date = a.reference_date
+                    LEFT JOIN deposits.tmp_agreements_id a_id
+                      ON a.agreement_id = a_id.host_agreement_num
+                     AND a_id.agr_source_system_cd = 29
+                   WHERE d.reference_date = inReferenceDate) src
+             ON (abr.blocking_reason_cd = src.blocking_reason_cd)
+          WHEN NOT MATCHED
+            THEN INSERT (abr.blocking_reason_cd,
+                         abr.is_desc,
+                         abr.en_desc,
+                         abr.host_blocking_reason_num,
+                         abr.blocking_type_cd)
+                 VALUES (src.blocking_reason_cd,
+                         src.is_desc,
+                         src.en_desc,
+                         src.host_blocking_reason_num,
+                         src.blocking_type_cd)
+          WHEN MATCHED
+            THEN UPDATE
+                    SET abr.is_desc = src.is_desc,
+                        abr.blocking_type_cd = src.blocking_type_cd;
+     v_cnt := SQL%rowcount;
+     commit;
+     --dbms_output.put_line(to_char(v_cnt)||' rows affected.');
+     logInfo(fakeJobId,'stg','Sync ag_blocking_reason table done. '||to_char(v_cnt)||' rows affected.');
+end syncAgBlockingReason;

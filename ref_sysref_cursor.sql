@@ -1,3 +1,24 @@
+/*
+DECLARE
+  TYPE DeptCurTyp IS REF CURSOR RETURN departments%ROWTYPE;
+REF CURSOR types can be strong (with a return type) or weak (with no return type). Strong REF CURSOR types are less error prone because the PL/SQL compiler lets you associate a strongly typed cursor variable only with queries that return the right set of columns. Weak REF CURSOR types are more flexible because the compiler lets you associate a weakly typed cursor variable with any query. Because there is no type checking with a weak REF CURSOR, all such types are interchangeable. Instead of creating a new type, you can use the predefined type SYS_REFCURSOR.
+
+Once you define a REF CURSOR type, you can declare cursor variables of that type in any PL/SQL block or subprogram.
+
+DECLARE
+   TYPE empcurtyp IS REF CURSOR RETURN employees%ROWTYPE;  -- strong
+   TYPE genericcurtyp IS REF CURSOR;  -- weak
+   cursor1 empcurtyp;
+   cursor2 genericcurtyp;
+   my_cursor SYS_REFCURSOR; -- didn't need to declare a new type
+   TYPE deptcurtyp IS REF CURSOR RETURN departments%ROWTYPE;
+   dept_cv deptcurtyp;  -- declare cursor variable
+   
+ To avoid declaring the same REF CURSOR type in each subprogram that uses it, you can put the REF CURSOR declaration in a package spec. 
+ You can declare cursor variables of that type in the corresponding package body, or within your own procedure or function.
+ 
+ */
+
 function is_source_ready(ip_object_name varchar2, ip_owner varchar2 default 'DEPOSITS')
     return varchar2
     is

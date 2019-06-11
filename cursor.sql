@@ -25,7 +25,8 @@ BEGIN
    OPEN table_with_227_rows_cur;
    LOOP
       FETCH table_with_227_rows_cur 
-         BULK COLLECT INTO l_table_with_227_rows LIMIT 100;EXIT WHEN table_with_227_rows_cur%NOTFOUND;     /* cause of missing rows */
+         BULK COLLECT INTO l_table_with_227_rows LIMIT 100;
+         EXIT WHEN table_with_227_rows_cur%NOTFOUND;     /* cause of missing rows */
       FOR indx IN 1 .. l_table_with_227_rows.COUNT 
       LOOP
          analyze_compensation (l_table_with_227_rows(indx));

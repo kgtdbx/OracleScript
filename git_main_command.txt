@@ -4,6 +4,9 @@ https://git-scm.com/download/win
 --A successful Git branching model
 https://nvie.com/posts/a-successful-git-branching-model/
 
+--to get upto curve on git, its a step-by-step guide, if you need some documentation and help
+http://gitimmersion.com/ to get upto curve on git, its a step-by-step guide, if you need some documentation and help
+
 --###########--
 I've got a project checked locally from github, that remote repo has since had changes made to it. What's the correct command to update my local copy with the latest changes?
 --

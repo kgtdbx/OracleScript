@@ -1,5 +1,5 @@
 --ѕеременные подстановки(bind variable or host variable) и переменные прив€зки(&)
-set autoprint on --for show bind veriable after run script
+set autoprint on --for show bind variable after run script
 variable b_name varchar2(50)--use only for anonymous blocks, syntax "var" use only for sqlplus
 variable b_emp_id number --if need to initialize this variable then we have to use anonymous blocks for this
 begin :b_emp_id:=107; end; --or exec :b_emp_id:=103;

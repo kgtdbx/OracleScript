@@ -1,0 +1,161 @@
+--https://docs.oracle.com/database/121/TGDBA/tune_result_cache.htm#TGDBA640
+
+--https://blog.dbi-services.com/result-cache-when-not-to-use-it/
+
+--https://oracle-base.com/articles/11g/cross-session-plsql-function-result-cache-11gr1
+
+--https://www.slideshare.net/AlexanderTokarev4/oracle-result-cache-deep-dive
+
+--http://www.oracle-developer.net/display.php?id=504
+
+
+How Results are Retrieved in a Query
+The following example shows a query of hr.employees that uses the RESULT_CACHE hint to retrieve rows from the server result cache.
+
+SELECT /*+ RESULT_CACHE */ department_id, AVG(salary)
+  FROM hr.employees
+ GROUP BY department_id;
+ 
+A portion of the execution plan of this query might look like the following:
+--------------------------------------------------------------
+| Id | Operation          | Name                       |Rows
+--------------------------------------------------------------
+| 0 | SELECT STATEMENT    |                            | 11
+| 1 |  RESULT CACHE       | 8fpza04gtwsfr6n595au15yj4y |
+| 2 |   HASH GROUP BY     |                            | 11
+| 3 |    TABLE ACCESS FULL| EMPLOYEES                  | 107
+--------------------------------------------------------------
+In this example, the results are retrieved directly from the cache, as indicated in step 1 of the execution plan. The value in the Name column is the cache ID of the result.
+The following example shows a query of the V$RESULT_CACHE_OBJECTS view to retrieve detailed statistics about the cached result.
+
+--use V$RESULT_CACHE_OBJECTS very carefull there is a bug in Oracle(https://www.slideshare.net/AlexanderTokarev4/oracle-result-cache-deep-dive)
+SELECT id, type, creation_timestamp, block_count,
+       column_count, pin_count, row_count
+  FROM V$RESULT_CACHE_OBJECTS
+ WHERE cache_id = '8fpza04gtwsfr6n595au15yj4y';
+ 
+In this example, the value of CACHE_ID is the cache ID obtained from the explain plan in the earlier example. The output of this query might look like the following:
+        ID TYPE       CREATION_ BLOCK_COUNT COLUMN_COUNT  PIN_COUNT  ROW_COUNT
+---------- ---------- --------- ----------- ------------ ---------- ----------
+         2 Result     06-NOV-11           1            2          0         12
+         
+
+How Results are Retrieved in a View
+Example 15-1 shows a query that uses the RESULT_CACHE hint within a WITH clause view.
+Example 15-1 RESULT_CACHE Hint Specified in a WITH View
+
+WITH summary AS
+( SELECT /*+ RESULT_CACHE */ department_id, avg(salary) avg_sal
+    FROM hr.employees
+   GROUP BY department_id )
+SELECT d.*, avg_sal
+  FROM hr.departments d, summary s
+ WHERE d.department_id = s.department_id;
+ 
+A portion of the execution plan of this query might look like the following:
+------------------------------------------------------------------------------------------------
+| Id| Operation             | Name                      | Rows | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------------------
+|  0| SELECT STATEMENT      |                           |   11 |   517 |     7  (29)| 00:00:01 |
+|* 1|  HASH JOIN            |                           |   11 |   517 |     7  (29)| 00:00:01 |
+|  2|   VIEW                |                           |   11 |   286 |     4  (25)| 00:00:01 |
+|  3|    RESULT CACHE       | 8nknkh64ctmz94a5muf2tyb8r |      |       |            |          |
+|  4|     HASH GROUP BY     |                           |   11 |    77 |     4  (25)| 00:00:01 |
+|  5|      TABLE ACCESS FULL| EMPLOYEES                 |  107 |   749 |     3   (0)| 00:00:01 |
+|  6|   TABLE ACCESS FULL   | DEPARTMENTS               |   27 |   567 |     2   (0)| 00:00:01 |
+------------------------------------------------------------------------------------------------
+In this example, the summary view results are retrieved directly from the cache, as indicated in step 3 of the execution plan. 
+The value in the Name column is the cache ID of the result.
+
+/*
+RESULT_CACHE_MAX_SIZE
+Specifies the memory allocated to the server result cache. To disable the server result cache, set this parameter to 0.
+RESULT_CACHE_MAX_RESULT
+Specifies the maximum amount of server result cache memory (in percent) that can be used for a single result. Valid values are between 1 and 100. 
+The default value is 5%. You can set this parameter at the system or session level.
+RESULT_CACHE_REMOTE_EXPIRATION
+Specifies the expiration time (in minutes) for a result in the server result cache that depends on remote database objects. 
+The default value is 0, which specifies that results using remote objects will not be cached. 
+If a non-zero value is set for this parameter, DML on the remote database does not invalidate the server result cache.
+*/
+
+/*
+Managing the Server Result Cache Using DBMS_RESULT_CACHE
+The DBMS_RESULT_CACHE package provides statistics, information, and operators that enable you to manage memory allocation for the server result cache. 
+Use the DBMS_RESULT_CACHE package to perform operations such as retrieving statistics on the cache memory usage and flushing the cache.
+
+SQL> SET SERVEROUTPUT ON
+SQL> EXECUTE DBMS_RESULT_CACHE.MEMORY_REPORT
+
+Flushing the Server Result Cache
+This section describes how to remove all existing results and purge the result cache memory using the DBMS_RESULT_CACHE package.
+To flush the server result cache:
+Execute the DBMS_RESULT_CACHE.FLUSH procedure.
+*/
+
+
+To set the result cache mode:
+Set the value of the RESULT_CACHE_MODE initialization parameter to determine the behavior of the result cache.
+You can set this parameter for the instance (ALTER SYSTEM), session (ALTER SESSION), or in the server parameter file.
+
+MANUAL
+Query results can only be stored in the result cache by using a query hint or table annotation. 
+This is the default and recommended value.
+
+FORCE
+All results are stored in the result cache. If a query result is not in the cache, then the database executes the query and stores the result in the cache. 
+Subsequent executions of the same SQL statement, including the result cache hint, retrieve data from the cache. Sessions uses these results if possible. 
+To exclude query results from the cache, the /*+ NO_RESULT_CACHE */ query hint must be used.
+Note: FORCE mode is not recommended because the database and clients will attempt to cache all queries, 
+which may create significant performance and latching overhead. Moreover, because queries that call non-deterministic PL/SQL functions are also cached, 
+enabling the result cache in such a broad-based manner may cause material changes to the results.
+
+Requirements for the Result Cache
+Enabling the result cache does not guarantee that a specific result set will be included in the server or client result cache. 
+In order for results to be cached, the following requirements must be met:
+Read Consistency Requirements
+Query Parameter Requirements
+Restrictions for the Result Cache
+Read Consistency Requirements
+
+For a snapshot to be reusable, it must have read consistency. 
+For a result set to be eligible for caching, at least one of the following conditions must be true:
+The read-consistent snapshot used to build the result must retrieve the most current, committed state of the data.
+The query points to an explicit point in time using flashback query.
+If the current session has an active transaction referencing objects in a query, then the results from this query are not eligible for caching.
+Query Parameter Requirements
+Cache results can be reused if they are parameterized with variable values when queries are equivalent and the parameter values are the same. 
+Different values or bind variable names may cause cache misses. Results are parameterized if any of the following constructs are used in the query:
+Bind variables
+The SQL functions DBTIMEZONE, SESSIONTIMEZONE, USERENV/SYS_CONTEXT (with constant variables), UID, and USER
+NLS parameters
+Restrictions for the Result Cache
+Results cannot be cached when the following objects or functions are in a query:
+Temporary tables and tables in the SYS or SYSTEM schemas
+Sequence CURRVAL and NEXTVAL pseudo columns
+SQL functions CURRENT_DATE, CURRENT_TIMESTAMP, LOCAL_TIMESTAMP, USERENV/SYS_CONTEXT (with non-constant variables), SYS_GUID, SYSDATE, and SYS_TIMESTAMP
+The client result cache has additional restrictions for result caching.
+
+Using Result Cache Table Annotations
+You can also use table annotations to control result caching. Table annotations affect the entire query, not query segments. 
+The primary benefit of using table annotations is avoiding the necessity of adding result cache hints to queries at the application level. 
+Because a table annotation has a lower precedence than a SQL result cache hint, you can override table and session settings by using hints at the query level.
+
+Using the FORCE Table Annotation
+The FORCE table annotation forces the database to cache results at the table level.
+Using the sales table created in Example 15-5, assume that you decide to force result caching for this table, you can do so by using the FORCE table annotation.
+Example 15-6 shows an ALTER TABLE statement that uses the FORCE table annotation on the sales table.
+
+ALTER TABLE sales RESULT_CACHE (MODE FORCE);
+
+SELECT prod_id, SUM(amount_sold)
+  FROM sales 
+ GROUP BY prod_id 
+HAVING prod_id=136;
+
+SELECT /*+ NO_RESULT_CACHE */ * 
+  FROM sales
+ ORDER BY time_id DESC;
+This example includes two queries of the sales table. 
+The first query, which is frequently used and returns few rows, is eligible for caching because of the table annotation. 
+The second query, which is a one-time query that returns many rows, uses a hint to prevent result caching.

@@ -3,6 +3,23 @@ set linesize 250 pagesize 0 trims on tab off long 1000000
 set timing on
 set autotrace traceonly explain
 
+----------
+In the following example, we will explain our previous query.
+SQL> EXPLAIN PLAN SET STATEMENT_ID = 'PLSQL_CACHE'
+  2  FOR
+  3     SELECT c.cust_id
+  4     ,      format_customer_name(
+  5               c.cust_first_name, c.cust_last_name
+  6               ) AS cust_name
+  7     FROM   customers c;
+
+Explained.
+
+SQL> SELECT *
+  2  FROM   TABLE(DBMS_XPLAN.DISPLAY(null,'PLSQL_CACHE'));
+
+---------
+
 
 /*
 --http://www.dba-oracle.com/plsql/t_plsql_plans.htm

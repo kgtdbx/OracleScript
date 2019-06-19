@@ -81,3 +81,76 @@ BEGIN
    DBMS_OUTPUT.put_line (n || ' rows inserted.');
 END;
 /
+
+
+--######################################--
+set serveroutput on
+
+CREATE OR REPLACE PROCEDURE plch_check_balance (
+   balance_in IN NUMBER)
+   AUTHID DEFINER
+IS
+BEGIN
+   IF balance_in < 0
+   THEN
+      RAISE VALUE_ERROR;
+   END IF;
+EXCEPTION
+   WHEN OTHERS
+   THEN
+      DBMS_OUTPUT.put_line (SQLERRM);
+END;
+/
+
+BEGIN
+   plch_check_balance (-1);
+END;
+/
+
+CREATE OR REPLACE PROCEDURE plch_check_balance (
+   balance_in IN NUMBER)
+   AUTHID DEFINER
+IS
+BEGIN
+   IF balance_in < 0
+   THEN
+      RAISE VALUE_ERROR;
+   END IF;
+EXCEPTION
+   WHEN OTHERS
+   THEN
+      DBMS_OUTPUT.put_line (DBMS_UTILITY.format_error_stack);
+END;
+/
+
+BEGIN
+   plch_check_balance (-1);
+END;
+/
+
+CREATE OR REPLACE PROCEDURE plch_check_balance (
+   balance_in IN NUMBER)
+   AUTHID DEFINER
+IS
+BEGIN
+   IF balance_in < 0
+   THEN
+      RAISE VALUE_ERROR;
+   END IF;
+EXCEPTION
+   WHEN OTHERS
+   THEN
+      DBMS_OUTPUT.put_line (   'ORA-'
+         || TO_CHAR (UTL_CALL_STACK.error_number (1), 'fm00000')
+         || ': '
+         || UTL_CALL_STACK.error_msg (1));
+END;
+/
+
+BEGIN
+   plch_check_balance (-1);
+END;
+/
+
+DROP PROCEDURE plch_check_balance
+/

@@ -1,3 +1,11 @@
+alter pluggable database all open;
+
+alter session set container=orclpdb1;
+
+Show con_name;
+
+ALTER USER hr1 identified by hr10753;
+
 --Sources:
 --https://www.exam4training.com/oracle-1z0-148-oracle-database-12c-advanced-pl-sql-online-training/
 
@@ -577,10 +585,146 @@ A. DBMS_LOB can be used to compress SecureFiles columns.
 C. If a BasicFiles LOB locator is passed to DBMS_LOB.ISSECUREFILE, an exception will be raised.
 ***D. An online redefinition of SecureFiles by DBMS_REDEFINIITON can be performed with PDML (Parallel DML).
 --###############################--
+Which two can be used to find details of parameters for overloaded PL/SQL routines?
+A. ALL-DEPENDENCIES
+***B. ALL_PROCEDURES
+C. ALL_DESCRIBE
+D. ALL_SOURCE
+***E. ALL_ARGUMENTS
+
+select * from ALL_DEPENDENCIES;
+select * from ALL_PROCEDURES;
+select * from ALL_DESCRIBE;
+select * from ALL_SOURCE;
+select * from ALL_ARGUMENTS;
+
+select * 
+from ALL_PROCEDURES ap
+join ALL_ARGUMENTS aa
+on(ap.object_id = aa.object_id)
+and ap.overload is not null
+and aa.overload is not null
+;
 
 --###############################--
+/*
+Which two blocks will execute successfully?
+A. BEGIN My_proc; END;
+***B. BEGIN pkg2.proc3; END;
+***C. BEGIN pkg2.proc2;END;
+D. BEGIN pkg1.proc1a; END;
+E. BEGIN pkg1.proc1b; END;
+*/
+------
+
+create or replace noneditionable package pkg1 accessible by (pkg2) is
+procedure proc1a;
+end pkg1;
+/
+
+create or replace noneditionable package body pkg1 is
+procedure proc1a is
+begin
+dbms_output.put_line('proc1a');
+end proc1a;
+
+procedure proc1b is
+begin
+proc1a;
+end proc1b;
+end pkg1;
+/
+
+create or replace noneditionable package pkg2 is
+procedure proc2;
+procedure proc3;
+end pkg2;
+/
+
+create or replace noneditionable package body pkg2 is
+procedure proc2 is
+begin
+pkg1.proc1a;
+end proc2;
+procedure proc3 is
+begin
+pkg2.proc2;
+end proc3;
+end pkg2;
+/
+
+--
+BEGIN My_proc; END;
+/
+
+BEGIN pkg2.proc3; END;
+/
+
+BEGIN pkg2.proc2; END;
+/
+
+BEGIN pkg1.proc1a; END;
+/
+
+BEGIN pkg1.proc1b; END;
+/
 
 --###############################--
+Examine this procedure created in a session where PLSQL_OPTIMIZE_LEVEL =2:
+
+PL/SQL tracing in enabled in a user session using this command:
+EXEC DBMS_TRACE.SET_PLSQL_TRACE (DBMS_TRACE.TRACE_ENABLED_LINES)
+The procedure is executed using this command:
+EXEC PRC_1
+
+Examine the exhibit for the content of the PLSQL_TRACE_EVENTS table.
+Why is tracing excluded from the PLSQL_TRACE_EVENTS table?
+A. DBMS_TRACE.TRACE_ENABLED_LINES traces only exceptions in subprograms.
+***B. PRC_1 is not compiled with debugging information.
+C. Tracing is not enabled with the TRACE_ENABLED_CALLS option.
+D. PRC_1 is compiled with the default AUTHID DEFINER clause.
+E. Tracing will be enabled only for the second execution of PRC_1.
+
+--
+--https://dbaora.com/tracing-plsql-using-dbms_trace-oracle-database-11g-release-2-11-2/
+--http://torofimofu.blogspot.com/2015/08/plsql-oracle-11g-i.html
+
+--exec from sys
+--@C:\app\product\12.2.0\dbhome_1\rdbms\admin\tracetab.sql
+grant select on PLSQL_TRACE_EVENTS to public;
+grant select on PLSQL_TRACE_RUNS to public;
+grant execute on DBMS_TRACE to hr1;
+----
+ALTER SESSION SET PLSQL_OPTIMIZE_LEVEL=2;
+
+--drop procedure prc_1;
+--alter procedure prc_1 compile debug;
+
+create or replace procedure prc_1 is
+begin
+dbms_output.put_line('PRC_1');
+end;
+/
+
+EXEC DBMS_TRACE.SET_PLSQL_TRACE (DBMS_TRACE.TRACE_ENABLED_LINES);
+
+exec prc_1;
+
+/*Stop tracing*/
+--exec  dbms_trace.clear_plsql_trace; 
+
+--truncate table sys.plsql_trace_events;
+
+select event_seq, event_unit, event_unit_kind, event_comment
+from sys.plsql_trace_events
+--where runid=17;
+
+begin
+  dbms_trace.set_plsql_trace(dbms_trace.TRACE_ENABLED_CALLS);
+  prc_1;
+  dbms_trace.clear_plsql_trace;
+end;
+/
 
 --###############################--
 

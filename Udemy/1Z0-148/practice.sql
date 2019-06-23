@@ -1,8 +1,8 @@
-alter pluggable database all open;
+--alter pluggable database all open;
 
-alter session set container=orclpdb1;
+--alter session set container=orclpdb1;
 
-Show con_name;
+--Show con_name;
 
 ALTER USER hr1 identified by hr10753;
 
@@ -729,7 +729,430 @@ end;
 --###############################--
 
 --###############################--
+--HomeOracle1z0-148Which PL/SQL block will raise an exception?
+--You are logged on to the SCOTT schema and the schema has EMP and DEPT tables already created: Examine this PL/SQL procedure:
 
+--drop procedure get_tab_row_vount;
+
+CREATE or replace PROCEDURE get_tab_row_count(p_table_name in varchar2)
+as
+l_sql varchar2(200);
+l_count number;
+begin
+l_sql := 'select count(*) from '||dbms_assert.sql_object_name(p_table_name);
+execute immediate  l_sql into l_count;
+DBMS_OUTPUT.PUT_LINE('l_count = '||l_count);
+end;
+/
+
+A. EXEC get_tab_row_count (’emp’);
+B. EXEC get_tab_row_count (‘SCOTT.EMP’);
+C. EXEC get_tab_row_count (‘ "EMP" ‘);
+D. EXEC get_tab_row_count (‘DEPT’);
+***E. EXEC get_tab_row_count (‘DEPT, EMP’)
+
+
+EXEC get_tab_row_count ('jobs');
+EXEC get_tab_row_count ('HR.JOBS');
+EXEC get_tab_row_count ('"JOBS"');
+EXEC get_tab_row_count ('REGIONS');
+EXEC get_tab_row_count ('REGIONS, JOBS');
+
+--###############################--
+This result cache is enabled for the database instance.
+Examine this code for a PL/SQL function:
+
+create or replace function get_hire_date(emp_id number) return varchar2
+result_cache
+is
+date_hired date;
+begin
+select hire_date into date_hired
+from hr.employees
+where employee_id = emp_id;
+return to_char(date_hired);
+end;
+/
+
+Which two actions would ensure that the same result will be consistently returned for any session when the same input value is passed to the function?
+***A. Add a parameter, fmt, and change the RETURN statement to: RETURN TO_CHAR (date_hired, fmt);
+B. Set the RESULT_CACHE_MODE parameter to FORCE.
+C. Increase the value for the RESULT_CACHE_MAX_SIZE parameter.
+***D. Change the return type of GET_HIRE_DATE to DATE and have each session invoke the TO_CHAR function.
+E. Set the RESULT_CACHE_MAX_RESULT parameter to 0.
+
+https://docs.oracle.com/cd/E18283_01/appdev.112/e17126/subprograms.htm
+
+select get_hire_date(101) from dual;
+
+CREATE OR REPLACE FUNCTION get_hire_date
+  (emp_id NUMBER, fmt VARCHAR) RETURN VARCHAR
+  RESULT_CACHE
+IS
+  date_hired DATE;
+BEGIN
+  SELECT hire_date INTO date_hired
+    FROM HR.EMPLOYEES
+      WHERE EMPLOYEE_ID = emp_id;
+  RETURN TO_CHAR(date_hired, fmt);
+END;
+/
+
+select get_hire_date(101, 'dd/mm/yyyy') from dual;
+
+CREATE OR REPLACE FUNCTION get_hire_date
+  (emp_id NUMBER) RETURN date
+  RESULT_CACHE
+IS
+  date_hired DATE;
+BEGIN
+  SELECT hire_date INTO date_hired
+    FROM HR.EMPLOYEES
+      WHERE EMPLOYEE_ID = emp_id;
+  RETURN TO_CHAR(date_hired);
+END;
+/
+
+select get_hire_date(101) from dual;
+
+--###############################--
+
+Examine the incomplete code:
+
+create type numlist is table of number;
+/
+
+create or replace procedure list_sal (dept_id number) 
+is
+sql_stmt varchar2(200);
+ret integer;
+empids numlist;
+sal numlist;
+curid NUMBER; --D
+src_cur SYS_REFCURSOR; -- F
+begin
+curid := dbms_sql.open_cursor;
+sql_stmt := 'select employee_id, salary from employees where department_id = :id';
+dbms_sql.parse(curid, sql_stmt, dbms_sql.native);
+dbms_sql.bind_variable(curid, 'id', 'dept_id');
+ret := dbms_sql.execute(curid);
+src_cur := DBMS_SQL.TO_REFCURSOR(curid); --B
+fetch src_cur bulk collect into empids, sal;
+if empids.count > 0 then
+for i in 1..empids.count loop
+dbms_output.put_line(empids(i) || ' ' || sal(i));
+end loop;
+end if;
+close src_cur;
+end;
+/
+
+exec list_sal(50);
+
+Which three lines of code must be added for it to successfully compile?
+A. curid := DBMS_SQL.TO_CURSOR_NUMBER (src_cur);
+***B. src_cur := DBMS_SQL.TO_REFCURSOR (curid);
+C. src_cur= NUMBER;
+***D. curid NUMBER;
+E. curid SYS_FEFCURSOR;
+***F. src_cur SYS_REFCURSOR;
+
+
+--###############################--
+Examine these statements:
+create type tp_rec# as object(col1 number, col2 number);
+/
+create type tp_test# as table of tp_rec#;
+/
+
+declare
+wk# tp_tes#t := tp_test#();
+begin
+for i in 1..100 loop
+wk#(i).col1:=i;
+wk#(i)col2:=i;
+end loop;
+end;
+/
+
+Which two corrections will allow this anonymous block to execute successfully?
+A. Add wk# .NEXT; before the 7th line.
+B. Add i PLS_INTEGER; before the 3rd line.
+***C. Add wk#. EXTEND (1); before the 5th line.
+D. Change line #2 to wk# tp_test# := tp_test# (tp_rec# ());
+***E. Replace lines 5 and 6 with wk# (i) := tp_rec# (i, i);
+
+declare
+wk# tp_test#:= tp_test#();
+begin
+for i in 1..100 loop
+wk#.EXTEND (i);
+wk#(i) := tp_rec#(i, i);
+end loop;
+end;
+/
+
+--###############################--
+Select a valid reason for using VARRAYS.
+A. When the amount of data to be held in the collection is widely variable.
+***B. As a column in a table when you want to retrieve the collection data for certain rows by ranges of values.
+C. When you want to delete elements from the middle of the collection.
+D. As a column in a table when you want to store no more than 10 elements in each row’s collection.
+
+
+CREATE OR REPLACE TYPE num_varray_t AS VARRAY (20) OF NUMBER;
+/
+CREATE TABLE tab_use_va_col( ID NUMBER, NUMBERS num_varray_t);
+/
+
+--###############################--
+Examine this query executed as SYS and its output:
+Which two observations are true based on the output?
+A. The client-side result cache and the server-side result cache are enabled.
+B. All distinct query results are cached for the duration of a SYS user session.
+C. Repetitive SQL queries and PL/SQL function results are cached and automatically used from the cache across all SYS user sessions.
+D. The result cache exists but which SQL queries are cached depends on the value of the RESULT_CACHE_MODE parameter.
+E. Repetitive SQL queries executed on permanent non-dictionary objects may have faster response times.
+
+select DBMS_RESULT_CACHE.STATUS() from dual;
+--
+SHOW PARAMETER RESULT_CACHE_MODE
+--
+
+
+--https://oracle-base.com/articles/11g/query-result-cache-11gr1
+--Set up the following schema objects to see how the SQL query cache works.
+
+CREATE TABLE qrc_tab ( id  NUMBER);
+
+INSERT INTO qrc_tab VALUES (1);
+INSERT INTO qrc_tab VALUES (2);
+INSERT INTO qrc_tab VALUES (3);
+INSERT INTO qrc_tab VALUES (4);
+INSERT INTO qrc_tab VALUES (5);
+
+connect as sys
+grant execute on SYS.DBMS_LOCK to hr;
+
+CREATE OR REPLACE FUNCTION slow_function(p_id  IN  qrc_tab.id%TYPE)
+  RETURN qrc_tab.id%TYPE DETERMINISTIC AS
+BEGIN
+  DBMS_LOCK.sleep(1);
+  RETURN p_id;
+END;
+/
+
+SET TIMING ON
+
+--The function contains a one second sleep so we can easily detect if it has been executed by checking the elapsed time of the query.
+--Test It
+--Query the test table using the slow function and check out the elapsed time. Each run takes approximately five seconds, one second sleep for each row queried.
+
+SELECT slow_function(id) FROM qrc_tab;
+
+Elapsed: 00:00:05.15
+
+--Adding the RESULT_CACHE hint to the query tells the server to attempt to retrieve the information from the result cache. If the information is not present, it will cache the results of the query provided there is enough room in the result cache. Since we have no cached results, we would expect the first run to take approximately five seconds, but subsequent runs to be much quicker.
+SELECT /*+ result_cache */ slow_function(id) FROM qrc_tab;
+
+Elapsed: 00:00:05.20
+
+SELECT /*+ result_cache */ slow_function(id) FROM qrc_tab;
+
+Elapsed: 00:00:00.15
+SQL>
+RESULT_CACHE_MODE
+The default action of the result cache is controlled by the RESULT_CACHE_MODE parameter. When it is set to MANUAL, the RESULT_CACHE hint must be used for a query to access the result cache.
+SHOW PARAMETER RESULT_CACHE_MODE
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+result_cache_mode                    string      MANUAL
+SQL>
+If we set the RESULT_CACHE_MODE parameter to FORCE, the result cache is used by default, but we can bypass it using the NO_RESULT_CACHE hint.
+ALTER SESSION SET RESULT_CACHE_MODE=FORCE;
+
+SELECT slow_function(id) FROM qrc_tab;
+
+Elapsed: 00:00:00.14
+
+SELECT /*+ no_result_cache */ slow_function(id) FROM qrc_tab;
+
+Elapsed: 00:00:05.14
+--
+Scalar Subquery Caching
+The query result cache does not work with scalar subquery caching.
+SELECT (SELECT /*+ result_cache */ slow_function(id) FROM dual) AS result FROM qrc_tab;
+Elapsed: 00:00:05.03
+--
+SELECT (SELECT /*+ result_cache */ slow_function(id) FROM dual) FROM qrc_tab;
+Elapsed: 00:00:05.03
+
+
+--###############################--
+Execute the query:
+SELECT remap_schema FROM dual;
+Which is the correct output from the query?
+
+create or replace function remap_scema return clob is
+h number;
+th number;
+doc clob;
+begin
+h := dbms_metadata.open('TABLE');
+dbms_metadata.set_filter(h, 'SCHEMA', user);
+dbms_metadata.set_filter(h, 'NAME', 'EMPLOYEES');
+th := dbms_metadata.add_transform(h, 'MODIFY');
+dbms_metadata.set_remap_param(th, 'REMAP_SCHEMA', user, null);
+dbms_metadata.set_remap_param(th, 'REMAP_TABLESPACE', 'USERS', 'SYSAUX');
+th := dbms_metadata.add_transform(h, 'DDL');
+dbms_metadata.set_transform_param(th, 'SEGMENT_ATTRIBUTES', false);
+doc := dbms_metadata.fetch_clob(h);
+dbms_metadata.CLOSE(h);
+return doc;
+end remap_scema;
+
+select remap_scema() from dual; 
+
+
+A. CREATE TABLE "EMP" ("EMPNO" NUMBER (4,0), "ENAME" VARCHAR2 (10), "JOB" VARCHAR2 (9), "MGR" NUMBER (4,0), "HIREDATE" DATE, "SAL"
+NUMBER (7,2) , "COMM" NUMBER (7,2), "DEPTNO" NUMBER (2,0),
+CONSTRAINT "PK_EMP" PRIMARY KEY ("EMPNO")
+USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255
+STORAGE (INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2417483645
+PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1
+BUFFER_POOL DEFAULT FLASH_CHACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+TABLESPACE "USERS" ENABLE,
+CONSTRAINT "FK_DEPTNO" FOREIGN KEY ("DEPTNO")
+REFERENCES "DEPT" ("DEPTNO") ENABLE
+) SEGMENT CREATION IMMEDIATE
+PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+NOCOMPRESS LOGGING
+STORAGE (INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1
+BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+TABLESPACE "USERS"
+
+***B. CREATE TABLE "EMP" ("EMPNO" NUMBER (4, 0), "ENAME" VARCHAR2 (10), "JOB" VARCHAR2 (9), "MGR" NUMBER (4, 0), "HIREDATE" DATE, "SAL"
+NUMBER (7, 2), "COMM" NUMBER (7, 2), "DEPTNO" NUMBER (2, 0), CONSTRAINT "PK_EMP" PRIMARY KEY ("EMPNO")
+USING INDEX ENABLE,
+CONSTRAINT "FK_DEPTNO" FOREIGN KEY ("DEPTNO")
+REFERENCES "DEPT" ("DEPTNO") ENABLE)
+
+C. CREATE TABLE "SCOTT". "EMP" ("EMPNO" NUMBER (4, 0), "ENAME" VARCHAR2 (10), "JOB" VARCHAR2 (9), "MGR" NUMBER (4, 0), "HIREDATE"
+DATE, "SAL" NUMBER (7, 2), "COMM" NUMBER (7, 2), "DEPTNO" NUMBER (2, 0), CONSTRAINT "PK_EMP" PRIMARY KEY ("EMPNO")
+USING INDEX ENABLE,
+CONSTRAINT "FK_DEPTNO" FOREIGN KEY ("DEPTNO")
+REFERENCES "DEPT" ("DEPTNO") ENABLE)
+
+D. CREATE TABLE "EMP" ("EMPNO" NUMBER (4,0), "ENAME" VARCHAR2 (10), "JOB" VARCHAR2 (9), "MGR" NUMBER (4,0), "HIREDATE" DATE, "SAL"
+NUMBER (7, 2) , "COMM" NUMBER (7, 2), "DEPTNO" NUMBER (2,0),
+CONSTRAINT "PK_EMP" PRIMARY KEY ("EMPNO")
+USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255
+STORAGE (INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2417483645
+PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1
+BUFFER_POOL DEFAULT FLASH_CHACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+TABLESPACE "SYSAUX" ENABLE,
+CONSTRAINT "FK_DEPTNO" FOREIGN KEY ("DEPTNO")
+REFERENCES "DEPT" ("DEPTNO") ENABLE
+) SEGMENT CREATION IMMEDIATE
+PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255
+NOCOMPRESS LOGGING
+STORAGE (INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1
+BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT) TABLESPACE "SYSAUX"
+
+--###############################--
+The anonymous block fails with:
+
+declare
+type databuf_arr is table of clob index by binary_integer;
+pdatabuf databuf_arr;
+begin
+dbms_lob.createtemporary(pdatabuf(1), true, dbms_lob.session);
+end;
+/
+
+ERROR at line 1:
+ORA-01403: no data found ORA-06512: at line 5
+Which two are valid options to prevent this error from occurring?
+
+
+A. Line 5 should be replaced with:
+DBMS_LOB.CREATETEMPORARY (pdatabuf (1), TRUE, DBMS_LOB.CALL);
+
+B. Line 5 should be replaced with:
+DBMS_LOB.CREATETEMPORARY (pdatabuf (1), FALSE, DBMS_LOB.SESSION);
+
+***C. Rewrite the block as:
+DECLARE
+TYPE databuf_arr IS TABLE OF CLOB INDEX BY BINATY_INTEGER; pdatabuf databuf_arr;
+PROCEDURE mytemplob (x OUT CLOB) IS
+BEGIN
+DBMS_LOB.CREATETEMPORARY (x, TRUE, DBMS_LOB, SESSION);
+END; BEGIN mytemplob (pdatabuf (1));
+END;
+/
+
+***D. pdatabuf (1) := NULL; --should be added after line 4.
+
+E. Line 5 should be replaced with:
+DBMS_LOB.CREATETEMPORARY (pdatabuf, TRUE, DBMS_LOB.SESSION);
+
+–-C
+DECLARE
+TYPE databuf_arr IS TABLE OF CLOB INDEX BY BINArY_INTEGER;
+pdatabuf databuf_arr;
+PROCEDURE mytemplob (x OUT CLOB) IS
+BEGIN
+DBMS_LOB.CREATETEMPORARY (x, TRUE, DBMS_LOB.SESSION);
+END;
+BEGIN
+mytemplob (pdatabuf (1));
+END;
+/
+–-D
+declare
+type databuf_arr is table of clob index by binary_integer;
+pdatabuf databuf_arr;
+begin
+pdatabuf (1) := NULL; -- d
+dbms_lob.createtemporary(pdatabuf(1), true, dbms_lob.session); -- def
+end;
+/
+--###############################--
+Examine this block of code used to calculate the price increase for all the productivity by 1% and then by 2%.
+set serveroutput on
+DECLARE
+incr_percent NUMBER :=.01;
+CURSOR pdt_cur IS
+SELECT prod_name, (prod_min_price*incr_percent) inc FROM pdts;
+BEGIN
+FOR pdt_rec IN pdt_cur
+LOOP
+DBMS_OUTPUT.PUT_LINE('PROD NAME '||pdt_rec.prod_name || ' PRICE INCREMENT AMT '|| pdt_rec.inc);
+incr_percent := incr_percent + .01;
+END LOOP;
+END;
+
+What will be the outcome on execution?
+***A. It will give an error because the calculated column in the cursor is not using a column alias in this block.
+B. It will go into an endless loop because the loop exist condition is missing.
+C. It will display the price increase by 1% only for all the products.
+D. It will display the price increase by 1% only for the first product.
+E. It will give an error because PDT_REC is not declared.
+
+
+--###############################--
+You created a PL/SQL function with the RESULT_CACHE clause, which calculates a percentage of total marks for each student by querying the MARKS table.
+Under which two circumstances will the cache for this function not be used and the function body be executed instead?
+***A. When a user fixes incorrect marks for a student, with an update to the MARKS table, and then executes the function in the same session
+B. When the amount of memory allocated for the result cache is increased
+C. When the function is executed in a session frequently with the same parameter value
+***D. When the database administrator disables the result cache during ongoing application patching
+E. When the maximum amount of server result cache memory that can be used for a single result is set to 0.
+
+--E is not valid because this parameter range is from 1 to 100, so it is not possible to set it to 0
 --###############################--
 
 --###############################--
@@ -737,10 +1160,3 @@ end;
 --###############################--
 
 --###############################--
-
---###############################--
-
---###############################--
-
---###############################--
-

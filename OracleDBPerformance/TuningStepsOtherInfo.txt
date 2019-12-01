@@ -250,3 +250,9 @@ The End • http://carlos-sierra.net/
 • carlos.sierra.usa@gmail.com 
     – Questions and follow-up 
 • SQL Tuning is more about understanding what your eyes see at first
+
+
+--------------------
+
+Insights into Statistics, Query Optimization and the Oracle Optimizer
+https://blogs.oracle.com/optimizer/

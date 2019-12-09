@@ -39,7 +39,7 @@ alter session set container=orclpdb1;
 What is the reason for this error?
 A. The procedure needs to be granted the DYNAMIC_TABLE_ROLE role.
 B. The EXECUTE IMMEDIATE clause is not supported with roles.
-*** C. Privileges granted through roles are never in effect when running definer?s rights procedures.
+*** C. Privileges granted through roles are never in effect when running definer's rights procedures.
 D. The user SPIDER needs to be granted the CREATE TABLE privilege and the procedure needs to be granted the DYNAMIC_TABLE_ROLE.
 */
 
@@ -58,6 +58,7 @@ set role dynamic_table_role;
 exec dproc;
 
 --###############################--
+Examine the following SQL statement:
 ALTER SESSION SET PLSQL_OPTIMIZE_LEVEL=3;
 /*
 What is the result of executing this statements?
@@ -80,12 +81,12 @@ end;
 /
 
 Which two will be correct after line 5?
-A . va. LAST and va. LIMIT will return the same value.
-***B . va. LAST and va. COUNT will return the same value.
-C . va. LIMIT and va. COUNT will return the same value.
-D . va. LIMIT and va. NEXT (199) will return the same value.
-E . va. LAST will return 200.
-***F . va. NEXT (199) will return NUL
+A. va.LAST and va.LIMIT will return the same value.
+***B. va.LAST and va.COUNT will return the same value.
+C. va.LIMIT and va.COUNT will return the same value.
+D. va.LIMIT and va.NEXT (199) will return the same value.
+E. va.LAST will return 200.
+***F. va.NEXT (199) will return NUL
 --###############################--
 The STUDENTS table exists in your schema.
 
@@ -515,31 +516,27 @@ Examine this PL/SQL package AS
 Which two definitions of totalEmp () result in an implicit conversion by Oracle Database on executing this PL/SQL block?
 A. CREATE FUNCTION totalEmp (sal IN NUMBER) RETURN NUMBER IS total NUMBER :=0;
 BEGIN
-"¦
+
 RETUNRN total;
 END;
 /
 B. CREATE FUNCTION totalEmp (sal IN NUMBER) RETURN NUMBER IS total NUMBER :=0;
 BEGIN
-"¦
 RETUNRN total;
 END;
 /
 C. CREATE FUNCTION totalEmp (sal IN PLS_INTEGER) RETURN NUMBER IS total NUMBER :=0;
 BEGIN
-"¦
 RETUNRN total;
 END;
 /
 D. CREATE FUNCTION totalEmp (sal IN BINARY_FLOAT) RETURN NUMBER IS total NUMBER :=0;
 BEGIN
-"¦
 RETUNRN total;
 END;
 /
 E. CREATE FUNCTION totalEmp (sal IN POSITIVEN) RETURN NUMBER IS total NUMBER :=0;
 BEGIN
-"¦
 RETUNRN total;
 END; 
 /
@@ -1153,6 +1150,287 @@ C. When the function is executed in a session frequently with the same parameter
 E. When the maximum amount of server result cache memory that can be used for a single result is set to 0.
 
 --E is not valid because this parameter range is from 1 to 100, so it is not possible to set it to 0
+--###############################--
+
+QUESTION 4
+Which statement is true about the DBMS_PARALLEL_EXECUTE package?
+A. DBMS_PARALLEL_EXECUTE is a SYS-owned package and can be accessed only by a user with DBA
+privileges.
+B. To execute chunks in parallel, users must have CREATE JOB system privilege.
+C. No specific system privileges are required to create or run parallel execution tasks.
+D. Only DBAs can create or run parallel execution tasks.
+E. Users with CREATE TASK privilege can create or run parallel execution tasks.
+Correct Answer: B
+Section: (none)
+Explanation
+Explanation/Reference:
+Reference https://docs.oracle.com/cd/E11882_01/appdev.112/e40758/d_parallel_ex.htm#ARPLS67331
+(security model)
+
+--###############################--
+QUESTION 5
+Which two statements are true regarding edition-based redefinition (EBR)?
+A. There is no default edition defined in the database.
+B. EBR does not let you upgrade the database components of an application while in use.
+C. You never use EBR to copy the database objects and redefine the copied objects in isolation.
+D. Editions are non-schema objects.
+E. When you change an editioned object, all of its dependents remain valid.
+F. Tables are not editionable objects.
+
+Correct Answer: EF
+Section: (none)
+Explanation
+Explanation/Reference:
+Reference: https://docs.oracle.com/cd/E11882_01/appdev.112/e41502/adfns_editions.htm#BABEHGAF
+
+--###############################--
+QUESTION 6
+Which two blocks of code execute successfully?
+A. DECLARE
+SUBTYPE new_one IS BINARY_INTERGER RANGE 0..9;
+my_val new_one;
+BEGIN
+my_val :=0;
+END;
+B. DECLARE
+SUBTYPE new_string IS VARCHAR2 (5) NOT NULL;
+my_str_new_string;
+BEGIN
+my_str := ‘abc’;
+END;
+C. DECLARE
+SUBTYPE new_one IS NUMBER (2, 1);
+my_val new_one;
+BEGIN
+my_val :=12.5;
+END;
+D. DECLARE
+SUBTYPE new_one IS INTEGER RANGE 1..10 NOT NULL;
+my_val new_one;
+BEGIN
+my_val :=2;
+END;
+E. DECLARE
+SUBTYPE new_one IS NUMBER (1, 0);
+my_val new_one;
+BEGIN
+my_val := -1;
+END;
+Correct Answer: AD
+Section: (none)
+Explanation
+Explanation/Reference:
+
+
+--###############################--
+QUESTION 11
+Examine this function header:
+FUNCTION calc_new_sal (emp_id NUMBER) RETURN NUMBER;
+You want to ensure that whenever this PL/SQL function is invoked with the same parameter value across
+active sessions, the result is not recomputed.
+If a DML statement is modifying a table which this function depends upon, the function result must be
+recomputed at that point in time for all sessions calling this function.
+
+Which two actions should you perform?
+A. Ensure RESULT_CACHE_MAX_SIZE is greater than 0.
+B. Enable the result cache by using DBMS_RESULT_CACHE.BYPASS (FALSE).
+C. Add the deterministic clause to the function definition.
+D. Add the RELIES_ON clause to the function definition.
+E. Add the RESULT_CACHE clause to the function definition.
+Correct Answer: AC
+
+--###############################--
+With SERVEROUTPUT enabled, you succesfully create the package YEARLY_LIST:
+
+CREATE PACKAGE yearly_list IS
+    TYPE list1 IS TABLE OF VRCHAR2(20) INDEX BY PLS_INTEGER;
+    FUNCTION init_list1 RETURN list1;
+END yearly_list;
+/
+
+CREATE PACKAGE BODY yearly_list IS
+    FUNCTION init_list1 RETURN list1 IS
+    create_list list1;
+    BEGIN
+      create_list(1):= 'Jan';
+      create_list(3):= 'Feb';
+      create_list(6):= 'Mar';
+      create_list(8):= 'Apr';
+      RETURN create_list;
+    END init_list1;
+END yearly_list;
+/
+
+Examine this code:
+
+DECLARE 
+    v_yrl yearly_list.create_list();
+    location NUMBER :=1;
+BEGIN
+    WHILE location IS NOT NULL LOOP
+        DBMS_OUTPUT.PUT_LINE(v_yrl(location));
+        location := v_yrl.NEXT;
+    END LOOP;
+END;    
+/
+
+  
+You want to display the contents of CREATE_LIST.
+Which two lines need to be corrected in the PL/SQL block?
+A. Line 2
+B. Line 3
+C. Line 5
+D. Line 6
+E. Line 7
+Correct Answer: AE
+--###############################--
+QUESTION 16
+Examine this code:
+What is the correct statement to get the value of attribute ACCOUNT_MGR after the procedure has been
+executed?
+A. SELECT USERENV (‘ACCOUNT_MGR’) FROM dual;
+B. SELECT SYS_CONTEXT (‘USERENV’, ‘ACCOUNT_MGR’) FROM dual;
+C. SELECT SYS_CONTEXT (‘ORDER_CTX’, ‘ACCOUNT_MGR’) FROM dual;
+D. SELECT SYS_CONTEXT (‘ACCOUNT_MGR’, ‘ORDER_CTX’) FROM dual;
+E. SELECT USERENV (‘ORDER_CTX’) FROM dual;
+Correct Answer: B
+--###############################--
+QUESTION 17
+Which data dictionary view contains the list of procedures and functions defined within package specification
+that you can execute?
+
+A. ALL_SOURCE
+B. ALL_DEPENDENCIES
+C. ALL_OBJECTS
+D. ALL_PROCEDURES
+E. ALL_PLSQL_OBJECT_SETTINGS
+
+Correct Answer: D
+--###############################--
+Examine this code:
+
+CREATE FUNCTION emp_policy_fn (v_schema IN VARCHAR2, v_objname IN VARCHAR2)
+RETURN VARCHAR2 AS
+    con VARCHAR2(200);
+BEGIN
+  con:= 'depno=30';
+  RETURN con;
+END emp_policy_fn;
+/
+
+BEGIN
+DBMS_RLS.ADD_POLICY(
+  object_schema => 'scott',
+  object_name => 'emp',
+  policy_name => 'emp_policy',
+  policy_function => 'emp_policy_fn',
+  update_cheek => TRUE,
+  statement_types => 'SELECT,UPDATE',
+  sec_relevant_cols => 'sal,comm');
+END;
+/
+
+Examine this DML statement executed in the SCOTT schema:
+UPDATE emp SET comm = 1000 WHERE deptno= 20;
+
+What is the outcome after executing this statement?
+A. COMM is set to 1000 for all records in the EMP table where DEPTNO = 30.
+B. The statement executes successfully but no rows are updated.
+C. COMM is set to 1000 for all records in the EMP table where DEPTNO=20.
+D. The statement fails with error ORA-28115: policy with check option violation.
+
+Correct Answer: D
+
+--###############################--
+QUESTION 19
+Identify the two correct scenarios where a function can be optimized using the function result cache feature.
+A. A function which inserts multiple records into a DEPARTMENTS table as part of one-time data setup for an
+HR application.
+B. A function which accesses multiple tables and calculates the commission to be given to a sales
+representative based on the number of products sold by that representative.
+C. A function which deletes all the records from an EMPLOYEES_AUDIT table based on their LOG_DATE.
+D. A function which updates the SALARY of all the employees in an EMPLOYEES table by a fixed percentage
+based on their DESIGNATION.
+E. A function which calculates the factorial of a given number without accessing any table.
+
+Correct Answer: DE
+
+--###############################--
+QUESTION 20
+Select the correct statement regarding BEQUEATH CURRENT_USER.
+A. If a view references a PL/SQL function then BEQUEATH CURRENT_USER allows the function to execute
+with DBA privileges, regardless of the invoking user’s privileges.
+B. The BEQUEATH CURRENT_USER clause allows invoker’s rights functions referenced in a view to
+execute with the privileges of the invoking user.
+C. Any view calling a PL/SQL function with BEQUEATH CURRENT_USER in effect will execute with the
+privileges of the function owner.
+D. With the BEQUEATH CURRENT_USER clause, a definer’s rights function referenced in a view executes
+with the privileges of the view owner, not the function owner.
+
+Correct Answer: B
+Explanation/Reference:
+Reference: https://docs.oracle.com/database/121/DBSEG/dr_ir.htm#DBSEG558
+--###############################--
+QUESTION 21
+Which tablespace is used to store the data collected by PL/Scope?
+A. UNDOTBS1
+B. SYSAUX
+C. SYSTEM
+D. TEMP
+E. USERS
+
+Correct Answer: B
+Explanation/Reference:
+Reference: https://docs.oracle.com/cd/B28359_01/appdev.111/b28424/adfns_plscope.htm#BABDGJAF
+--###############################--
+QUESTION 22
+Which must be true in order to add RESULT_CACHE to a function header and have it compile successfully?
+A. The IN parameters must not include BLOB, CLOB, collection or record data types.
+B. The function must be created with invoker’s rights or in an anonymous block.
+C. The function must be declared as a pipelined table function.
+D. The function must have an OUT or an IN OUT parameter.
+Correct Answer: A
+Section: (none)
+VCEConvert.com
+Explanation
+Explanation/Reference:
+Reference: https://docs.oracle.com/cd/E18283_01/appdev.112/e17126/subprograms.htm#insertedID11
+
+--###############################--
+QUESTION 23
+Which two statements are true with respect to fine-grained access control?
+A. It is implemented by end users.
+B. It can be used to implement column masking.
+C. It implements security rules through functions and associates these security rules with tables, views or
+synonyms.
+D. Separate policies are required for queries versus INSERT/UPDATE/DELETE statements.
+E. The DBMS_FGA package is used to set up fine-grained access control.
+
+Correct Answer: CD
+Explanation/Reference:
+Reference: https://docs.oracle.com/cd/B19306_01/server.102/b14220/security.htm
+--###############################--
+DECLARE 
+    TYPE ntb1 IS TABLE OF VARCHAR2(20);
+    v1 ntb1:=ntb1('hello', 'word', 'test');
+    TYPE ntb1 IS TABLE OF ntb1 INDEX BY PLS_INTEGER;
+    v3 ntb2;
+BEGIN
+v3(31):=ntb1(4,5,6);
+v3(32):=v1;
+v3(33):=ntb1(2,5,1);
+v3(31):=ntb1(1,1);
+v3.DELETE;
+END;
+/
+
+Which two statements are correct about the collections before v3. DELETE is executed?
+A. The values of v3(31) (2) and v3 (33) (2) are identical.
+B. The value of v3 (31) (3) is 6.
+C. The value of v3 (31) (1) and v3 (33) (3) are identical,
+D. The value of v3 (31) (1) is “hello”.
+E. The values of v3 (32) (2) and v1 (2) are identical.
+Correct Answer: CE
 --###############################--
 
 --###############################--

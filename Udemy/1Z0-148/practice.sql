@@ -1432,9 +1432,191 @@ D. The value of v3 (31) (1) is “hello”.
 E. The values of v3 (32) (2) and v1 (2) are identical.
 Correct Answer: CE
 --###############################--
+Which two statements are true about the DBMS_LOB package?
+A. DBMS_LOB.COMPARE can compare parts of two LOBs.
+B. DBMS_LOB.COMPARE returns the size difference of the compared LOBs.
+C. DBMS_LOB.COMPARE is overloaded and can compare CLOBs with BLOBs.
+D. If the destination LOB is a temporary LOB, the row must be locked before calling
+DBMS_LOB.CONVERTTOBLOB.
+E. Before calling DBMS_LOB.CONVERTTOBLOB, both the source and destination LOB instances must exist.
+
+Correct Answer: AE
+Explanation/Reference:
+Reference: https://docs.oracle.com/cd/B19306_01/appdev.102/b14258/d_lob.htm#BABDDFD
+--###############################--
+The STUDENTS table with column LAST_NAME of data type VARCHAR2 exists in your database schema.
+Examine this PL/SQL block:
+
+DECLARE
+    CURSOR name_cur IS
+        SELECT last_name FROM students WHERE last_name LIKE 'A%';
+    TYPE l_name_type IS VARRAY(25) OF students.last_name%TYPE;
+    names_varray l_name_type;
+    v_index INTEGER:=0;
+BEGIN
+    FOR name_rec IN name_cur LOOP
+        v_index:=v_index+1;
+        names_varray()v_index):=name_rec.last_name;
+        DBMS_OUTPUT.PUT_LINE(names_varray(v_index));
+     END LOOP;
+AND;
+
+Which two actions must you perform for this PL/SQL block to execute successfully?
+A. Replace the FOR loop with FOR name_rec IN names_varray.FIRST .. names_varray.LAST LOOP.
+B. Replace the L_NAME_TYPE declaration with TYPE 1_name_type IS VARRAY (25) OF
+SYS_REFCURSOR;
+C. Add name_rec name_cur%ROWTYPE; at the end of the DECLARE section.
+D. Replace the NAMES_VARRAY declaration with names_varray 1_name_type := 1_name_type ();
+E. Replace the NAMES_VARRAY declaration with names_varray 1_name_type := null;
+F. Add names_varray.EXTEND after the FOR …LOOP statement.
+Correct Answer: EF
+
+--###############################--
+Which two blocks of code execute successfully?
+A. DECLARE
+TYPE tab_type IS TABLE OF NUMBER;
+my_tab tab_type;
+BEGIN
+my_tab (1) :=1;
+END;
+B. DECLARE
+TYPE tab_type IS TABLE OF NUMBER;
+my_tab tab_type := tab_type(2);
+BEGIN
+my_tab(1) :=55;
+END;
+C. DECLARE
+TYPE tab_type IS TABLE OF NUMBER;
+my_tab tab_type;
+BEGIN
+my_tab. EXTEND (2);
+my_tab (1) := 55;
+END;
+D. DECLARE
+TYPE tab_type IS TABLE OF NUMBER;
+my_tab tab_type;
+BEGIN
+my_tab := tab_type ();
+my_tab (1) := 55;
+END;
+E. DECLARE
+TYPE tab_type IS TABLE OF NUMBER
+my_tab tab_type := tab_type (2, NULL, 50);
+BEGIN
+my_tab.EXTEND (3, 2);
+END;
+
+Correct Answer: BD
+--###############################--
+Examine this code:
+CREATE FUNCTION invoice_date RETURN VARCHAR2
+RESULT_CACHE AUTHID DEFINER
+l_date VARCHAR2(50);
+BEGIN
+l_date := SYSDATE;
+RETURN l_date;
+END;
+
+Users of this function may set different date formats in their sessions.
+Which two modifications must be made to allow the use of your session’s date format when outputting the
+cached result of this function?
+A. Change the RETURN type to DATE.
+B. Change AUTHID to CURRENT_USER.
+C. Use the TO_CHAR function around SYSDATE, that is, 1_date := TO_CHAR (SYSDATE).
+D. Change the data type of 1_date to DATE.
+E. Set NLS_DATE_FORMAT to ‘DD-MM-YY’ at the instance level.
+F. Set the RESULT_CACHE_MODE parameter to FORCE.
+
+Correct Answer: AB
+
+--###############################--
+Which statement is true about internal and external LOBs?
+A. An external LOB can be loaded into an internal LOB variable using the DBMS_LOB package.
+B. A NOEXIST_DIRECTORY exception can be raised when using internal and external LOBs.
+C. Internal and external LOBs can be written using DBMS_LOB.
+D. After an exception transfers program control outside a PL/SQL block, all references to open external LOBs
+are lost.
+E. When using DBMS_LOB.INSTR for internal and external LOBs, DBMS_LOB.OPEN should be called for
+each LOB.
+
+Correct Answer: DE
+
+Explanation/Reference:
+Reference: https://docs.oracle.com/cd/E18283_01/appdev.112/e16760/d_lob.htm
+--###############################--
+Which two statements about the PL/SQL hierarchical profiler are true?
+A. Access it using the DBMS_PROFILER package.
+B. Access it using the DBMS_HPROF package.
+C. Profiler data is recorded in tables and published in HTML reports.
+D. It is only accessible after a grant of the CREATE PROFILE privilege.
+E. It helps you identify subprograms that are causing bottlenecks in application performance.
+Correct Answer: BE
+
+Explanation/Reference:
+Reference: https://docs.oracle.com/cd/B28359_01/appdev.111/b28370/tuning.htm#LNPLS01214
+--###############################--
+QUESTION 31
+Examine this Java method in class Employee, loaded into the Oracle database:
+Public static int updateSalary (String name, float salary) {…}
+Which PL/SQL specification can be used to publish this method?
+A. CREATE FUNCTION update_salary (p_nm VARCHAR2, p_sal NUMBER)
+RETURN PLS_INTEGER AS LANGUAGE JAVA
+LIBRARY “Employee” NAME “updateSalary”
+PARAMETERS (p_nm java.lang. String, p_sal float, RETURN int);
+B. CREATE FUNCTION update_salary (p_nm VARCHAR2, p_sal NUMBER)
+RETURN PLS_INTEGER AS LANGUAGE JAVA
+NAME “Employee.updateSalary”
+PARAMETERS (p_nm java.lang.String, p_sal float, RETURN int);
+C. CREATE FUNCTION update_salary (p_nm VARCHAR2, p_sal NUMBER)
+RETURN PLS_INTEGER AS LANGUAGE JAVA
+NAME “Employee.updateSalary”
+PARAMETERS (“name” java.lang.String, “salary” float, RETURN int);
+D. CREATE FUNCTION update_salary (p_nm VARCHAR2, p_sal NUMBER)
+RETURN PLS_INTEGER AS LANGUAGE JAVA
+NAME ‘Employee.updateSalary (java.lang.String, float) return int’;
+E. CREATE FUNCTION update_salary (p_nm VARCHAR2, p_sal NUMBER)
+RETURN PLS_INTEGER AS LANGUAGE JAVA
+NAME ‘int Employee.updateSalary (java.lang.String, float)’;
+
+Correct Answer: D
+--###############################--
+
+--###############################--
+
+--###############################--
 
 --###############################--
 
 --###############################--
 
 --###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+--###############################--
+
+
